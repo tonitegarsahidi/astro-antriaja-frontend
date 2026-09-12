@@ -22,3 +22,35 @@ export async function occupyCounter(counterId: string): Promise<ApiResponse<Coun
 export async function releaseCounter(counterId: string): Promise<ApiResponse<null>> {
   return httpClient.post<null>(`/counters/${counterId}/release`);
 }
+
+/**
+ * Membuat loket fisik baru beserta penugasan layanan awal (khusus admin).
+ */
+export async function createCounter(
+  req: import('../types/master.types').CreateCounterRequest
+): Promise<ApiResponse<CounterResponse>> {
+  return httpClient.post<CounterResponse>('/counters', req);
+}
+
+/**
+ * Memperbarui data meja loket fisik (khusus admin).
+ */
+export async function updateCounter(
+  counterId: string,
+  req: import('../types/master.types').UpdateCounterRequest
+): Promise<ApiResponse<CounterResponse>> {
+  return httpClient.put<CounterResponse>(`/counters/${counterId}`, req);
+}
+
+/**
+ * Mengatur pemetaan relasi multi-layanan (M:N) pada loket fisik (khusus admin).
+ */
+export async function assignServices(
+  counterId: string,
+  serviceIds: string[]
+): Promise<ApiResponse<null>> {
+  return httpClient.put<null>(`/counters/${counterId}/services`, {
+    service_ids: serviceIds,
+  });
+}
+

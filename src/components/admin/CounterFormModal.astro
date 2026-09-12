@@ -1,0 +1,119 @@
+---
+/**
+ * Modal Form Tambah / Edit Meja Loket Fisik dan Penugasan Layanan M:N
+ */
+---
+
+<div
+  id="counter-form-modal"
+  class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="counter-modal-title"
+>
+  <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
+    <!-- Header -->
+    <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div>
+          <h3 id="counter-modal-title" class="text-base font-bold text-slate-900">
+            Loket Fisik
+          </h3>
+          <p id="counter-modal-subtitle" class="text-xs text-slate-500">
+            Atur konfigurasi nomor loket dan alokasi layanan yang ditangani
+          </p>
+        </div>
+      </div>
+      <button
+        id="btn-close-counter-modal"
+        type="button"
+        class="text-slate-400 hover:text-slate-600 rounded-lg p-1.5 hover:bg-slate-100 transition-colors"
+      >
+        <span class="sr-only">Tutup</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Form Content -->
+    <form id="counter-form" class="p-6 space-y-4">
+      <input type="hidden" id="counter-id-hidden" value="" />
+
+      <!-- Counter Number & Name -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label for="input-counter-number" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+            Nomor Loket <span class="text-rose-500">*</span>
+          </label>
+          <input
+            id="input-counter-number"
+            name="counter_number"
+            type="number"
+            min="1"
+            max="99"
+            required
+            placeholder="1"
+            class="w-full px-3.5 py-2 text-sm font-bold text-center rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+          />
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="input-counter-name" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+            Nama / Keterangan Loket <span class="text-rose-500">*</span>
+          </label>
+          <input
+            id="input-counter-name"
+            name="name"
+            type="text"
+            required
+            placeholder="Contoh: Loket 1 - Teller Utama"
+            class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+          />
+        </div>
+      </div>
+
+      <!-- Services Assignment (M:N) -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+          Layanan yang Ditangani (M:N)
+        </label>
+        <p class="text-[11px] text-slate-500 mb-2">Pilih kategori layanan yang boleh dipanggil oleh staf pada loket ini:</p>
+        
+        <div
+          id="counter-services-selection"
+          class="max-h-48 overflow-y-auto space-y-2 p-3 bg-slate-50 rounded-xl border border-slate-200"
+        >
+          <!-- Dynamic checkboxes loaded via client script -->
+          <div class="text-xs text-slate-400 italic text-center py-2">Memuat daftar layanan...</div>
+        </div>
+      </div>
+
+      <!-- Feedback Error -->
+      <div id="counter-form-error" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200"></div>
+
+      <!-- Footer Buttons -->
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-3">
+        <button
+          id="btn-cancel-counter"
+          type="button"
+          class="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors cursor-pointer"
+        >
+          Batal
+        </button>
+        <button
+          id="btn-save-counter"
+          type="submit"
+          class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center space-x-1.5"
+        >
+          <span>Simpan Loket</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

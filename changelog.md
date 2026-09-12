@@ -65,6 +65,22 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
     - `StaffReleaseModal.astro`: Modal konfirmasi pelepasan loket dengan pesan proteksi tiket aktif (`COUNTER_STILL_BUSY`).
   - Pembuatan halaman `src/pages/staff/login.astro` untuk login kredensial staf berbasis JWT token dan penyimpanan session storage.
   - Pembuatan halaman operasional `src/pages/staff/index.astro` dengan sinkronisasi realtime SSE multi-event (`TICKET_CREATED`, `TICKET_CALLED`, `TICKET_SERVING`, `TICKET_HOLD`, `TICKET_TRANSFERRED`, `TICKET_COMPLETED`, `COUNTER_STATUS_CHANGED`, `QUEUE_RESET`), penanganan error status `409 Conflict`, dan stopwatch otomatis.
-  - Penambahan 5 automated test suite baru (total 130 tests PASS 100% di 23 test files) serta Astro static production build sukses.
+- **Fase 6: Panel Administrasi Cabang (`/admin`):**
+  - Implementasi service client `src/services/serviceService.ts` untuk manajemen master layanan antrian (`listServices`, `getService`, `createService`, `updateService`, `deleteService`).
+  - Penambahan method admin pada `src/services/counterService.ts` untuk registrasi loket baru (`createCounter`), pembaruan loket (`updateCounter`), dan pemetaan relasi multi-layanan M:N (`assignServices`).
+  - Penambahan method admin pada `src/services/displayService.ts` untuk pengambilan konfigurasi (`getDisplaySettings`) dan pembaruan pengaturan TV Display (`updateDisplaySettings`).
+  - Pembuatan service client `src/services/adminService.ts` untuk eksekusi reset darurat antrian harian (`resetQueue`).
+  - Pembuatan master layout `src/layouts/AdminLayout.astro` dilengkapi sidebar navigasi 4 menu, RBAC role guard (`admin`), trigger reset antrian darurat global, dan logout.
+  - Pembuatan modal interaktif di `src/components/admin/`:
+    - `ResetConfirmModal.astro`: Modal konfirmasi darurat reset antrian dengan proteksi ketik "RESET" sebelum tombol eksekusi aktif.
+    - `ServiceFormModal.astro`: Modal form tambah/edit layanan (nama, prefix kode 1-2 huruf kapital, estimasi durasi, toggle aktif).
+    - `CounterFormModal.astro`: Modal form tambah/edit loket fisik dengan pemilihan multi-layanan (M:N checkboxes).
+  - Pembuatan halaman panel administrasi di `src/pages/admin/`:
+    - `login.astro`: Form login admin dengan proteksi RBAC role `admin` dan pembatasan rate limit.
+    - `index.astro`: Dashboard statistik ringkas cabang (total layanan, loket terdaftar, staf bertugas, tiket menunggu) dan navigasi cepat.
+    - `services.astro`: Tabel master layanan dengan aksi tambah, edit, dan nonaktifkan (lengkap dengan penanganan error `SERVICE_STILL_HAS_ACTIVE_TICKETS` dan `PREFIX_ALREADY_EXISTS`).
+    - `counters.astro`: Grid master loket fisik dengan daftar layanan yang ditangani, status operasional, dan modal penugasan M:N (penanganan error `COUNTER_NUMBER_ALREADY_EXISTS`).
+    - `display.astro`: Form konfigurasi TV Display (running text, jenis media promo, URL media, toggle suara panggilan) dilengkapi Live Preview monitor TV interaktif.
+  - Penambahan 6 automated test suites baru (total 154 tests PASS 100% di 29 test files) dan verifikasi sukses `npm run check`, `npm test`, serta `npm run build` (11 static pages).
 
 

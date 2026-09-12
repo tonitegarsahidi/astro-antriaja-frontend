@@ -1,0 +1,302 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Pengaturan Display TV - AntriAja" activePage="display">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900 tracking-tight">
+          Pengaturan Tampilan Smart TV
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">
+          Konfigurasikan teks berjalan, media promosi/video, dan panggilan suara untuk layar monitor ruang tunggu
+        </p>
+      </div>
+
+      <div>
+        <a
+          id="link-open-tv"
+          href="/display"
+          target="_blank"
+          class="inline-flex items-center px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-2xs transition-all space-x-1.5"
+        >
+          <span>Buka Layar Display TV</span>
+          <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Alert / Toast Banner -->
+    <div id="display-page-alert" class="hidden p-4 rounded-xl text-xs font-semibold"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Form Settings (7 cols) -->
+      <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-2xs p-6">
+        <form id="display-settings-form" class="space-y-5">
+          <!-- Running Text -->
+          <div>
+            <label for="input-running-text" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+              Teks Berjalan (Running Text)
+            </label>
+            <textarea
+              id="input-running-text"
+              name="running_text"
+              rows="3"
+              placeholder="Selamat datang di cabang kami. Harap menunggu dengan tertib sesuai nomor antrian Anda."
+              class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            ></textarea>
+            <p class="text-[11px] text-slate-400 mt-1">
+              Pesan informasi yang akan berjalan di bagian bawah layar Smart TV secara berulang.
+            </p>
+          </div>
+
+          <!-- Media Type & URL -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="select-media-type" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                Tipe Media Promosi
+              </label>
+              <select
+                id="select-media-type"
+                name="media_type"
+                class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              >
+                <option value="none">Tanpa Media (Kosong)</option>
+                <option value="image">Gambar Banner (Poster/Promo)</option>
+                <option value="video">Video Loop (MP4/WebM)</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="input-media-url" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                URL Media
+              </label>
+              <input
+                id="input-media-url"
+                name="media_url"
+                type="url"
+                placeholder="https://example.com/banner.jpg"
+                class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              />
+            </div>
+          </div>
+
+          <!-- Voice Enabled Toggle -->
+          <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div>
+              <span class="text-xs font-bold text-slate-800">Panggilan Suara Audio (TTS)</span>
+              <p class="text-[11px] text-slate-500">
+                Memutar notifikasi suara bell chime dan pembacaan nomor antrian pada speaker TV
+              </p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input
+                id="toggle-voice-enabled"
+                name="voice_enabled"
+                type="checkbox"
+                checked
+                class="sr-only peer"
+              />
+              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <!-- Error Alert -->
+          <div id="display-form-error" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200"></div>
+
+          <!-- Action Save -->
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-end">
+            <button
+              id="btn-save-display-settings"
+              type="submit"
+              class="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center space-x-1.5"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Simpan Pengaturan Display</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Live Preview Card (5 cols) -->
+      <div class="lg:col-span-5 space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs p-5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center space-x-1.5">
+            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span>Live Preview Layar TV</span>
+          </h3>
+
+          <div
+            id="display-preview-card"
+            class="w-full aspect-video bg-slate-900 rounded-xl overflow-hidden border border-slate-800 flex flex-col justify-between p-3 relative shadow-inner text-white"
+          >
+            <!-- Simulated Top Bar -->
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+              <span class="text-[10px] font-black tracking-tight text-blue-400">AntriAja Display</span>
+              <span class="text-[9px] font-mono text-slate-400">12:00:00</span>
+            </div>
+
+            <!-- Simulated Main Area -->
+            <div class="flex-1 flex items-center justify-center py-3">
+              <div id="preview-media-container" class="text-center text-slate-500 text-[11px] italic">
+                (Area Media Promosi / Nomor Panggilan)
+              </div>
+            </div>
+
+            <!-- Simulated Bottom Running Text Bar -->
+            <div class="bg-blue-950/80 border border-blue-900/60 rounded-md p-1.5 overflow-hidden">
+              <p id="preview-running-text" class="text-[10px] text-blue-200 whitespace-nowrap overflow-hidden text-ellipsis">
+                Selamat datang di AntriAja...
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+            <span class="font-bold text-slate-700 block">Sinkronisasi Realtime:</span>
+            <p class="text-[11px] text-slate-500">
+              Perubahan konfigurasi akan secara otomatis disiarkan langsung ke seluruh layar Smart TV yang sedang aktif via SSE tanpa perlu refresh manual.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import {
+    getDisplaySettings,
+    updateDisplaySettings,
+  } from '../../services/displayService';
+  import { getTenantSlug } from '../../lib/storage';
+  import type { MediaType } from '../../types/display.types';
+
+  const form = document.getElementById('display-settings-form') as HTMLFormElement | null;
+  const runningTextInput = document.getElementById('input-running-text') as HTMLTextAreaElement | null;
+  const mediaTypeSelect = document.getElementById('select-media-type') as HTMLSelectElement | null;
+  const mediaUrlInput = document.getElementById('input-media-url') as HTMLInputElement | null;
+  const voiceToggle = document.getElementById('toggle-voice-enabled') as HTMLInputElement | null;
+  const submitBtn = document.getElementById('btn-save-display-settings') as HTMLButtonElement | null;
+  const errorEl = document.getElementById('display-form-error');
+
+  const previewRunningText = document.getElementById('preview-running-text');
+  const previewMedia = document.getElementById('preview-media-container');
+
+  function updateLivePreview() {
+    if (previewRunningText && runningTextInput) {
+      previewRunningText.textContent = runningTextInput.value.trim() || 'Selamat datang di AntriAja...';
+    }
+
+    if (previewMedia && mediaTypeSelect && mediaUrlInput) {
+      const type = mediaTypeSelect.value;
+      const url = mediaUrlInput.value.trim();
+
+      if (type === 'image' && url) {
+        previewMedia.innerHTML = `<img src="${url}" alt="Preview" class="max-h-24 max-w-full rounded object-contain mx-auto" onerror="this.outerHTML='<span class=\\'text-rose-400 text-[10px]\\'>Gagal memuat URL gambar</span>'"/>`;
+      } else if (type === 'video' && url) {
+        previewMedia.innerHTML = `<span class="text-blue-400 text-[10px] font-semibold">Video: ${url}</span>`;
+      } else {
+        previewMedia.innerHTML = '<span class="text-slate-500 text-[11px] italic">(Area Media Promosi / Nomor Panggilan)</span>';
+      }
+    }
+  }
+
+  async function loadDisplaySettings() {
+    try {
+      const res = await getDisplaySettings();
+      if (res.success && res.data) {
+        const d = res.data;
+        if (runningTextInput) runningTextInput.value = d.running_text || '';
+        if (mediaTypeSelect) mediaTypeSelect.value = d.media_type || 'none';
+        if (mediaUrlInput) mediaUrlInput.value = d.media_url || '';
+        if (voiceToggle) voiceToggle.checked = d.voice_enabled ?? true;
+        updateLivePreview();
+      }
+    } catch (err) {
+      console.error('Gagal memuat display settings:', err);
+    }
+
+    // Set TV link query slug
+    const tvLink = document.getElementById('link-open-tv') as HTMLAnchorElement | null;
+    const slug = getTenantSlug();
+    if (tvLink && slug) {
+      tvLink.href = `/display?slug=${encodeURIComponent(slug)}`;
+    }
+  }
+
+  function showAlert(msg: string, type: 'success' | 'error') {
+    const alertEl = document.getElementById('display-page-alert');
+    if (!alertEl) return;
+    alertEl.textContent = msg;
+    alertEl.className = `p-4 rounded-xl text-xs font-semibold ${
+      type === 'success'
+        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+        : 'bg-rose-50 text-rose-800 border border-rose-200'
+    }`;
+    alertEl.classList.remove('hidden');
+    setTimeout(() => {
+      alertEl.classList.add('hidden');
+    }, 5000);
+  }
+
+  function initDisplayPage() {
+    loadDisplaySettings();
+
+    if (runningTextInput) runningTextInput.addEventListener('input', updateLivePreview);
+    if (mediaTypeSelect) mediaTypeSelect.addEventListener('change', updateLivePreview);
+    if (mediaUrlInput) mediaUrlInput.addEventListener('input', updateLivePreview);
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!runningTextInput || !mediaTypeSelect || !mediaUrlInput || !voiceToggle || !submitBtn) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Menyimpan...';
+        if (errorEl) errorEl.classList.add('hidden');
+
+        try {
+          const res = await updateDisplaySettings({
+            running_text: runningTextInput.value.trim(),
+            media_type: mediaTypeSelect.value as MediaType,
+            media_url: mediaUrlInput.value.trim() || null,
+            voice_enabled: voiceToggle.checked,
+          });
+
+          if (res.success) {
+            showAlert('Pengaturan tampilan Smart TV berhasil diperbarui', 'success');
+            updateLivePreview();
+          } else {
+            if (errorEl) {
+              errorEl.textContent = res.error?.message || 'Gagal menyimpan pengaturan display';
+              errorEl.classList.remove('hidden');
+            }
+          }
+        } catch (err: unknown) {
+          if (errorEl) {
+            errorEl.textContent = 'Koneksi ke server gagal.';
+            errorEl.classList.remove('hidden');
+          }
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Simpan Pengaturan Display';
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDisplayPage);
+  } else {
+    initDisplayPage();
+  }
+</script>

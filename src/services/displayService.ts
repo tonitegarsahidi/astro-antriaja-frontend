@@ -29,3 +29,33 @@ export async function getDisplaySnapshot(
 
   return response.data;
 }
+
+/**
+ * Mengambil konfigurasi display TV cabang yang sedang aktif (khusus admin).
+ */
+export async function getDisplaySettings(): Promise<
+  import('../types/api.types').ApiResponse<
+    import('../types/display.types').DisplaySettingsResponse
+  >
+> {
+  return httpClient.get<import('../types/display.types').DisplaySettingsResponse>(
+    '/display/settings'
+  );
+}
+
+/**
+ * Memperbarui konfigurasi display TV cabang (running text, media, voice).
+ */
+export async function updateDisplaySettings(
+  req: import('../types/display.types').UpdateDisplaySettingsRequest
+): Promise<
+  import('../types/api.types').ApiResponse<
+    import('../types/display.types').DisplaySettingsResponse
+  >
+> {
+  return httpClient.put<import('../types/display.types').DisplaySettingsResponse>(
+    '/display/settings',
+    req
+  );
+}
+

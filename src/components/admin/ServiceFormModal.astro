@@ -1,0 +1,139 @@
+---
+/**
+ * Modal Form Tambah / Edit Kategori Layanan Antrian
+ */
+---
+
+<div
+  id="service-form-modal"
+  class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="service-modal-title"
+>
+  <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
+    <!-- Header -->
+    <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </div>
+        <div>
+          <h3 id="service-modal-title" class="text-base font-bold text-slate-900">
+            Kategori Layanan
+          </h3>
+          <p id="service-modal-subtitle" class="text-xs text-slate-500">
+            Kelola konfigurasi layanan dan alokasi antrian
+          </p>
+        </div>
+      </div>
+      <button
+        id="btn-close-service-modal"
+        type="button"
+        class="text-slate-400 hover:text-slate-600 rounded-lg p-1.5 hover:bg-slate-100 transition-colors"
+      >
+        <span class="sr-only">Tutup</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Form Content -->
+    <form id="service-form" class="p-6 space-y-4">
+      <input type="hidden" id="service-id-hidden" value="" />
+
+      <!-- Service Name -->
+      <div>
+        <label for="input-service-name" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+          Nama Layanan <span class="text-rose-500">*</span>
+        </label>
+        <input
+          id="input-service-name"
+          name="name"
+          type="text"
+          required
+          placeholder="Contoh: Customer Service / Teller"
+          class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        />
+      </div>
+
+      <!-- Prefix & Estimated Duration -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="input-service-prefix" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+            Prefix Kode <span class="text-rose-500">*</span>
+          </label>
+          <input
+            id="input-service-prefix"
+            name="prefix"
+            type="text"
+            required
+            maxlength="2"
+            placeholder="A - Z (Maks 2)"
+            class="w-full px-3.5 py-2 text-sm uppercase font-mono tracking-wider rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          />
+          <p class="text-[11px] text-slate-500 mt-1">1-2 huruf kapital, cth: A atau CS</p>
+        </div>
+
+        <div>
+          <label for="input-service-duration" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+            Estimasi Durasi (Menit) <span class="text-rose-500">*</span>
+          </label>
+          <input
+            id="input-service-duration"
+            name="estimated_duration_mins"
+            type="number"
+            min="1"
+            max="120"
+            required
+            value="5"
+            class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          />
+          <p class="text-[11px] text-slate-500 mt-1">Digunakan untuk estimasi waktu tunggu</p>
+        </div>
+      </div>
+
+      <!-- Active Toggle -->
+      <div class="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+        <div>
+          <span class="text-xs font-bold text-slate-800">Status Layanan Aktif</span>
+          <p class="text-[11px] text-slate-500">Layanan aktif dapat dipilih pengunjung pada kios tiket</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input
+            id="input-service-active"
+            name="is_active"
+            type="checkbox"
+            checked
+            class="sr-only peer"
+          />
+          <div class="w-11 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+      </div>
+
+      <!-- Feedback Error -->
+      <div id="service-form-error" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200"></div>
+
+      <!-- Footer Buttons -->
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-3">
+        <button
+          id="btn-cancel-service"
+          type="button"
+          class="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors cursor-pointer"
+        >
+          Batal
+        </button>
+        <button
+          id="btn-save-service"
+          type="submit"
+          class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center space-x-1.5"
+        >
+          <span>Simpan Layanan</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

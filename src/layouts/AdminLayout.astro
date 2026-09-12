@@ -1,0 +1,253 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import ResetConfirmModal from '../components/admin/ResetConfirmModal.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  activePage?: 'dashboard' | 'services' | 'counters' | 'display';
+}
+
+const {
+  title = 'Panel Administrasi - AntriAja',
+  description = 'Panel Pengelolaan Antrian Cabang AntriAja',
+  activePage = 'dashboard',
+} = Astro.props;
+
+const navItems = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    href: '/admin',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />`,
+  },
+  {
+    id: 'services',
+    label: 'Kategori Layanan',
+    href: '/admin/services',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />`,
+  },
+  {
+    id: 'counters',
+    label: 'Meja Loket',
+    href: '/admin/counters',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />`,
+  },
+  {
+    id: 'display',
+    label: 'Display TV',
+    href: '/admin/display',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />`,
+  },
+];
+---
+
+<BaseLayout title={title} description={description} hideNav={true}>
+  <div class="min-h-screen bg-slate-100 flex flex-col md:flex-row">
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-64 bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800">
+      <!-- Brand & Badge -->
+      <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/30">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 20H7C4.79086 20 3 18.2091 3 16V8C3 5.79086 4.79086 4 7 4H17C19.2091 4 21 5.79086 21 8V16C21 18.2091 19.2091 20 17 20Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M7 10L10 13L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <span class="text-base font-black tracking-tight text-white block">AntriAja</span>
+            <span class="inline-block text-[10px] font-extrabold tracking-widest text-amber-400 uppercase">ADMINISTRATOR</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nav Links -->
+      <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+        {navItems.map((item) => {
+          const isActive = activePage === item.id;
+          return (
+            <a
+              href={item.href}
+              class={`flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                isActive
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/70'
+              }`}
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" set:html={item.icon} />
+              <span>{item.label}</span>
+            </a>
+          );
+        })}
+      </nav>
+
+      <!-- Bottom Actions: Emergency Reset & Logout -->
+      <div class="p-4 border-t border-slate-800 space-y-2">
+        <!-- Emergency Reset Trigger -->
+        <button
+          id="btn-trigger-reset-modal"
+          type="button"
+          class="w-full flex items-center justify-center space-x-2 px-3 py-2 text-xs font-bold text-rose-400 hover:text-white hover:bg-rose-600/30 border border-rose-900/60 rounded-xl transition-all cursor-pointer"
+          title="Reset darurat siklus antrian harian"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          <span>Reset Harian</span>
+        </button>
+
+        <!-- Admin Info & Logout -->
+        <div class="pt-2 flex items-center justify-between px-1">
+          <div class="flex flex-col">
+            <span id="admin-name-display" class="text-xs font-bold text-slate-300 truncate max-w-[120px]">Admin</span>
+            <span id="admin-tenant-display" class="text-[10px] text-slate-500 truncate max-w-[120px]">Cabang</span>
+          </div>
+          <button
+            id="btn-admin-logout"
+            type="button"
+            class="text-slate-400 hover:text-rose-400 p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            title="Keluar dari Panel Admin"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Admin Top Header -->
+      <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <h1 class="text-base font-bold text-slate-800">{title}</h1>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <a
+            href="/"
+            target="_blank"
+            class="hidden sm:inline-flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 space-x-1"
+          >
+            <span>Buka Kios Tiket</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+      </header>
+
+      <!-- Body Content -->
+      <main class="flex-1 p-6 overflow-y-auto">
+        <slot />
+      </main>
+    </div>
+  </div>
+
+  <!-- Embed Emergency Reset Modal -->
+  <ResetConfirmModal />
+</BaseLayout>
+
+<script>
+  import { getToken, getUser, removeToken, removeUser, getTenantSlug } from '../lib/storage';
+  import { resetQueue } from '../services/adminService';
+
+  function initAdminLayout() {
+    // 1. RBAC Check on client-side
+    const token = getToken();
+    const user = getUser();
+    const isLoginPage = window.location.pathname.includes('/admin/login');
+
+    if (!isLoginPage) {
+      if (!token || !user || user.role !== 'admin') {
+        window.location.href = '/admin/login';
+        return;
+      }
+    }
+
+    // Set User & Tenant Display
+    const nameEl = document.getElementById('admin-name-display');
+    const tenantEl = document.getElementById('admin-tenant-display');
+    if (user && nameEl) nameEl.textContent = user.full_name || user.email;
+    if (tenantEl) tenantEl.textContent = getTenantSlug() || 'Cabang';
+
+    // 2. Logout Action
+    const logoutBtn = document.getElementById('btn-admin-logout');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        removeToken();
+        removeUser();
+        window.location.href = '/admin/login';
+      });
+    }
+
+    // 3. Reset Modal Behavior
+    const triggerBtn = document.getElementById('btn-trigger-reset-modal');
+    const resetModal = document.getElementById('reset-confirm-modal');
+    const cancelBtn = document.getElementById('btn-cancel-reset');
+    const executeBtn = document.getElementById('btn-execute-reset') as HTMLButtonElement | null;
+    const inputConfirm = document.getElementById('input-confirm-reset') as HTMLInputElement | null;
+    const errorEl = document.getElementById('reset-error-msg');
+
+    if (triggerBtn && resetModal) {
+      triggerBtn.addEventListener('click', () => {
+        resetModal.classList.remove('hidden');
+        if (inputConfirm) {
+          inputConfirm.value = '';
+          inputConfirm.focus();
+        }
+        if (executeBtn) executeBtn.disabled = true;
+        if (errorEl) errorEl.classList.add('hidden');
+      });
+    }
+
+    if (cancelBtn && resetModal) {
+      cancelBtn.addEventListener('click', () => {
+        resetModal.classList.add('hidden');
+      });
+    }
+
+    if (inputConfirm && executeBtn) {
+      inputConfirm.addEventListener('input', () => {
+        executeBtn.disabled = inputConfirm.value.trim().toUpperCase() !== 'RESET';
+      });
+    }
+
+    if (executeBtn && resetModal) {
+      executeBtn.addEventListener('click', async () => {
+        executeBtn.disabled = true;
+        executeBtn.textContent = 'Memproses...';
+        try {
+          const res = await resetQueue();
+          if (res.success) {
+            alert(`Siklus antrian berhasil direset!\nTiket kadaluwarsa: ${res.data?.expired_tickets_count}\nLoket direset: ${res.data?.counters_reset_count}`);
+            resetModal.classList.add('hidden');
+            window.location.reload();
+          } else {
+            if (errorEl) {
+              errorEl.textContent = res.error?.message || 'Gagal mereset antrian';
+              errorEl.classList.remove('hidden');
+            }
+            executeBtn.disabled = false;
+            executeBtn.textContent = 'Reset Antrian Sekarang';
+          }
+        } catch (err: unknown) {
+          if (errorEl) {
+            errorEl.textContent = err instanceof Error ? err.message : 'Koneksi gagal';
+            errorEl.classList.remove('hidden');
+          }
+          executeBtn.disabled = false;
+          executeBtn.textContent = 'Reset Antrian Sekarang';
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAdminLayout);
+  } else {
+    initAdminLayout();
+  }
+</script>

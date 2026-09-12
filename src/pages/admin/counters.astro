@@ -1,0 +1,361 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import CounterFormModal from '../../components/admin/CounterFormModal.astro';
+---
+
+<AdminLayout title="Manajemen Loket - AntriAja" activePage="counters">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900 tracking-tight">
+          Manajemen Meja Loket
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">
+          Daftarkan nomor loket fisik dan tentukan jenis layanan (M:N) yang ditangani tiap loket
+        </p>
+      </div>
+
+      <div>
+        <button
+          id="btn-add-counter"
+          type="button"
+          class="inline-flex items-center px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer space-x-1.5"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Tambah Loket Baru</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert / Toast Banner -->
+    <div id="counter-page-alert" class="hidden p-4 rounded-xl text-xs font-semibold"></div>
+
+    <!-- Counters Grid Container -->
+    <div id="counters-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="col-span-full py-12 text-center text-slate-400 text-xs italic bg-white rounded-2xl border border-slate-200">
+        Memuat data meja loket...
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Modal -->
+  <CounterFormModal />
+</AdminLayout>
+
+<script>
+  import {
+    listCounters,
+    createCounter,
+    updateCounter,
+    assignServices,
+  } from '../../services/counterService';
+  import { listServices } from '../../services/serviceService';
+  import type { CounterResponse, ServiceResponse } from '../../types/master.types';
+
+  let currentCounters: CounterResponse[] = [];
+  let availableServices: ServiceResponse[] = [];
+
+  async function loadData() {
+    const container = document.getElementById('counters-container');
+    if (!container) return;
+
+    try {
+      const [countersRes, servicesRes] = await Promise.all([
+        listCounters(),
+        listServices(),
+      ]);
+
+      if (servicesRes.success && servicesRes.data) {
+        availableServices = servicesRes.data;
+      }
+
+      if (countersRes.success && countersRes.data) {
+        currentCounters = countersRes.data;
+        renderCountersGrid();
+      } else {
+        container.innerHTML = `
+          <div class="col-span-full py-8 text-center text-rose-500 text-xs bg-white rounded-2xl border border-slate-200">
+            Gagal memuat loket: ${countersRes.error?.message || 'Error server'}
+          </div>
+        `;
+      }
+    } catch (err) {
+      container.innerHTML = `
+        <div class="col-span-full py-8 text-center text-rose-500 text-xs bg-white rounded-2xl border border-slate-200">
+          Terjadi gangguan jaringan saat memuat data loket.
+        </div>
+      `;
+    }
+  }
+
+  function renderCountersGrid() {
+    const container = document.getElementById('counters-container');
+    if (!container) return;
+
+    if (currentCounters.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full py-12 text-center text-slate-400 text-xs italic bg-white rounded-2xl border border-slate-200">
+          Belum ada meja loket fisik yang didaftarkan.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = currentCounters
+      .map((ctr) => {
+        const assignedServices = (ctr.services || [])
+          .map(
+            (s) =>
+              `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                [${s.prefix}] ${s.name}
+              </span>`
+          )
+          .join(' ');
+
+        const statusBadge =
+          ctr.status === 'serving'
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Melayani</span>`
+            : ctr.status === 'break'
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Istirahat</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Idle</span>`;
+
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs p-5 flex flex-col justify-between hover:shadow-xs transition-shadow">
+            <div>
+              <div class="flex items-start justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-black text-lg border border-indigo-100">
+                    ${ctr.counter_number}
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-slate-900">${ctr.name}</h3>
+                    <div class="mt-0.5">${statusBadge}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Services list -->
+              <div class="mt-4 pt-3 border-t border-slate-100">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+                  Layanan yang Ditangani (${(ctr.services || []).length})
+                </span>
+                <div class="flex flex-wrap gap-1.5 min-h-[32px]">
+                  ${assignedServices || '<span class="text-xs text-slate-400 italic">Belum ada layanan</span>'}
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Action -->
+            <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-slate-400 text-[11px]">
+                ${ctr.current_staff ? `Petugas: <b class="text-slate-700">${ctr.current_staff.full_name}</b>` : 'Tidak dijaga'}
+              </span>
+              <button
+                type="button"
+                data-action="edit"
+                data-id="${ctr.id}"
+                class="px-3 py-1 font-semibold text-indigo-600 hover:bg-indigo-50 border border-indigo-200 rounded-lg transition-colors cursor-pointer"
+              >
+                Atur Loket
+              </button>
+            </div>
+          </div>
+        `;
+      })
+      .join('');
+
+    // Attach edit listeners
+    container.querySelectorAll('button[data-action="edit"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const ctr = currentCounters.find((c) => c.id === id);
+        if (ctr) openCounterModal(ctr);
+      });
+    });
+  }
+
+  function showAlert(msg: string, type: 'success' | 'error') {
+    const alertEl = document.getElementById('counter-page-alert');
+    if (!alertEl) return;
+    alertEl.textContent = msg;
+    alertEl.className = `p-4 rounded-xl text-xs font-semibold ${
+      type === 'success'
+        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+        : 'bg-rose-50 text-rose-800 border border-rose-200'
+    }`;
+    alertEl.classList.remove('hidden');
+    setTimeout(() => {
+      alertEl.classList.add('hidden');
+    }, 5000);
+  }
+
+  const modal = document.getElementById('counter-form-modal');
+  const modalTitle = document.getElementById('counter-modal-title');
+  const form = document.getElementById('counter-form') as HTMLFormElement | null;
+  const idInput = document.getElementById('counter-id-hidden') as HTMLInputElement | null;
+  const numberInput = document.getElementById('input-counter-number') as HTMLInputElement | null;
+  const nameInput = document.getElementById('input-counter-name') as HTMLInputElement | null;
+  const servicesSelection = document.getElementById('counter-services-selection');
+  const errorEl = document.getElementById('counter-form-error');
+
+  function populateServicesCheckboxes(selectedIds: string[] = []) {
+    if (!servicesSelection) return;
+
+    if (availableServices.length === 0) {
+      servicesSelection.innerHTML = `
+        <div class="text-xs text-slate-400 italic text-center py-2">
+          Belum ada master layanan. Tambahkan layanan terlebih dahulu pada menu Kategori Layanan.
+        </div>
+      `;
+      return;
+    }
+
+    servicesSelection.innerHTML = availableServices
+      .map((srv) => {
+        const checked = selectedIds.includes(srv.id) ? 'checked' : '';
+        return `
+          <label class="flex items-center space-x-2.5 p-2 rounded-lg hover:bg-white transition-colors cursor-pointer border border-transparent hover:border-slate-200">
+            <input
+              type="checkbox"
+              name="counter_service_ids"
+              value="${srv.id}"
+              ${checked}
+              class="w-4 h-4 text-indigo-600 rounded-sm border-slate-300 focus:ring-indigo-500"
+            />
+            <span class="text-xs font-semibold text-slate-800">
+              <span class="font-mono text-blue-600 font-bold">[${srv.prefix}]</span> ${srv.name}
+            </span>
+          </label>
+        `;
+      })
+      .join('');
+  }
+
+  function openCounterModal(ctr?: CounterResponse) {
+    if (!modal || !form || !idInput || !numberInput || !nameInput) return;
+
+    if (errorEl) errorEl.classList.add('hidden');
+
+    if (ctr) {
+      if (modalTitle) modalTitle.textContent = `Atur Loket ${ctr.counter_number}`;
+      idInput.value = ctr.id;
+      numberInput.value = String(ctr.counter_number);
+      nameInput.value = ctr.name;
+      const assignedIds = (ctr.services || []).map((s) => s.id);
+      populateServicesCheckboxes(assignedIds);
+    } else {
+      if (modalTitle) modalTitle.textContent = 'Tambah Meja Loket Baru';
+      idInput.value = '';
+      form.reset();
+      const nextNum = currentCounters.length > 0 ? Math.max(...currentCounters.map((c) => c.counter_number)) + 1 : 1;
+      numberInput.value = String(nextNum);
+      nameInput.value = `Loket ${nextNum}`;
+      populateServicesCheckboxes([]);
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeCounterModal() {
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function initCountersPage() {
+    loadData();
+
+    const addBtn = document.getElementById('btn-add-counter');
+    const closeBtn = document.getElementById('btn-close-counter-modal');
+    const cancelBtn = document.getElementById('btn-cancel-counter');
+
+    if (addBtn) addBtn.addEventListener('click', () => openCounterModal());
+    if (closeBtn) closeBtn.addEventListener('click', closeCounterModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeCounterModal);
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!numberInput || !nameInput || !idInput) return;
+
+        const isEdit = Boolean(idInput.value);
+        const counter_number = parseInt(numberInput.value, 10);
+        const name = nameInput.value.trim();
+
+        // Collect checked service IDs
+        const checkedBoxes = form.querySelectorAll<HTMLInputElement>(
+          'input[name="counter_service_ids"]:checked'
+        );
+        const service_ids = Array.from(checkedBoxes).map((cb) => cb.value);
+
+        if (errorEl) errorEl.classList.add('hidden');
+
+        try {
+          if (isEdit) {
+            const counterId = idInput.value;
+            const updateRes = await updateCounter(counterId, {
+              counter_number,
+              name,
+              status: 'idle',
+            });
+
+            if (!updateRes.success) {
+              if (errorEl) {
+                errorEl.textContent = updateRes.error?.message || 'Gagal memperbarui loket';
+                errorEl.classList.remove('hidden');
+              }
+              return;
+            }
+
+            // Assign services M:N
+            const assignRes = await assignServices(counterId, service_ids);
+            if (!assignRes.success) {
+              if (errorEl) {
+                errorEl.textContent = assignRes.error?.message || 'Gagal mengatur relasi layanan loket';
+                errorEl.classList.remove('hidden');
+              }
+              return;
+            }
+
+            closeCounterModal();
+            showAlert('Loket dan alokasi layanan berhasil diperbarui', 'success');
+            loadData();
+          } else {
+            const createRes = await createCounter({
+              counter_number,
+              name,
+              service_ids,
+            });
+
+            if (createRes.success) {
+              closeCounterModal();
+              showAlert('Meja loket berhasil ditambahkan', 'success');
+              loadData();
+            } else {
+              if (errorEl) {
+                if (createRes.error?.code === 'COUNTER_NUMBER_ALREADY_EXISTS') {
+                  errorEl.textContent = `Nomor loket ${counter_number} sudah digunakan. Harap gunakan nomor lain.`;
+                } else {
+                  errorEl.textContent = createRes.error?.message || 'Gagal membuat loket baru';
+                }
+                errorEl.classList.remove('hidden');
+              }
+            }
+          }
+        } catch (err) {
+          if (errorEl) {
+            errorEl.textContent = 'Koneksi ke server gagal.';
+            errorEl.classList.remove('hidden');
+          }
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCountersPage);
+  } else {
+    initCountersPage();
+  }
+</script>

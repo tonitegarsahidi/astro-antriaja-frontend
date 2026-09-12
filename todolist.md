@@ -178,16 +178,16 @@ src/
 ---
 
 ### Fase 6: Panel Administrasi Cabang (`/admin`)
-- [ ] Layout Admin: `src/layouts/AdminLayout.astro` (Sidebar navigasi & header profil)
-- [ ] Halaman rute:
-  - [ ] `src/pages/admin/login.astro` (Login Admin dengan validasi role)
-  - [ ] `src/pages/admin/index.astro` (Dashboard statistik ringkas)
-  - [ ] `src/pages/admin/services.astro` (CRUD Master Layanan: prefix, durasi, toggle status)
-  - [ ] `src/pages/admin/counters.astro` (CRUD Master Loket & penugasan layanan M:N)
-  - [ ] `src/pages/admin/display.astro` (Pengaturan teks berjalan TV & media promo)
-- [ ] Fitur Darurat Reset Harian:
-  - [ ] Modal konfirmasi ganda reset antrian (`POST /api/v1/admin/queues/reset`)
-- [ ] Unit & Container test untuk Panel Admin
+- [x] Layout Admin: `src/layouts/AdminLayout.astro` (Sidebar navigasi & header profil)
+- [x] Halaman rute:
+  - [x] `src/pages/admin/login.astro` (Login Admin dengan validasi role)
+  - [x] `src/pages/admin/index.astro` (Dashboard statistik ringkas)
+  - [x] `src/pages/admin/services.astro` (CRUD Master Layanan: prefix, durasi, toggle status)
+  - [x] `src/pages/admin/counters.astro` (CRUD Master Loket & penugasan layanan M:N)
+  - [x] `src/pages/admin/display.astro` (Pengaturan teks berjalan TV & media promo)
+- [x] Fitur Darurat Reset Harian:
+  - [x] Modal konfirmasi ganda reset antrian (`POST /api/v1/admin/queues/reset`)
+- [x] Unit & Container test untuk Panel Admin (6 test suites, 24 tests PASS 100%)
 
 ---
 

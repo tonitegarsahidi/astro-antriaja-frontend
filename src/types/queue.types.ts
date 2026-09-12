@@ -95,3 +95,13 @@ export interface CounterQueueStateResponse {
   waiting_tickets: TicketResponse[];
   hold_tickets: TicketResponse[];
 }
+
+export interface ResetQueueResponse {
+  tenant_id: string;
+  expired_tickets_count: number;
+  counters_reset_count: number;
+  reset_at: string;
+  manual_trigger: boolean;
+  message: string;
+}
+

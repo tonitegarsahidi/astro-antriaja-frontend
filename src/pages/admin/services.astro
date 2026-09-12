@@ -1,0 +1,335 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
+---
+
+<AdminLayout title="Manajemen Layanan - AntriAja" activePage="services">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900 tracking-tight">
+          Manajemen Kategori Layanan
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">
+          Konfigurasikan jenis antrian, prefix huruf panggilan, dan estimasi waktu pelayanan
+        </p>
+      </div>
+
+      <div>
+        <button
+          id="btn-add-service"
+          type="button"
+          class="inline-flex items-center px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer space-x-1.5"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Tambah Layanan Baru</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert / Toast Banner -->
+    <div id="service-page-alert" class="hidden p-4 rounded-xl text-xs font-semibold"></div>
+
+    <!-- Table Container -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div id="services-table-container" class="overflow-x-auto min-h-[240px]">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <th class="py-3 px-4">Prefix</th>
+              <th class="py-3 px-4">Nama Layanan</th>
+              <th class="py-3 px-4">Estimasi Durasi</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4 text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="services-tbody" class="divide-y divide-slate-100 text-xs text-slate-700">
+            <tr>
+              <td colspan="5" class="py-8 text-center text-slate-400 italic">
+                Memuat data layanan...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Modal -->
+  <ServiceFormModal />
+</AdminLayout>
+
+<script>
+  import {
+    listServices,
+    createService,
+    updateService,
+    deleteService,
+  } from '../../services/serviceService';
+  import type { ServiceResponse } from '../../types/master.types';
+
+  let currentServices: ServiceResponse[] = [];
+
+  async function fetchServices() {
+    const tbody = document.getElementById('services-tbody');
+    if (!tbody) return;
+
+    try {
+      const res = await listServices();
+      if (res.success && res.data) {
+        currentServices = res.data;
+        renderServicesTable();
+      } else {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-6 text-center text-rose-500 text-xs">
+              Gagal memuat layanan: ${res.error?.message || 'Error server'}
+            </td>
+          </tr>
+        `;
+      }
+    } catch (err: unknown) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="py-6 text-center text-rose-500 text-xs">
+            Terjadi gangguan jaringan saat memuat daftar layanan.
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  function renderServicesTable() {
+    const tbody = document.getElementById('services-tbody');
+    if (!tbody) return;
+
+    if (currentServices.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="py-8 text-center text-slate-400 italic">
+            Belum ada kategori layanan yang didaftarkan.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = currentServices
+      .map((srv) => {
+        const statusBadge = srv.is_active
+          ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Aktif</span>`
+          : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Nonaktif</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="py-3 px-4 font-mono font-black text-blue-600">
+              <span class="inline-block px-2 py-1 rounded-md bg-blue-50 border border-blue-200">
+                ${srv.prefix}
+              </span>
+            </td>
+            <td class="py-3 px-4 font-semibold text-slate-900">${srv.name}</td>
+            <td class="py-3 px-4 text-slate-500">${srv.estimated_duration_mins} Menit</td>
+            <td class="py-3 px-4">${statusBadge}</td>
+            <td class="py-3 px-4 text-right space-x-2">
+              <button
+                type="button"
+                data-action="edit"
+                data-id="${srv.id}"
+                class="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                data-action="delete"
+                data-id="${srv.id}"
+                data-name="${srv.name}"
+                class="px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition-colors cursor-pointer"
+              >
+                Hapus
+              </button>
+            </td>
+          </tr>
+        `;
+      })
+      .join('');
+
+    // Attach row events
+    tbody.querySelectorAll('button[data-action="edit"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const srv = currentServices.find((s) => s.id === id);
+        if (srv) openServiceModal(srv);
+      });
+    });
+
+    tbody.querySelectorAll('button[data-action="delete"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        if (!id) return;
+        if (!confirm(`Apakah Anda yakin ingin menonaktifkan layanan "${name}"?`)) {
+          return;
+        }
+        await handleDeleteService(id);
+      });
+    });
+  }
+
+  async function handleDeleteService(id: string) {
+    try {
+      const res = await deleteService(id);
+      if (res.success) {
+        showAlert('Layanan berhasil dinonaktifkan', 'success');
+        fetchServices();
+      } else {
+        if (res.error?.code === 'SERVICE_STILL_HAS_ACTIVE_TICKETS') {
+          showAlert(
+            'Layanan ini tidak dapat dinonaktifkan karena masih memiliki tiket antrian aktif pada hari ini.',
+            'error'
+          );
+        } else {
+          showAlert(res.error?.message || 'Gagal menghapus layanan', 'error');
+        }
+      }
+    } catch (err) {
+      showAlert('Koneksi ke server gagal', 'error');
+    }
+  }
+
+  function showAlert(msg: string, type: 'success' | 'error') {
+    const alertEl = document.getElementById('service-page-alert');
+    if (!alertEl) return;
+    alertEl.textContent = msg;
+    alertEl.className = `p-4 rounded-xl text-xs font-semibold ${
+      type === 'success'
+        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+        : 'bg-rose-50 text-rose-800 border border-rose-200'
+    }`;
+    alertEl.classList.remove('hidden');
+    setTimeout(() => {
+      alertEl.classList.add('hidden');
+    }, 5000);
+  }
+
+  const modal = document.getElementById('service-form-modal');
+  const modalTitle = document.getElementById('service-modal-title');
+  const form = document.getElementById('service-form') as HTMLFormElement | null;
+  const idInput = document.getElementById('service-id-hidden') as HTMLInputElement | null;
+  const nameInput = document.getElementById('input-service-name') as HTMLInputElement | null;
+  const prefixInput = document.getElementById('input-service-prefix') as HTMLInputElement | null;
+  const durationInput = document.getElementById('input-service-duration') as HTMLInputElement | null;
+  const activeInput = document.getElementById('input-service-active') as HTMLInputElement | null;
+  const errorEl = document.getElementById('service-form-error');
+
+  function openServiceModal(srv?: ServiceResponse) {
+    if (!modal || !form || !nameInput || !prefixInput || !durationInput || !activeInput || !idInput) return;
+
+    if (errorEl) errorEl.classList.add('hidden');
+
+    if (srv) {
+      if (modalTitle) modalTitle.textContent = 'Edit Kategori Layanan';
+      idInput.value = srv.id;
+      nameInput.value = srv.name;
+      prefixInput.value = srv.prefix;
+      prefixInput.disabled = true; // Prefix cannot be modified once created
+      durationInput.value = String(srv.estimated_duration_mins);
+      activeInput.checked = srv.is_active;
+    } else {
+      if (modalTitle) modalTitle.textContent = 'Tambah Kategori Layanan';
+      idInput.value = '';
+      form.reset();
+      prefixInput.disabled = false;
+      durationInput.value = '5';
+      activeInput.checked = true;
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeServiceModal() {
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function initServicesPage() {
+    fetchServices();
+
+    const addBtn = document.getElementById('btn-add-service');
+    const closeBtn = document.getElementById('btn-close-service-modal');
+    const cancelBtn = document.getElementById('btn-cancel-service');
+
+    if (addBtn) addBtn.addEventListener('click', () => openServiceModal());
+    if (closeBtn) closeBtn.addEventListener('click', closeServiceModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeServiceModal);
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!nameInput || !prefixInput || !durationInput || !activeInput || !idInput) return;
+
+        const isEdit = Boolean(idInput.value);
+        const name = nameInput.value.trim();
+        const prefix = prefixInput.value.trim().toUpperCase();
+        const estimated_duration_mins = parseInt(durationInput.value, 10) || 5;
+        const is_active = activeInput.checked;
+
+        if (errorEl) errorEl.classList.add('hidden');
+
+        try {
+          if (isEdit) {
+            const res = await updateService(idInput.value, {
+              name,
+              prefix,
+              estimated_duration_mins,
+              is_active,
+            });
+            if (res.success) {
+              closeServiceModal();
+              showAlert('Layanan berhasil diperbarui', 'success');
+              fetchServices();
+            } else {
+              if (errorEl) {
+                errorEl.textContent = res.error?.message || 'Gagal memperbarui layanan';
+                errorEl.classList.remove('hidden');
+              }
+            }
+          } else {
+            const res = await createService({
+              name,
+              prefix,
+              estimated_duration_mins,
+            });
+            if (res.success) {
+              closeServiceModal();
+              showAlert('Layanan baru berhasil dibuat', 'success');
+              fetchServices();
+            } else {
+              if (errorEl) {
+                if (res.error?.code === 'PREFIX_ALREADY_EXISTS') {
+                  errorEl.textContent = `Prefix "${prefix}" sudah digunakan oleh layanan lain. Gunakan prefix berbeda.`;
+                } else {
+                  errorEl.textContent = res.error?.message || 'Gagal membuat layanan';
+                }
+                errorEl.classList.remove('hidden');
+              }
+            }
+          }
+        } catch (err: unknown) {
+          if (errorEl) {
+            errorEl.textContent = 'Koneksi ke server gagal.';
+            errorEl.classList.remove('hidden');
+          }
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initServicesPage);
+  } else {
+    initServicesPage();
+  }
+</script>
