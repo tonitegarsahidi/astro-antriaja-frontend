@@ -1,0 +1,145 @@
+---
+interface Props {
+  visible?: boolean;
+  ticketNumber?: string;
+  counterName?: string;
+}
+
+const { visible = false, ticketNumber = '', counterName = '' } = Astro.props;
+---
+
+<div
+  class={`calling-modal-overlay ${visible ? 'is-visible' : 'is-hidden'}`}
+  id="calling-alert-overlay"
+  role="alert"
+  aria-live="assertive"
+>
+  <div class="calling-modal-box">
+    <div class="calling-icon">🔔</div>
+    <div class="calling-headline">NOMOR ANDA DIPANGGIL!</div>
+    <div class="calling-ticket-number" id="alert-ticket-number">{ticketNumber}</div>
+    <div class="calling-counter-info">
+      <span>Segera menuju ke</span>
+      <strong id="alert-counter-name">{counterName}</strong>
+    </div>
+    <button type="button" class="btn-ack" id="btn-ack-calling">
+      Saya Mengerti
+    </button>
+  </div>
+</div>
+
+<style>
+  .calling-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1.5rem;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .calling-modal-overlay.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .calling-modal-overlay.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .calling-modal-box {
+    background: var(--color-surface);
+    border: 3px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 1.75rem;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    animation: modalPulse 1.2s infinite alternate;
+  }
+
+  .calling-icon {
+    font-size: 3.5rem;
+    animation: bellRing 0.8s infinite;
+  }
+
+  .calling-headline {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: var(--color-primary);
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+  }
+
+  .calling-ticket-number {
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--color-text);
+    line-height: 1;
+  }
+
+  .calling-counter-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+  }
+
+  .calling-counter-info strong {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+  }
+
+  .btn-ack {
+    background: var(--color-primary);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.85rem 2rem;
+    border-radius: var(--radius-md);
+    width: 100%;
+    margin-top: 0.5rem;
+    box-shadow: var(--shadow-md);
+    transition: background 0.2s ease;
+  }
+
+  .btn-ack:hover {
+    background: var(--color-primary-hover);
+  }
+
+  @keyframes bellRing {
+    0%, 100% {
+      transform: rotate(0);
+    }
+    20%, 60% {
+      transform: rotate(-15deg);
+    }
+    40%, 80% {
+      transform: rotate(15deg);
+    }
+  }
+
+  @keyframes modalPulse {
+    0% {
+      transform: scale(0.98);
+      border-color: var(--color-primary);
+    }
+    100% {
+      transform: scale(1.02);
+      border-color: #3b82f6;
+    }
+  }
+</style>

@@ -1,0 +1,82 @@
+---
+interface Props {
+  counterNumber?: number | null;
+  counterName?: string | null;
+}
+
+const { counterNumber, counterName } = Astro.props;
+const hasCounter = Boolean(counterNumber || counterName);
+const displayName = counterName || (counterNumber ? `Loket ${counterNumber}` : '');
+---
+
+<div class={`counter-card ${hasCounter ? 'has-counter' : 'counter-info-empty'}`} id="counter-info-card">
+  {
+    hasCounter ? (
+      <div class="counter-content">
+        <span class="counter-subtitle">Silakan menuju ke:</span>
+        <div class="counter-badge" id="counter-destination-name">
+          {displayName}
+        </div>
+      </div>
+    ) : (
+      <div class="counter-empty-content">
+        <span class="counter-waiting-text">Loket tujuan akan muncul saat nomor Anda dipanggil</span>
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .counter-card {
+    width: 100%;
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+  }
+
+  .has-counter {
+    background: #eff6ff;
+    border: 2px solid var(--color-primary);
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+    animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .counter-info-empty {
+    background: #f8fafc;
+    border: 1px dashed var(--color-border);
+    padding: 0.875rem;
+    text-align: center;
+  }
+
+  .counter-subtitle {
+    font-size: 0.875rem;
+    color: var(--color-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .counter-badge {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #1e3a8a;
+    margin-top: 0.25rem;
+  }
+
+  .counter-waiting-text {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  @keyframes bounceIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+</style>

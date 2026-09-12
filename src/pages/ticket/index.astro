@@ -1,0 +1,610 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TicketHeroStatus from '../../components/ticket/TicketHeroStatus.astro';
+import QueueProgress from '../../components/ticket/QueueProgress.astro';
+import CounterInfoCard from '../../components/ticket/CounterInfoCard.astro';
+import CallingAlert from '../../components/ticket/CallingAlert.astro';
+---
+
+<BaseLayout title="Tiket Antrian">
+  <main class="ticket-viewport">
+    <!-- Header Brand Mobile -->
+    <header class="ticket-top-bar">
+      <a href="/" class="brand-link">
+        <span class="brand-icon">🎟️</span>
+        <span class="brand-text">AntriAja</span>
+      </a>
+      <div class="network-badge" id="network-status">
+        <span class="dot connecting"></span>
+        <span class="label">Memeriksa sinyal...</span>
+      </div>
+    </header>
+
+    <!-- State 1: Loading Skeleton -->
+    <section class="state-container is-visible" id="ticket-loading">
+      <div class="spinner"></div>
+      <p class="state-msg">Memuat data tiket antrian...</p>
+    </section>
+
+    <!-- State 2: Input Token Jika URL Tanpa Token -->
+    <section class="state-container is-hidden" id="no-token-view">
+      <div class="card-empty-token">
+        <div class="empty-icon">🔍</div>
+        <h2>Lacak Tiket Anda</h2>
+        <p>Silakan masukkan kode token tiket Anda yang tertera pada struk fisik atau hasil scan QR.</p>
+        <form id="form-token-search" class="search-form">
+          <input
+            type="text"
+            id="input-token"
+            placeholder="Masukkan token tiket..."
+            required
+            autocomplete="off"
+          />
+          <button type="submit" class="btn-primary">Lihat Antrian</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- State 3: Error / Not Found -->
+    <section class="state-container is-hidden" id="ticket-error">
+      <div class="card-error">
+        <div class="error-icon">⚠️</div>
+        <h2 id="error-title">Tiket Tidak Ditemukan</h2>
+        <p id="error-message">
+          Nomor tiket yang Anda cari tidak terdaftar atau telah kedaluwarsa.
+        </p>
+        <button type="button" class="btn-secondary" id="btn-retry">
+          Coba Lagi
+        </button>
+      </div>
+    </section>
+
+    <!-- State 4: Konten Tiket Aktif -->
+    <section class="state-container is-hidden" id="ticket-content">
+      <div class="ticket-details-stack">
+        <!-- Hero Status Card -->
+        <TicketHeroStatus
+          ticketNumber="---"
+          serviceName="Memuat..."
+          status="waiting"
+          isVip={false}
+        />
+
+        <!-- Counter Info Card (Tujuan Panggilan) -->
+        <CounterInfoCard />
+
+        <!-- Queue Progress (Sisa Antrian & Estimasi) -->
+        <QueueProgress queueAheadCount={0} estimatedWaitMins={0} />
+
+        <!-- Footer Actions -->
+        <div class="ticket-actions">
+          <button type="button" class="btn-refresh" id="btn-manual-refresh">
+            🔄 Perbarui Data
+          </button>
+          <p class="helper-text">
+            Halaman ini otomatis memperbarui posisi antrian Anda secara real-time.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal Alert Saat Nomor Dipanggil -->
+    <CallingAlert visible={false} ticketNumber="---" counterName="---" />
+  </main>
+</BaseLayout>
+
+<script>
+  import { getPublicTicketByToken } from '../../services/publicService';
+  import { sseClient } from '../../lib/sseClient';
+  import type { PublicTicketResponse, TicketStatus } from '../../types/queue.types';
+  import type { TicketCalledPayload, SSEConnectionStatus } from '../../types/sse.types';
+
+  let currentToken = '';
+  let currentTicket: PublicTicketResponse | null = null;
+
+  // Elemen DOM
+  const loadingEl = document.getElementById('ticket-loading');
+  const noTokenEl = document.getElementById('no-token-view');
+  const errorEl = document.getElementById('ticket-error');
+  const contentEl = document.getElementById('ticket-content');
+  const networkStatusEl = document.getElementById('network-status');
+
+  const ticketNumberEl = document.getElementById('ticket-number');
+  const serviceNameEl = document.getElementById('ticket-service-name');
+  const statusBadgeEl = document.getElementById('ticket-status-badge');
+  const vipBadgeEl = document.getElementById('ticket-vip-badge');
+
+  const queueAheadCountEl = document.getElementById('queue-ahead-count');
+  const estimatedWaitMinsEl = document.getElementById('estimated-wait-mins');
+  const counterInfoCardEl = document.getElementById('counter-info-card');
+  const counterDestNameEl = document.getElementById('counter-destination-name');
+
+  const callingAlertOverlay = document.getElementById('calling-alert-overlay');
+  const alertTicketNumberEl = document.getElementById('alert-ticket-number');
+  const alertCounterNameEl = document.getElementById('alert-counter-name');
+  const btnAckCalling = document.getElementById('btn-ack-calling');
+
+  const formTokenSearch = document.getElementById('form-token-search') as HTMLFormElement;
+  const inputToken = document.getElementById('input-token') as HTMLInputElement;
+  const btnRetry = document.getElementById('btn-retry');
+  const btnManualRefresh = document.getElementById('btn-manual-refresh');
+
+  function showView(view: 'loading' | 'no-token' | 'error' | 'content'): void {
+    if (loadingEl) loadingEl.className = view === 'loading' ? 'state-container is-visible' : 'state-container is-hidden';
+    if (noTokenEl) noTokenEl.className = view === 'no-token' ? 'state-container is-visible' : 'state-container is-hidden';
+    if (errorEl) errorEl.className = view === 'error' ? 'state-container is-visible' : 'state-container is-hidden';
+    if (contentEl) contentEl.className = view === 'content' ? 'state-container is-visible' : 'state-container is-hidden';
+  }
+
+  function updateNetworkBadge(status: SSEConnectionStatus): void {
+    if (!networkStatusEl) return;
+    const dot = networkStatusEl.querySelector('.dot');
+    const label = networkStatusEl.querySelector('.label');
+
+    if (status === 'connected') {
+      if (dot) dot.className = 'dot connected';
+      if (label) label.textContent = 'Real-Time Aktif';
+    } else if (status === 'connecting') {
+      if (dot) dot.className = 'dot connecting';
+      if (label) label.textContent = 'Menghubungkan...';
+    } else {
+      if (dot) dot.className = 'dot disconnected';
+      if (label) label.textContent = 'Offline';
+    }
+  }
+
+  function playCallingChime(): void {
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+
+      const playTone = (freq: number, startTime: number, duration: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime + startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + startTime);
+        osc.stop(ctx.currentTime + startTime + duration);
+      };
+
+      // Nada dua ketukan harmonis 880Hz (A5) -> 1046Hz (C6)
+      playTone(880, 0, 0.4);
+      playTone(1046, 0.25, 0.6);
+    } catch {
+      // Abaikan jika browser memblokir audio
+    }
+  }
+
+  function triggerCallingAlert(counterName: string): void {
+    if (callingAlertOverlay) {
+      callingAlertOverlay.classList.remove('is-hidden');
+      callingAlertOverlay.classList.add('is-visible');
+    }
+    if (alertTicketNumberEl && currentTicket) {
+      alertTicketNumberEl.textContent = currentTicket.ticket_number;
+    }
+    if (alertCounterNameEl) {
+      alertCounterNameEl.textContent = counterName;
+    }
+
+    // Haptic Vibrate di mobile
+    if ('vibrate' in navigator) {
+      navigator.vibrate([300, 150, 300, 150, 500]);
+    }
+
+    playCallingChime();
+  }
+
+  function renderTicket(ticket: PublicTicketResponse): void {
+    currentTicket = ticket;
+
+    // Cache ke sessionStorage untuk offline resilience
+    try {
+      sessionStorage.setItem(`antriaja_cached_ticket_${ticket.token}`, JSON.stringify(ticket));
+    } catch {}
+
+    if (ticketNumberEl) ticketNumberEl.textContent = ticket.ticket_number;
+    if (serviceNameEl) serviceNameEl.textContent = ticket.service_name;
+    if (vipBadgeEl) vipBadgeEl.style.display = ticket.is_vip ? 'inline-block' : 'none';
+
+    // Render Status
+    if (statusBadgeEl) {
+      const statusLabels: Record<TicketStatus, { label: string; class: string }> = {
+        waiting: { label: 'Menunggu Giliran', class: 'status-waiting' },
+        called: { label: 'Sedang Dipanggil!', class: 'status-called' },
+        serving: { label: 'Sedang Dilayani', class: 'status-serving' },
+        hold: { label: 'Ditunda', class: 'status-hold' },
+        transferred: { label: 'Dialihkan', class: 'status-transferred' },
+        completed: { label: 'Selesai', class: 'status-completed' },
+        expired: { label: 'Kedaluwarsa', class: 'status-expired' },
+      };
+      const info = statusLabels[ticket.status] || { label: ticket.status, class: 'status-waiting' };
+      statusBadgeEl.textContent = info.label;
+      statusBadgeEl.className = `status-badge ${info.class}`;
+    }
+
+    // Render Progress Antrian
+    if (queueAheadCountEl) queueAheadCountEl.textContent = String(ticket.queue_ahead_count);
+    if (estimatedWaitMinsEl) estimatedWaitMinsEl.textContent = `${ticket.estimated_wait_mins} menit`;
+
+    // Render Loket
+    const counterName = ticket.counter_name || (ticket.counter_number ? `Loket ${ticket.counter_number}` : '');
+    if (counterInfoCardEl) {
+      if (counterName && (ticket.status === 'called' || ticket.status === 'serving')) {
+        counterInfoCardEl.className = 'counter-card has-counter';
+        if (counterDestNameEl) counterDestNameEl.textContent = counterName;
+      } else {
+        counterInfoCardEl.className = 'counter-card counter-info-empty';
+      }
+    }
+
+    showView('content');
+  }
+
+  async function loadTicketData(token: string): Promise<void> {
+    showView('loading');
+
+    // Cek cache offline terlebih dahulu
+    try {
+      const cached = sessionStorage.getItem(`antriaja_cached_ticket_${token}`);
+      if (cached) {
+        const parsed = JSON.parse(cached) as PublicTicketResponse;
+        renderTicket(parsed);
+      }
+    } catch {}
+
+    const res = await getPublicTicketByToken(token);
+    if (res.success && res.data) {
+      renderTicket(res.data);
+      setupRealtime(token);
+    } else {
+      const errorMsg = document.getElementById('error-message');
+      if (errorMsg && res.error?.message) {
+        errorMsg.textContent = res.error.message;
+      }
+      showView('error');
+    }
+  }
+
+  function setupRealtime(token: string): void {
+    sseClient.onStatusChange(updateNetworkBadge);
+    sseClient.connect({ ticketToken: token });
+
+    // Listener 1: TICKET_CALLED
+    sseClient.on<TicketCalledPayload>('TICKET_CALLED', (payload) => {
+      if (!currentTicket) return;
+
+      if (payload.ticket_id === currentTicket.id) {
+        currentTicket.status = 'called';
+        currentTicket.counter_name = payload.counter_name;
+        currentTicket.counter_number = payload.counter_number;
+        renderTicket(currentTicket);
+        triggerCallingAlert(payload.counter_name);
+      } else if (payload.service_id === currentTicket.service_id) {
+        // Refresh posisi antrian jika nomor lain dipanggil
+        loadTicketData(token);
+      }
+    });
+
+    // Listener 2: TICKET_SERVING
+    sseClient.on<{ id: string }>('TICKET_SERVING', (payload) => {
+      if (!currentTicket) return;
+      if (payload.id === currentTicket.id) {
+        currentTicket.status = 'serving';
+        renderTicket(currentTicket);
+      }
+    });
+
+    // Listener 3: TICKET_COMPLETED
+    sseClient.on<{ id: string }>('TICKET_COMPLETED', (payload) => {
+      if (!currentTicket) return;
+      if (payload.id === currentTicket.id) {
+        currentTicket.status = 'completed';
+        renderTicket(currentTicket);
+      } else {
+        loadTicketData(token);
+      }
+    });
+
+    // Listener 4: TICKET_HOLD
+    sseClient.on<{ id: string }>('TICKET_HOLD', (payload) => {
+      if (!currentTicket) return;
+      if (payload.id === currentTicket.id) {
+        currentTicket.status = 'hold';
+        renderTicket(currentTicket);
+      }
+    });
+
+    // Listener 5: QUEUE_RESET
+    sseClient.on('QUEUE_RESET', () => {
+      if (!currentTicket) return;
+      currentTicket.status = 'expired';
+      renderTicket(currentTicket);
+    });
+  }
+
+  // Inisialisasi Lifecycle Halaman
+  function init(): void {
+    const params = new URLSearchParams(window.location.search);
+    const queryToken = params.get('token');
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const pathToken = pathParts.length >= 2 && pathParts[0] === 'ticket' ? pathParts[1] : null;
+
+    currentToken = (queryToken || pathToken || '').trim();
+
+    if (!currentToken) {
+      showView('no-token');
+      return;
+    }
+
+    loadTicketData(currentToken);
+
+    // Event listener tombol tutup alert panggilan
+    btnAckCalling?.addEventListener('click', () => {
+      if (callingAlertOverlay) {
+        callingAlertOverlay.classList.remove('is-visible');
+        callingAlertOverlay.classList.add('is-hidden');
+      }
+    });
+
+    // Event listener form input manual
+    formTokenSearch?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = inputToken?.value.trim();
+      if (val) {
+        window.location.search = `?token=${encodeURIComponent(val)}`;
+      }
+    });
+
+    btnRetry?.addEventListener('click', () => {
+      if (currentToken) {
+        loadTicketData(currentToken);
+      } else {
+        showView('no-token');
+      }
+    });
+
+    btnManualRefresh?.addEventListener('click', () => {
+      if (currentToken) {
+        loadTicketData(currentToken);
+      }
+    });
+
+    // Sinkronisasi saat HP dibuka dari sleep / screen lock
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && currentToken) {
+        loadTicketData(currentToken);
+      }
+    });
+  }
+
+  init();
+</script>
+
+<style>
+  .ticket-viewport {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 1rem 1.25rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .ticket-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .brand-link {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--color-primary);
+  }
+
+  .brand-icon {
+    font-size: 1.35rem;
+  }
+
+  .network-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-border);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .dot.connected {
+    background-color: var(--color-success);
+    box-shadow: 0 0 6px var(--color-success);
+  }
+
+  .dot.connecting {
+    background-color: var(--color-warning);
+    animation: blink 1s infinite alternate;
+  }
+
+  .dot.disconnected {
+    background-color: var(--color-danger);
+  }
+
+  .state-container.is-hidden {
+    display: none !important;
+  }
+
+  .state-container.is-visible {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .spinner {
+    width: 42px;
+    height: 42px;
+    border: 4px solid #e2e8f0;
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-top: 3rem;
+  }
+
+  .state-msg {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+  }
+
+  .card-empty-token,
+  .card-error {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 2.25rem 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 2rem;
+  }
+
+  .empty-icon,
+  .error-icon {
+    font-size: 2.5rem;
+  }
+
+  .card-empty-token h2,
+  .card-error h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+  }
+
+  .card-empty-token p,
+  .card-error p {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+  }
+
+  .search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+
+  .search-form input {
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    outline: none;
+    text-align: center;
+  }
+
+  .search-form input:focus {
+    border-color: var(--color-primary);
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .btn-primary {
+    background: var(--color-primary);
+    color: #ffffff;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-primary-hover);
+  }
+
+  .btn-secondary {
+    background: #f1f5f9;
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+  }
+
+  .ticket-details-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+  }
+
+  .ticket-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .btn-refresh {
+    background: none;
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    background: var(--color-surface);
+  }
+
+  .btn-refresh:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+
+  .helper-text {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes blink {
+    to {
+      opacity: 0.4;
+    }
+  }
+</style>

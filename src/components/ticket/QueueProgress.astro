@@ -1,0 +1,113 @@
+---
+interface Props {
+  queueAheadCount: number;
+  estimatedWaitMins: number;
+}
+
+const { queueAheadCount, estimatedWaitMins } = Astro.props;
+const isNext = queueAheadCount === 0;
+---
+
+<div class="progress-container">
+  {
+    isNext ? (
+      <div class="next-banner">
+        <div class="next-icon">🔔</div>
+        <div class="next-text">
+          <strong>Giliran Anda Berikutnya!</strong>
+          <span>Harap bersiap di dekat loket pelayanan.</span>
+        </div>
+      </div>
+    ) : (
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Antrian di Depan</span>
+          <span class="stat-value" id="queue-ahead-count">
+            {queueAheadCount}
+          </span>
+          <span class="stat-unit">Orang</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Estimasi Menunggu</span>
+          <span class="stat-value" id="estimated-wait-mins">
+            {estimatedWaitMins} menit
+          </span>
+          <span class="stat-unit">Waktu Rata-rata</span>
+        </div>
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .progress-container {
+    width: 100%;
+  }
+
+  .next-banner {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #1e40af;
+  }
+
+  .next-icon {
+    font-size: 1.75rem;
+  }
+
+  .next-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .next-text strong {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .next-text span {
+    font-size: 0.85rem;
+    color: #3b82f6;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-text);
+  }
+
+  .stat-unit {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+</style>

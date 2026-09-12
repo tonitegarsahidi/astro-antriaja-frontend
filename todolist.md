@@ -96,18 +96,19 @@ src/
 ---
 
 ### Fase 2: Mobile Web Pengunjung (`/ticket/[token]`)
-- [ ] Service layer: `src/services/publicService.ts` (`getPublicTicketByToken`)
-- [ ] Komponen UI Pengunjung di `src/components/ticket/`:
-  - [ ] `TicketHeroStatus.astro` (Nomor tiket besar, badge status WAITING/CALLED/SERVING/dll)
-  - [ ] `QueueProgress.astro` (Jumlah antrian di depan, estimasi waktu tunggu dalam menit)
-  - [ ] `CounterInfoCard.astro` (Nama dan nomor loket saat nomor dipanggil)
-  - [ ] `CallingAlert.astro` (Visual pulsing highlight & audio chimes saat status berubah jadi CALLED)
-- [ ] Halaman rute: `src/pages/ticket/[token].astro`
-  - [ ] Server fetch data awal tiket
-  - [ ] Client script: Langganan realtime SSE via `?ticket_token=[token]`
-  - [ ] Penanganan state dinamis (Waiting -> Called -> Serving -> Completed/Hold/Transferred)
-  - [ ] Penanganan tiket tidak ditemukan / tiket kadaluwarsa (Expired state)
-- [ ] Unit & Container test untuk halaman `/ticket/[token]` dan komponen pendukung
+- [x] Service layer: `src/services/publicService.ts` (`getPublicTicketByToken`)
+- [x] Komponen UI Pengunjung di `src/components/ticket/`:
+  - [x] `TicketHeroStatus.astro` (Nomor tiket besar, badge status WAITING/CALLED/SERVING/dll)
+  - [x] `QueueProgress.astro` (Jumlah antrian di depan, estimasi waktu tunggu dalam menit)
+  - [x] `CounterInfoCard.astro` (Nama dan nomor loket saat nomor dipanggil)
+  - [x] `CallingAlert.astro` (Visual pulsing highlight & audio chimes saat status berubah jadi CALLED)
+- [x] Halaman rute: `src/pages/ticket/index.astro`
+  - [x] Ekstraksi token dari query URL `?token=...` atau path `/ticket/...`
+  - [x] Client script: Langganan realtime SSE via `?ticket_token=[token]`
+  - [x] Penanganan state dinamis (Waiting -> Called -> Serving -> Completed/Hold/Transferred)
+  - [x] Penanganan tiket tidak ditemukan / tiket kadaluwarsa (Expired state)
+  - [x] Offline caching via `sessionStorage` & auto-reconnect saat layar HP dibuka
+- [x] Unit & Container test untuk halaman `/ticket` dan komponen pendukung (15 tests PASS)
 
 ---
 

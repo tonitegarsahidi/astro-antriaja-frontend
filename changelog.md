@@ -18,3 +18,10 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
   - Implementasi `sseClient.ts` berbasis query parameter authentication (`token`, `device_key`, `ticket_token`), auto-reconnect backoff, dan typed event dispatcher.
   - Pembuatan layout induk `BaseLayout.astro` dengan CSS Design Tokens terpadu, meta viewport, PWA manifest, dan theme-color `#2563eb`.
   - Penambahan automated test suite komprehensif (37 tests PASS) mencakup unit test formatters, storage, httpClient, sseClient, dan container BaseLayout.
+- **Fase 2: Mobile Web Pengunjung (`/ticket/[token]`):**
+  - Implementasi `src/services/publicService.ts` untuk konsumsi data tiket publik via endpoint `GET /api/v1/public/tickets/:token`.
+  - Pembuatan komponen UI: `TicketHeroStatus.astro`, `QueueProgress.astro`, `CounterInfoCard.astro`, dan `CallingAlert.astro`.
+  - Pembuatan halaman mobile reaktif `src/pages/ticket/index.astro` dengan auto-detection token dari URL query/path, sinkronisasi realtime SSE multi-payload (`TICKET_CALLED`, `TICKET_SERVING`, `TICKET_HOLD`, `TICKET_COMPLETED`, `TICKET_TRANSFERRED`, `QUEUE_RESET`).
+  - Fitur getaran haptic mobile (`navigator.vibrate`) dan nada dering sintesis Web Audio API saat nomor dipanggil.
+  - Offline-first resilience dengan `sessionStorage` snapshot dan listener `visibilitychange` saat ponsel dibuka dari sleep.
+  - Penambahan 15 unit & container tests baru (total 52 tests PASS 100%).
