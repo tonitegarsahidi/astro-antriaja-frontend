@@ -3,103 +3,219 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Login Petugas Loket - AntriAja" description="Masuk ke Konsol Staf Loket AntriAja">
-  <div class="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
-      <!-- Logo -->
-      <a href="/" class="inline-flex items-center space-x-2 text-blue-600 font-black text-2xl tracking-tight mb-4">
-        <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17 20H7C4.79086 20 3 18.2091 3 16V8C3 5.79086 4.79086 4 7 4H17C19.2091 4 21 5.79086 21 8V16C21 18.2091 19.2091 20 17 20Z" stroke="currentColor" stroke-width="2"/>
-          <path d="M7 10L10 13L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>AntriAja</span>
-      </a>
+  <div class="min-h-screen bg-slate-100 flex flex-col justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Main Card Shell with Split Layout on Large Screens -->
+    <div class="mx-auto w-full max-w-4xl bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
+      
+      <!-- Left Hero Panel (Branding & SaaS Value) -->
+      <div class="lg:col-span-5 bg-gradient-to-br from-blue-600 via-indigo-700 to-slate-900 p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+        <!-- Subtle Background Elements -->
+        <div class="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -right-16 w-56 h-56 rounded-full bg-blue-400/20 blur-3xl pointer-events-none"></div>
 
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-        Login Petugas Loket
-      </h2>
-      <p class="mt-2 text-sm text-slate-600">
-        Masuk untuk mengoperasikan antrian meja pelayanan loket Anda
-      </p>
-    </div>
-
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-      <div class="bg-white py-8 px-6 shadow-sm sm:rounded-2xl border border-slate-200 sm:px-10">
-        <!-- Error Alert Container -->
-        <div id="login-error-alert" class="hidden mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-sm text-rose-700 font-medium"></div>
-
-        <form id="staff-login-form" class="space-y-5">
-          <!-- Tenant Slug -->
-          <div>
-            <label for="input-tenant-slug" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Kode / Slug Instansi
-            </label>
-            <div class="relative">
-              <input
-                id="input-tenant-slug"
-                name="tenant_slug"
-                type="text"
-                required
-                placeholder="misal: demo-bank"
-                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-mono"
-              />
-            </div>
-            <p class="mt-1 text-[11px] text-slate-400">Hubungi administrator cabang jika belum mengetahui slug instansi.</p>
-          </div>
-
-          <!-- Email -->
-          <div>
-            <label for="input-email" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Alamat Email Petugas
-            </label>
-            <div class="relative">
-              <input
-                id="input-email"
-                name="email"
-                type="email"
-                required
-                placeholder="nama@instansi.com"
-                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
-              />
-            </div>
-          </div>
-
-          <!-- Password -->
-          <div>
-            <label for="input-password" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Kata Sandi
-            </label>
-            <div class="relative">
-              <input
-                id="input-password"
-                name="password"
-                type="password"
-                required
-                placeholder="Minimal 8 karakter"
-                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
-              />
-            </div>
-          </div>
-
-          <!-- Submit Button -->
-          <div class="pt-2">
-            <button
-              id="btn-login-submit"
-              type="submit"
-              class="w-full flex items-center justify-center py-3 px-4 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span id="btn-login-text">Masuk ke Konsol</span>
-              <svg id="btn-login-spinner" class="hidden w-5 h-5 ml-2 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <div class="relative z-10 space-y-6">
+          <!-- Brand Logo -->
+          <a href="/" class="inline-flex items-center space-x-2 text-white font-black text-2xl tracking-tight group">
+            <div class="w-10 h-10 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center backdrop-blur-xs group-hover:bg-white/25 transition-all">
+              <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17 20H7C4.79086 20 3 18.2091 3 16V8C3 5.79086 4.79086 4 7 4H17C19.2091 4 21 5.79086 21 8V16C21 18.2091 19.2091 20 17 20Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M7 10L10 13L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-            </button>
-          </div>
-        </form>
-
-        <div class="mt-6 text-center">
-          <a href="/" class="text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
-            &larr; Kembali ke Portal Utama
+            </div>
+            <span>AntriAja</span>
           </a>
+
+          <!-- Hero Pitch -->
+          <div class="space-y-2 pt-4">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-500/30 border border-blue-400/30 text-blue-100">
+              Konsol Petugas Loket
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
+              Layanan Antrian Cepat & Tertata
+            </h1>
+            <p class="text-xs sm:text-sm text-blue-100/80 leading-relaxed">
+              Kendalikan meja pelayanan, panggil nomor antrian berikutnya, dan layani pengunjung secara efisien tanpa tumpang tindih.
+            </p>
+          </div>
+
+          <!-- Feature Bullets -->
+          <div class="space-y-2.5 pt-2 text-xs text-blue-100/90">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <span>Dukungan Loket Multi-Layanan (M:N)</span>
+            </div>
+            <div class="flex items-center space-x-2.5">
+              <div class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <span>Panggilan Suara TV & Mobile Notifikasi</span>
+            </div>
+            <div class="flex items-center space-x-2.5">
+              <div class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <span>Realtime Sync Server-Sent Events</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Left Footer -->
+        <div class="relative z-10 pt-6 border-t border-white/10 flex items-center justify-between text-[11px] text-blue-200/70">
+          <span>&copy; AntriAja Cloud SaaS</span>
+          <span class="flex items-center gap-1.5 font-mono">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Server Ready
+          </span>
+        </div>
+      </div>
+
+      <!-- Right Form Panel -->
+      <div class="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between bg-white">
+        <div>
+          <!-- Top Navigation Header: Back Link & Role Switcher -->
+          <div class="flex items-center justify-between gap-2 mb-6">
+            <a href="/" class="inline-flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+              <span>Beranda</span>
+            </a>
+
+            <!-- Segmented Role Switcher Tab -->
+            <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold">
+              <span class="px-3 py-1 rounded-lg bg-white text-blue-700 shadow-2xs font-bold">
+                Petugas Loket
+              </span>
+              <a href="/admin/login" class="px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition-colors">
+                Administrator
+              </a>
+            </div>
+          </div>
+
+          <!-- Title & Subtitle -->
+          <div class="mb-6">
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              Login Petugas Loket
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+              Masukkan kredensial akun loket Anda untuk memulai pelayanan
+            </p>
+          </div>
+
+          <!-- Quick Fill Demo Credentials Helper -->
+          <button
+            id="btn-quick-fill-demo"
+            type="button"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100/80 text-blue-700 border border-blue-200 text-xs font-bold transition-all cursor-pointer mb-5 shadow-2xs"
+            title="Klik untuk mengisi data login akun demo staf secara instan"
+          >
+            <span class="flex items-center gap-1.5">
+              <span class="text-sm">⚡</span>
+              <span>Gunakan Akun Demo Staf</span>
+            </span>
+            <span class="text-[11px] font-mono font-medium bg-white px-2 py-0.5 rounded-md border border-blue-200 text-blue-800">
+              demo-bank &bull; staff
+            </span>
+          </button>
+
+          <!-- Error Alert Container -->
+          <div id="login-error-alert" class="hidden mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium flex items-center gap-2">
+            <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span id="login-error-text"></span>
+          </div>
+
+          <!-- Login Form -->
+          <form id="staff-login-form" class="space-y-4">
+            <!-- Tenant Slug -->
+            <div>
+              <label for="input-tenant-slug" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                Kode / Slug Instansi <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </div>
+                <input
+                  id="input-tenant-slug"
+                  name="tenant_slug"
+                  type="text"
+                  required
+                  placeholder="misal: demo-bank"
+                  class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-mono font-medium"
+                />
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label for="input-email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                Email Petugas <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>
+                </div>
+                <input
+                  id="input-email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="staff@antriaja.com"
+                  class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div>
+              <label for="input-password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                Kata Sandi <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+                <input
+                  id="input-password"
+                  name="password"
+                  type="password"
+                  required
+                  placeholder="Minimal 8 karakter"
+                  class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                />
+                <!-- Eye Toggle -->
+                <button
+                  id="btn-toggle-password"
+                  type="button"
+                  class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                  title="Tampilkan / Sembunyikan Sandi"
+                >
+                  <svg id="eye-icon-show" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  <svg id="eye-icon-hide" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-2">
+              <button
+                id="btn-login-submit"
+                type="submit"
+                class="w-full flex items-center justify-center py-3 px-4 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span id="btn-login-text">Masuk ke Konsol Staf</span>
+                <svg id="btn-login-spinner" class="hidden w-4 h-4 ml-2 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Footer Help Text -->
+        <div class="mt-6 pt-4 border-t border-slate-100 text-center text-xs text-slate-400">
+          Belum memiliki akun petugas? Hubungi <span class="font-semibold text-slate-600">Administrator Cabang</span> Anda.
         </div>
       </div>
     </div>
@@ -119,6 +235,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     const btnText = document.getElementById('btn-login-text');
     const btnSpinner = document.getElementById('btn-login-spinner');
     const errorAlert = document.getElementById('login-error-alert');
+    const errorText = document.getElementById('login-error-text');
+    const btnQuickDemo = document.getElementById('btn-quick-fill-demo');
+    const btnTogglePassword = document.getElementById('btn-toggle-password');
+    const eyeShow = document.getElementById('eye-icon-show');
+    const eyeHide = document.getElementById('eye-icon-hide');
 
     if (!form || !slugInput || !emailInput || !passwordInput || !submitBtn) return;
 
@@ -129,11 +250,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       slugInput.value = querySlug;
     }
 
+    // 1-Click Quick Fill Demo Credentials
+    btnQuickDemo?.addEventListener('click', () => {
+      slugInput.value = 'demo-bank';
+      emailInput.value = 'staff@antriaja.com';
+      passwordInput.value = 'password123';
+      if (errorAlert) errorAlert.classList.add('hidden');
+      emailInput.focus();
+    });
+
+    // Password Toggle Visibility
+    btnTogglePassword?.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      eyeShow?.classList.toggle('hidden', isPassword);
+      eyeHide?.classList.toggle('hidden', !isPassword);
+    });
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (errorAlert) {
         errorAlert.classList.add('hidden');
-        errorAlert.textContent = '';
       }
 
       const tenant_slug = slugInput.value.trim();
@@ -141,8 +278,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const password = passwordInput.value;
 
       if (!tenant_slug || !email || !password) {
-        if (errorAlert) {
-          errorAlert.textContent = 'Harap lengkapi seluruh kolom isian';
+        if (errorAlert && errorText) {
+          errorText.textContent = 'Harap lengkapi seluruh kolom isian.';
           errorAlert.classList.remove('hidden');
         }
         return;
@@ -157,9 +294,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         const res = await login({ tenant_slug, email, password });
 
         if (!res.success || !res.data) {
-          const errorMsg = res.error?.message || 'Login gagal. Periksa kembali email dan password Anda.';
-          if (errorAlert) {
-            errorAlert.textContent = errorMsg;
+          const errorMsg = res.error?.message || 'Login gagal. Periksa kembali email dan kata sandi Anda.';
+          if (errorAlert && errorText) {
+            errorText.textContent = errorMsg;
             errorAlert.classList.remove('hidden');
           }
           return;
@@ -173,13 +310,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         // Redirect to staff console
         window.location.href = '/staff';
       } catch (err: unknown) {
-        if (errorAlert) {
-          errorAlert.textContent = 'Terjadi gangguan jaringan saat menghubungi server.';
+        if (errorAlert && errorText) {
+          errorText.textContent = 'Terjadi gangguan jaringan saat menghubungi server.';
           errorAlert.classList.remove('hidden');
         }
       } finally {
         submitBtn.disabled = false;
-        if (btnText) btnText.textContent = 'Masuk ke Konsol';
+        if (btnText) btnText.textContent = 'Masuk ke Konsol Staf';
         if (btnSpinner) btnSpinner.classList.add('hidden');
       }
     });

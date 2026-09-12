@@ -98,4 +98,12 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
     - Penambahan tombol penyegaran status loket (`#btn-refresh-counter-list`) pada footer modal.
     - Integrasi badge loket di navbar `StaffLayout.astro` agar dapat diklik langsung untuk memunculkan modal pergantian loket.
     - Pembaruan unit test `tests/staffComponents.test.ts` (10 tests PASS) dan verifikasi sukses `npm run check` (0 errors), `npm test` (159 tests PASS), serta `npm run build`.
+  - **Redesain & Polishing Halaman Login Staf & Admin (Sub-Langkah 2):**
+    - Desain ulang tampilan login pada `src/pages/staff/login.astro` dan `src/pages/admin/login.astro` menggunakan layout modern *Split Desktop Hero* dengan visual branding profesional, benefit highlights, dan responsive card view.
+    - Penambahan navigasi tab alih peran terpadu (*Role Switcher*) di header kartu login (`[Petugas Loket] <-> [Administrator]`), memudahkan staf/admin berpindah form tanpa navigasi manual.
+    - Penambahan tombol *1-Click Demo Quick Fill* (`#btn-quick-fill-demo`) yang otomatis mengisikan data instansi (`demo-bank`), email demo, dan kata sandi tanpa perlu ketik manual.
+    - Penambahan tombol toggle intip password interaktif (`#btn-toggle-password`) dengan transisi ikon mata (`eye` / `eye-slash`).
+    - Penyelarasan pengujian unit test pada `tests/staffPages.test.ts` dan `tests/adminPages.test.ts` untuk memverifikasi fungsionalitas autofill demo, password toggle, dan navigasi peran.
+    - Verifikasi kualitas menyeluruh: `npm run check` (0 errors), `npm test` (159/159 tests PASS), dan `npm run build` sukses.
+
 

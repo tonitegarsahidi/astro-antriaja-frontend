@@ -30,7 +30,7 @@ describe('Admin Pages & Layouts', () => {
   });
 
   describe('admin/login.astro', () => {
-    it('renders admin login form with slug, email, password inputs and login button', async () => {
+    it('renders admin login form with form inputs, demo helper, password toggle, and role switcher', async () => {
       const container = await AstroContainer.create();
       const result = await container.renderToString(AdminLoginPage);
 
@@ -40,6 +40,9 @@ describe('Admin Pages & Layouts', () => {
       expect(result).toContain('id="input-email"');
       expect(result).toContain('id="input-password"');
       expect(result).toContain('id="btn-admin-login-submit"');
+      expect(result).toContain('id="btn-quick-fill-demo"');
+      expect(result).toContain('id="btn-toggle-password"');
+      expect(result).toContain('href="/staff/login"');
     });
   });
 

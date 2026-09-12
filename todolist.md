@@ -174,6 +174,7 @@ src/
   - [x] Penanganan error `409 Conflict` (`COUNTER_STILL_BUSY`, `STAFF_HAS_ACTIVE_TICKET`, `COUNTER_ALREADY_OCCUPIED`)
   - [x] Konfirmasi sebelum Release loket
   - [x] Refaktor 1-Klik Occupy Modal Loket: eksekusi langsung, visual spinner loading kartu, auto-dismiss modal, dan tombol batal ganti loket
+  - [x] Redesain & Polishing Halaman Login Staf & Admin (Sub-Langkah 2): layout split-hero desktop, tab alih peran Staf/Admin, helper 1-klik autofill demo, dan toggle intip password
 - [x] Unit & Container test untuk Konsol Staf (5 test suites, 32 tests PASS 100%)
 
 ---

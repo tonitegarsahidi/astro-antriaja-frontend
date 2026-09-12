@@ -25,7 +25,7 @@ describe('Staff Pages & Layouts', () => {
   });
 
   describe('staff/login.astro', () => {
-    it('renders staff login page with slug, email, password inputs and login button', async () => {
+    it('renders staff login page with form inputs, demo helper, password toggle, and role switcher', async () => {
       const container = await AstroContainer.create();
       const result = await container.renderToString(StaffLoginPage);
 
@@ -34,6 +34,9 @@ describe('Staff Pages & Layouts', () => {
       expect(result).toContain('id="input-email"');
       expect(result).toContain('id="input-password"');
       expect(result).toContain('id="btn-login-submit"');
+      expect(result).toContain('id="btn-quick-fill-demo"');
+      expect(result).toContain('id="btn-toggle-password"');
+      expect(result).toContain('href="/admin/login"');
     });
   });
 
