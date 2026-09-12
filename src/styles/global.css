@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Pastikan elemen dengan atribut atau class hidden benar-benar tersembunyi */
+.hidden {
+  display: none !important;
+}

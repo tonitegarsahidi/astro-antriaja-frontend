@@ -196,5 +196,6 @@ src/
 - [x] Pengaturan Workbox runtime caching untuk file audio dan layout statis
 - [x] Offline fallback view (ketika koneksi internet terputus total)
 - [x] Audit menyeluruh: `npm run check`, `npm test`, dan `npm run build`
+- [x] Integrasi styling Tailwind CSS v4 dan generator QR Code standar offline
 - [x] Dokumentasi penggunaan frontend lengkap pada `README.md`
 
