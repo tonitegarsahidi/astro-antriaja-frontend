@@ -8,7 +8,8 @@ import type { DisplaySnapshotResponse } from '../types/display.types';
  * Mengambil status awal layar Display TV berdasarkan slug tenant
  */
 export async function getDisplaySnapshot(
-  tenantSlug: string
+  tenantSlug: string,
+  deviceKey?: string
 ): Promise<DisplaySnapshotResponse> {
   const safeSlug = (tenantSlug || '').trim();
   if (!safeSlug) {
@@ -16,7 +17,8 @@ export async function getDisplaySnapshot(
   }
 
   const response = await httpClient.get<DisplaySnapshotResponse>(
-    `/display/${encodeURIComponent(safeSlug)}`
+    `/display/${encodeURIComponent(safeSlug)}`,
+    { deviceKey }
   );
 
   if (!response.success || !response.data) {

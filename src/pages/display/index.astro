@@ -101,7 +101,7 @@ import DisplaySetupModal from '../../components/display/DisplaySetupModal.astro'
     }
 
     try {
-      const snapshot = await getDisplaySnapshot(currentSlug);
+      const snapshot = await getDisplaySnapshot(currentSlug, currentDeviceKey);
       applySnapshot(snapshot);
       startSSESubscription();
     } catch (err) {
