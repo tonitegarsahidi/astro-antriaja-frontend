@@ -49,5 +49,6 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
     - `DisplaySetupModal.astro`: Form interaktif konfigurasi device key display TV dan slug instansi.
   - Pembuatan halaman interaktif `src/pages/display/index.astro` dengan split-screen 65%:35%, integrasi SSE realtime multi-event (`TICKET_CALLED`, `TICKET_SERVING`, `TICKET_HOLD`, `TICKET_COMPLETED`, `TICKET_TRANSFERRED`, `COUNTER_STATUS_CHANGED`, `DISPLAY_SETTINGS_UPDATED`, `QUEUE_RESET`), pemutaran suara berseri otomatis, dan shortcut keyboard `Ctrl + Shift + S`.
   - Penambahan 4 test suite baru (total 98 tests PASS 100% di 18 test files) dan Astro build static sukses.
+  - Penambahan parameter `deviceKey` pada `getDisplaySnapshot` (`displayService.ts`) dan integrasi injection header `X-Device-Key` untuk otorisasi snapshot TV Display pada backend.
 
 
