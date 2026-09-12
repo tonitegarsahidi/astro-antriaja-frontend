@@ -1,0 +1,193 @@
+---
+interface Props {
+  ticketNumber?: string;
+  counterName?: string;
+  serviceName?: string;
+}
+
+const {
+  ticketNumber = '',
+  counterName = '',
+  serviceName = '',
+} = Astro.props;
+
+const hasActive = Boolean(ticketNumber && ticketNumber.trim());
+---
+
+<div class={`active-call-card ${hasActive ? 'has-active' : 'is-idle'}`} id="active-call-card-container">
+  <div class="active-call-badge">
+    <span class="pulsing-radar"></span>
+    <span class="badge-label">{hasActive ? 'SEDANG DIPANGGIL' : 'STANDBY'}</span>
+  </div>
+
+  <div class="active-ticket-display">
+    <p class="ticket-sublabel">NOMOR ANTRIAN</p>
+    <div class="ticket-giant-number" id="active-ticket-number">
+      {hasActive ? ticketNumber : '---'}
+    </div>
+  </div>
+
+  <div class="active-destination-box">
+    <div class="dest-icon">
+      <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
+    </div>
+    <div class="dest-details">
+      <p class="dest-prefix">SILAKAN MENUJU KE</p>
+      <h2 class="dest-counter-name" id="active-counter-name">
+        {hasActive ? counterName : 'Menunggu Panggilan'}
+      </h2>
+      <p class="dest-service-name" id="active-service-name">
+        {hasActive ? serviceName : 'Layanan Antrian Siap Memanggil'}
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .active-call-card {
+    background: linear-gradient(145deg, #0f172a 0%, #1e1b4b 100%);
+    border: 3px solid rgba(56, 189, 248, 0.4);
+    border-radius: 1.75rem;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    box-shadow: 0 10px 35px -5px rgba(0, 0, 0, 0.6), 0 0 40px -10px rgba(56, 189, 248, 0.2);
+    overflow: hidden;
+    height: 100%;
+    transition: all 0.3s ease;
+  }
+
+  .active-call-card.has-active {
+    border-color: #38bdf8;
+    box-shadow: 0 0 50px rgba(56, 189, 248, 0.45);
+  }
+
+  .active-call-card.calling-pulse {
+    animation: cardPulse 1.2s infinite alternate;
+  }
+
+  @keyframes cardPulse {
+    0% {
+      border-color: #38bdf8;
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.4);
+      transform: scale(1);
+    }
+    100% {
+      border-color: #60a5fa;
+      box-shadow: 0 0 70px rgba(96, 165, 250, 0.8);
+      transform: scale(1.01);
+    }
+  }
+
+  .active-call-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 0.5rem 1.5rem;
+    border-radius: 9999px;
+  }
+
+  .pulsing-radar {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background-color: #38bdf8;
+    box-shadow: 0 0 10px #38bdf8;
+    animation: radarBlink 1s infinite;
+  }
+
+  @keyframes radarBlink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+
+  .badge-label {
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: #38bdf8;
+  }
+
+  .active-ticket-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1.5rem 0;
+  }
+
+  .ticket-sublabel {
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+  }
+
+  .ticket-giant-number {
+    font-size: 7.5rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 50px rgba(56, 189, 248, 0.6);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .active-destination-box {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: rgba(15, 23, 42, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.25rem;
+    padding: 1.25rem 2.5rem;
+    width: 100%;
+    backdrop-filter: blur(8px);
+  }
+
+  .dest-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 1rem;
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .dest-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dest-prefix {
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #94a3b8;
+  }
+
+  .dest-counter-name {
+    font-size: 2.25rem;
+    font-weight: 900;
+    color: #fbbf24;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  .dest-service-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-top: 0.25rem;
+  }
+</style>

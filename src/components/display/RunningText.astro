@@ -1,0 +1,83 @@
+---
+interface Props {
+  text?: string;
+}
+
+const {
+  text = 'Selamat datang di Layanan AntriAja. Mohon tertib menunggu nomor antrian Anda dipanggil.',
+} = Astro.props;
+---
+
+<footer class="running-text-bar" id="running-text-marquee">
+  <div class="running-icon-badge">
+    <svg class="w-6 h-6 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+    </svg>
+    <span>PENGUMUMAN</span>
+  </div>
+
+  <div class="running-track">
+    <div class="running-text-content" id="running-text-content">
+      {text}
+    </div>
+  </div>
+</footer>
+
+<style>
+  .running-text-bar {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(180deg, #090d16 0%, #030712 100%);
+    border-top: 2px solid var(--border-display);
+    height: 3.5rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .running-icon-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #1e293b;
+    border-right: 2px solid var(--border-display);
+    padding: 0 1.5rem;
+    height: 100%;
+    z-index: 10;
+    flex-shrink: 0;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: #fbbf24;
+  }
+
+  .running-track {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  .running-text-content {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marqueeScroll 28s linear infinite;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #f8fafc;
+    letter-spacing: 0.02em;
+  }
+
+  @keyframes marqueeScroll {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(-100%, 0, 0);
+    }
+  }
+</style>

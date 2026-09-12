@@ -1,0 +1,171 @@
+// @vitest-environment happy-dom
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {
+  numberToWordsIndonesian,
+  buildAudioInstructionWords,
+  buildIndonesianSpeechText,
+  IndonesianAudioEngine,
+} from '../src/lib/audioPlayer';
+import type { AudioInstruction } from '../src/types/sse.types';
+
+describe('audioPlayer library', () => {
+  describe('numberToWordsIndonesian', () => {
+    it('converts single digits 1-9 correctly', () => {
+      expect(numberToWordsIndonesian(1)).toEqual(['satu']);
+      expect(numberToWordsIndonesian(2)).toEqual(['dua']);
+      expect(numberToWordsIndonesian(3)).toEqual(['tiga']);
+      expect(numberToWordsIndonesian(4)).toEqual(['empat']);
+      expect(numberToWordsIndonesian(5)).toEqual(['lima']);
+      expect(numberToWordsIndonesian(9)).toEqual(['sembilan']);
+    });
+
+    it('converts teen numbers 10-19 correctly', () => {
+      expect(numberToWordsIndonesian(10)).toEqual(['sepuluh']);
+      expect(numberToWordsIndonesian(11)).toEqual(['sebelas']);
+      expect(numberToWordsIndonesian(12)).toEqual(['dua', 'belas']);
+      expect(numberToWordsIndonesian(15)).toEqual(['lima', 'belas']);
+      expect(numberToWordsIndonesian(19)).toEqual(['sembilan', 'belas']);
+    });
+
+    it('converts tens 20-99 correctly', () => {
+      expect(numberToWordsIndonesian(20)).toEqual(['dua', 'puluh']);
+      expect(numberToWordsIndonesian(21)).toEqual(['dua', 'puluh', 'satu']);
+      expect(numberToWordsIndonesian(35)).toEqual(['tiga', 'puluh', 'lima']);
+      expect(numberToWordsIndonesian(99)).toEqual(['sembilan', 'puluh', 'sembilan']);
+    });
+
+    it('converts hundreds 100-999 correctly', () => {
+      expect(numberToWordsIndonesian(100)).toEqual(['seratus']);
+      expect(numberToWordsIndonesian(105)).toEqual(['seratus', 'lima']);
+      expect(numberToWordsIndonesian(112)).toEqual(['seratus', 'dua', 'belas']);
+      expect(numberToWordsIndonesian(200)).toEqual(['dua', 'ratus']);
+      expect(numberToWordsIndonesian(250)).toEqual(['dua', 'ratus', 'lima', 'puluh']);
+      expect(numberToWordsIndonesian(345)).toEqual([
+        'tiga',
+        'ratus',
+        'empat',
+        'puluh',
+        'lima',
+      ]);
+      expect(numberToWordsIndonesian(999)).toEqual([
+        'sembilan',
+        'ratus',
+        'sembilan',
+        'puluh',
+        'sembilan',
+      ]);
+    });
+
+    it('handles edge cases (0, out of bounds or negative numbers)', () => {
+      expect(numberToWordsIndonesian(0)).toEqual(['nol']);
+      expect(numberToWordsIndonesian(-5)).toEqual(['nol']);
+    });
+  });
+
+  describe('buildAudioInstructionWords & buildIndonesianSpeechText', () => {
+    const instruction: AudioInstruction = {
+      prefix: 'A',
+      number: 14,
+      counter_number: 2,
+    };
+
+    it('builds sequential audio word tokens for audio concatenation', () => {
+      const words = buildAudioInstructionWords(instruction);
+      expect(words).toEqual([
+        'nomor-antrian',
+        'A',
+        'empat',
+        'belas',
+        'menuju-ke-loket',
+        'dua',
+      ]);
+    });
+
+    it('builds clear natural Indonesian text for speech synthesis', () => {
+      const speechText = buildIndonesianSpeechText(instruction);
+      expect(speechText).toContain('Nomor antrian A');
+      expect(speechText).toContain('empat belas');
+      expect(speechText).toContain('menuju ke loket dua');
+    });
+  });
+
+  describe('IndonesianAudioEngine class', () => {
+    let engine: IndonesianAudioEngine;
+
+    beforeEach(() => {
+      engine = new IndonesianAudioEngine();
+    });
+
+    it('starts with locked state and unmuted by default', () => {
+      expect(engine.isUnlocked()).toBe(false);
+      expect(engine.isMuted()).toBe(false);
+      expect(engine.getQueueLength()).toBe(0);
+    });
+
+    it('unlocks audio context upon user gesture', async () => {
+      await engine.unlock();
+      expect(engine.isUnlocked()).toBe(true);
+    });
+
+    it('toggles mute setting', () => {
+      engine.setMuted(true);
+      expect(engine.isMuted()).toBe(true);
+
+      engine.setMuted(false);
+      expect(engine.isMuted()).toBe(false);
+    });
+
+    it('queues calls and does not play when muted', async () => {
+      engine.setMuted(true);
+      const instruction: AudioInstruction = {
+        prefix: 'B',
+        number: 5,
+        counter_number: 1,
+      };
+
+      const processSpy = vi.spyOn(engine, 'processQueue');
+      engine.enqueueCall(instruction);
+
+      expect(engine.getQueueLength()).toBe(0);
+      expect(processSpy).not.toHaveBeenCalled();
+    });
+
+    it('enqueues calls and processes them in FIFO order without collision', async () => {
+      const instruction1: AudioInstruction = {
+        prefix: 'A',
+        number: 1,
+        counter_number: 1,
+      };
+      const instruction2: AudioInstruction = {
+        prefix: 'B',
+        number: 2,
+        counter_number: 2,
+      };
+
+      const playChimeSpy = vi.spyOn(engine, 'playChime').mockResolvedValue();
+      const speakSpy = vi.spyOn(engine, 'speakText').mockResolvedValue();
+
+      engine.enqueueCall(instruction1);
+      engine.enqueueCall(instruction2);
+
+      // Tunggu hingga queue selesai diproses
+      await engine.processQueue();
+
+      expect(playChimeSpy).toHaveBeenCalled();
+      expect(speakSpy).toHaveBeenCalledTimes(2);
+      expect(engine.getQueueLength()).toBe(0);
+    });
+
+    it('clears queue properly', () => {
+      // Mock processQueue agar queue tetap ada untuk pengujian clear
+      vi.spyOn(engine, 'processQueue').mockImplementation(async () => {});
+
+      engine.enqueueCall({ prefix: 'A', number: 1, counter_number: 1 });
+      engine.enqueueCall({ prefix: 'A', number: 2, counter_number: 1 });
+      expect(engine.getQueueLength()).toBe(2);
+
+      engine.clearQueue();
+      expect(engine.getQueueLength()).toBe(0);
+    });
+  });
+});

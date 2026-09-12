@@ -1,0 +1,181 @@
+---
+---
+
+<div class="display-setup-modal hidden" id="display-setup-modal">
+  <div class="setup-backdrop"></div>
+  <div class="setup-card">
+    <div class="setup-header">
+      <div class="setup-icon">
+        <svg class="w-8 h-8 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <div>
+        <h3 class="setup-title">Pengaturan Layar TV Display</h3>
+        <p class="setup-sub">Hubungkan layar TV ini ke instansi & server antrian</p>
+      </div>
+    </div>
+
+    <form class="setup-form" id="display-setup-form" onsubmit="return false;">
+      <div class="form-group">
+        <label for="setup-tenant-slug">SLUG INSTANSI (TENANT SLUG)</label>
+        <input
+          type="text"
+          id="setup-tenant-slug"
+          placeholder="contoh: klinik-sehat"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="setup-display-key">DISPLAY DEVICE KEY (OPTIONAL)</label>
+        <input
+          type="text"
+          id="setup-display-key"
+          placeholder="Masukkan device key dari dashboard admin"
+        />
+        <span class="input-hint">Digunakan untuk autentikasi koneksi realtime SSE khusus device</span>
+      </div>
+
+      <div class="setup-actions">
+        <button type="button" class="btn-cancel" id="btn-cancel-display-setup">Batal</button>
+        <button type="button" class="btn-save" id="btn-save-display-setup">Simpan & Hubungkan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .display-setup-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .display-setup-modal.hidden {
+    display: none;
+  }
+
+  .setup-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.85);
+    backdrop-filter: blur(8px);
+  }
+
+  .setup-card {
+    position: relative;
+    z-index: 10;
+    background: #0f172a;
+    border: 2px solid var(--border-display);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  }
+
+  .setup-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .setup-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 1rem;
+    background: rgba(56, 189, 248, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .setup-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #ffffff;
+  }
+
+  .setup-sub {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+
+  .setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-group label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: var(--text-secondary);
+  }
+
+  .form-group input {
+    background: #1e293b;
+    border: 1px solid var(--border-display);
+    border-radius: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    color: #ffffff;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .form-group input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  }
+
+  .input-hint {
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  .setup-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border-display);
+    color: var(--text-secondary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .btn-save {
+    background: #0284c7;
+    border: none;
+    color: #ffffff;
+    padding: 0.75rem 1.75rem;
+    border-radius: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+  }
+</style>

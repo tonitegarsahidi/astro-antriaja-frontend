@@ -1,0 +1,534 @@
+---
+import DisplayLayout from '../../layouts/DisplayLayout.astro';
+import ActiveCallCard from '../../components/display/ActiveCallCard.astro';
+import RecentCallsList from '../../components/display/RecentCallsList.astro';
+import MediaPromoSlim from '../../components/display/MediaPromoSlim.astro';
+import CountersGrid from '../../components/display/CountersGrid.astro';
+import RunningText from '../../components/display/RunningText.astro';
+import AudioUnlockOverlay from '../../components/display/AudioUnlockOverlay.astro';
+import DisplaySetupModal from '../../components/display/DisplaySetupModal.astro';
+---
+
+<DisplayLayout title="Layar Display TV - AntriAja">
+  <div class="display-workspace">
+    <!-- Sisi Kiri (65% Lebar Layar 16:9): Panggilan Aktif & Riwayat Terkini -->
+    <section class="display-left-column" id="active-call-section">
+      <div class="active-call-wrapper">
+        <ActiveCallCard />
+      </div>
+
+      <div class="recent-calls-wrapper-section" id="recent-calls-section">
+        <RecentCallsList />
+      </div>
+    </section>
+
+    <!-- Sisi Kanan (35% Lebar Layar 16:9): Media Promosi & Grid Status Seluruh Loket -->
+    <section class="display-right-column" id="media-promo-section">
+      <div class="promo-container">
+        <MediaPromoSlim />
+      </div>
+
+      <div class="counters-container">
+        <CountersGrid />
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer: Teks Berjalan Pengumuman Instansi -->
+  <RunningText />
+
+  <!-- Overlay Interaksi Audio & Modal Setup Device -->
+  <AudioUnlockOverlay />
+  <DisplaySetupModal />
+</DisplayLayout>
+
+<script>
+  import { getDisplaySnapshot } from '../../services/displayService';
+  import { sseClient } from '../../lib/sseClient';
+  import { globalAudioEngine } from '../../lib/audioPlayer';
+  import type {
+    DisplaySnapshotResponse,
+    DisplaySettingsResponse,
+    RecentCallItem,
+    ActiveCallItem,
+  } from '../../types/display.types';
+  import type {
+    TicketCalledPayload,
+    CounterStatusPayload,
+  } from '../../types/sse.types';
+
+  let currentSlug = '';
+  let currentDeviceKey = '';
+  let recentCallsList: RecentCallItem[] = [];
+  let countersMap = new Map<string, ActiveCallItem>();
+  let isVoiceEnabled = true;
+
+  // 1. Ekstraksi slug & device key dari URL atau localStorage
+  function resolveConfig(): { slug: string; deviceKey: string } {
+    const urlParams = new URLSearchParams(window.location.search);
+    let slug = urlParams.get('slug') || urlParams.get('tenant') || '';
+
+    // Deteksi dari pathname jika diakses via /display/[slug]
+    if (!slug) {
+      const pathParts = window.location.pathname.split('/').filter(Boolean);
+      if (pathParts.length >= 2 && pathParts[0] === 'display') {
+        slug = pathParts[1];
+      }
+    }
+
+    if (!slug) {
+      slug = localStorage.getItem('antriaja_active_tenant_slug') || '';
+    }
+
+    let deviceKey = urlParams.get('device_key') || '';
+    if (!deviceKey && slug) {
+      deviceKey = localStorage.getItem(`antriaja_display_key_${slug}`) || '';
+    }
+
+    return { slug, deviceKey };
+  }
+
+  // 2. Inisialisasi dan Render Data Snapshot Awal
+  async function initDisplay() {
+    const config = resolveConfig();
+    currentSlug = config.slug;
+    currentDeviceKey = config.deviceKey;
+
+    if (!currentSlug) {
+      const setupModal = document.getElementById('display-setup-modal');
+      if (setupModal) setupModal.classList.remove('hidden');
+      return;
+    }
+
+    try {
+      const snapshot = await getDisplaySnapshot(currentSlug);
+      applySnapshot(snapshot);
+      startSSESubscription();
+    } catch (err) {
+      console.error('Failed to load display snapshot:', err);
+      // Coba buka kembali SSE jika memungkinkan
+      startSSESubscription();
+    }
+  }
+
+  function applySnapshot(snapshot: DisplaySnapshotResponse) {
+    // 1. Nama Tenant
+    const tenantEl = document.getElementById('display-tenant-name');
+    if (tenantEl) {
+      tenantEl.textContent = snapshot.tenant_name || snapshot.tenant_slug;
+    }
+
+    // 2. Display Settings (Running text, Voice, Media)
+    if (snapshot.display_settings) {
+      applyDisplaySettings(snapshot.display_settings);
+    }
+
+    // 3. Active Call & Recent Calls
+    recentCallsList = [...snapshot.recent_calls];
+    renderRecentCalls();
+
+    if (snapshot.active_calls && snapshot.active_calls.length > 0) {
+      const latest = snapshot.active_calls[0];
+      updateActiveCallUI(latest.ticket_number, latest.counter_name, latest.service_name);
+
+      // Simpan seluruh active calls ke countersMap
+      snapshot.active_calls.forEach((c) => {
+        countersMap.set(c.counter_name, c);
+      });
+      renderCountersGrid();
+    }
+  }
+
+  function applyDisplaySettings(settings: DisplaySettingsResponse) {
+    isVoiceEnabled = settings.voice_enabled;
+    globalAudioEngine.setMuted(!isVoiceEnabled);
+
+    // Running text
+    const marqueeEl = document.getElementById('running-text-content');
+    if (marqueeEl && settings.running_text) {
+      marqueeEl.textContent = settings.running_text;
+    }
+
+    // Media Promo
+    const promoContainer = document.getElementById('media-promo-container');
+    if (promoContainer) {
+      if (settings.media_type === 'video' && settings.media_url) {
+        promoContainer.innerHTML = `
+          <video class="media-element media-video" src="${settings.media_url}" autoplay loop muted playsinline id="promo-video-player"></video>
+        `;
+      } else if (settings.media_type === 'image' && settings.media_url) {
+        promoContainer.innerHTML = `
+          <img class="media-element media-image" src="${settings.media_url}" alt="Promosi Instansi" id="promo-image-viewer" />
+        `;
+      }
+    }
+  }
+
+  function updateActiveCallUI(ticket: string, counter: string, service: string) {
+    const cardContainer = document.getElementById('active-call-card-container');
+    const ticketEl = document.getElementById('active-ticket-number');
+    const counterEl = document.getElementById('active-counter-name');
+    const serviceEl = document.getElementById('active-service-name');
+
+    if (ticketEl) ticketEl.textContent = ticket || '---';
+    if (counterEl) counterEl.textContent = counter || 'Menunggu Panggilan';
+    if (serviceEl) serviceEl.textContent = service || 'Layanan Antrian Siap Memanggil';
+
+    if (cardContainer) {
+      if (ticket) {
+        cardContainer.classList.add('has-active');
+        cardContainer.classList.remove('is-idle');
+        // Flash pulse effect
+        cardContainer.classList.add('calling-pulse');
+        setTimeout(() => {
+          cardContainer.classList.remove('calling-pulse');
+        }, 8000);
+      } else {
+        cardContainer.classList.remove('has-active');
+        cardContainer.classList.add('is-idle');
+      }
+    }
+  }
+
+  function renderRecentCalls() {
+    const container = document.getElementById('recent-calls-container');
+    if (!container) return;
+
+    if (recentCallsList.length === 0) {
+      container.innerHTML = `
+        <div class="recent-empty-state">
+          <p>Belum ada riwayat panggilan</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = recentCallsList
+      .slice(0, 4)
+      .map(
+        (c) => `
+        <div class="recent-call-item">
+          <span class="recent-ticket-num">${c.ticket_number}</span>
+          <div class="recent-dest-info">
+            <span class="recent-counter-label">${c.counter_name || 'Loket'}</span>
+            <span class="recent-service-label">${c.service_name}</span>
+          </div>
+        </div>
+      `
+      )
+      .join('');
+  }
+
+  function renderCountersGrid() {
+    const gridEl = document.getElementById('counters-grid');
+    if (!gridEl) return;
+
+    if (countersMap.size === 0) {
+      gridEl.innerHTML = `
+        <div class="counter-placeholder-loading">
+          <span>Menunggu aktivitas staf loket...</span>
+        </div>
+      `;
+      return;
+    }
+
+    const items = Array.from(countersMap.values());
+    gridEl.innerHTML = items
+      .map(
+        (c) => `
+        <div class="counter-card-mini ${c.status === 'called' || c.status === 'serving' ? 'status-serving' : 'status-idle'}">
+          <span class="mini-counter-name">${c.counter_name}</span>
+          <span class="mini-ticket-number">${c.ticket_number || '---'}</span>
+          <span class="mini-status-badge">${c.status === 'called' ? 'MEMANGGIL' : c.status === 'serving' ? 'MELAYANI' : 'SIAP'}</span>
+        </div>
+      `
+      )
+      .join('');
+  }
+
+  // 3. Langganan SSE Realtime
+  function startSSESubscription() {
+    if (!currentSlug) return;
+    sseClient.disconnect();
+
+    const badge = document.getElementById('sse-status-badge');
+    const statusText = document.getElementById('sse-status-text');
+
+    sseClient.onStatusChange((status) => {
+      if (!badge || !statusText) return;
+      badge.classList.remove('connected', 'disconnected');
+
+      if (status === 'connected') {
+        badge.classList.add('connected');
+        statusText.textContent = 'Terhubung Live';
+      } else if (status === 'connecting') {
+        statusText.textContent = 'Menyambungkan...';
+      } else {
+        badge.classList.add('disconnected');
+        statusText.textContent = 'Koneksi Terputus';
+      }
+    });
+
+    // A. Event: TICKET_CALLED
+    sseClient.on<TicketCalledPayload>('TICKET_CALLED', (payload) => {
+      // 1. Update kartu aktif utama
+      updateActiveCallUI(payload.ticket_number, payload.counter_name, payload.service_name);
+
+      // 2. Putar suara panggilan antrian jika suara diaktifkan
+      if (isVoiceEnabled && payload.audio) {
+        globalAudioEngine.enqueueCall(payload.audio);
+      }
+
+      // 3. Masukkan ke recent calls (hindari duplikasi teratas)
+      recentCallsList = [
+        {
+          ticket_number: payload.ticket_number,
+          counter_name: payload.counter_name,
+          counter_number: payload.counter_number,
+          service_name: payload.service_name,
+          service_prefix: payload.service_prefix,
+        },
+        ...recentCallsList.filter((r) => r.ticket_number !== payload.ticket_number),
+      ].slice(0, 4);
+      renderRecentCalls();
+
+      // 4. Update counters map
+      countersMap.set(payload.counter_name, {
+        counter_id: payload.counter_id,
+        counter_number: payload.counter_number,
+        counter_name: payload.counter_name,
+        ticket_number: payload.ticket_number,
+        service_name: payload.service_name,
+        service_prefix: payload.service_prefix,
+        status: 'called',
+      });
+      renderCountersGrid();
+    });
+
+    // B. Event: TICKET_SERVING
+    sseClient.on<{ ticket_id: string; counter_name?: string }>('TICKET_SERVING', (payload) => {
+      if (payload.counter_name && countersMap.has(payload.counter_name)) {
+        const item = countersMap.get(payload.counter_name)!;
+        item.status = 'serving';
+        countersMap.set(payload.counter_name, item);
+        renderCountersGrid();
+      }
+    });
+
+    // C. Event: TICKET_COMPLETED / TICKET_HOLD / TICKET_TRANSFERRED
+    const resetCounterHandler = (payload: { counter_name?: string }) => {
+      if (payload.counter_name && countersMap.has(payload.counter_name)) {
+        const item = countersMap.get(payload.counter_name)!;
+        item.ticket_number = '';
+        item.status = 'idle';
+        countersMap.set(payload.counter_name, item);
+        renderCountersGrid();
+      }
+    };
+
+    sseClient.on('TICKET_COMPLETED', resetCounterHandler);
+    sseClient.on('TICKET_HOLD', resetCounterHandler);
+    sseClient.on('TICKET_TRANSFERRED', resetCounterHandler);
+
+    // D. Event: COUNTER_STATUS_CHANGED
+    sseClient.on<CounterStatusPayload>('COUNTER_STATUS_CHANGED', (payload) => {
+      if (countersMap.has(payload.counter_name)) {
+        const item = countersMap.get(payload.counter_name)!;
+        item.status = payload.status;
+        countersMap.set(payload.counter_name, item);
+      } else {
+        countersMap.set(payload.counter_name, {
+          counter_id: payload.counter_id,
+          counter_number: payload.counter_number,
+          counter_name: payload.counter_name,
+          ticket_number: '',
+          service_name: '',
+          service_prefix: '',
+          status: payload.status,
+        });
+      }
+      renderCountersGrid();
+    });
+
+    // E. Event: DISPLAY_SETTINGS_UPDATED
+    sseClient.on<DisplaySettingsResponse>('DISPLAY_SETTINGS_UPDATED', (payload) => {
+      applyDisplaySettings(payload);
+    });
+
+    // F. Event: QUEUE_RESET
+    sseClient.on('QUEUE_RESET', () => {
+      updateActiveCallUI('', '', '');
+      recentCallsList = [];
+      renderRecentCalls();
+      countersMap.clear();
+      renderCountersGrid();
+      globalAudioEngine.clearQueue();
+    });
+
+    sseClient.connect({
+      tenantSlug: currentSlug,
+      deviceKey: currentDeviceKey,
+    });
+  }
+
+  // 4. Setup Audio Unlock Overlay
+  const unlockOverlay = document.getElementById('audio-unlock-overlay');
+  if (unlockOverlay) {
+    unlockOverlay.addEventListener('click', async () => {
+      await globalAudioEngine.unlock();
+      unlockOverlay.classList.add('hidden');
+
+      // Request fullscreen mode for TV immersion
+      try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch {
+        // Abaikan jika fullscreen ditolak browser
+      }
+    });
+  }
+
+  // 5. Setup Modal Form Handlers
+  const setupModal = document.getElementById('display-setup-modal');
+  const btnSaveSetup = document.getElementById('btn-save-display-setup');
+  const btnCancelSetup = document.getElementById('btn-cancel-display-setup');
+  const inputSlug = document.getElementById('setup-tenant-slug') as HTMLInputElement;
+  const inputKey = document.getElementById('setup-display-key') as HTMLInputElement;
+
+  if (btnSaveSetup) {
+    btnSaveSetup.addEventListener('click', () => {
+      const slugVal = inputSlug?.value.trim();
+      const keyVal = inputKey?.value.trim();
+
+      if (!slugVal) {
+        alert('Mohon masukkan slug instansi');
+        return;
+      }
+
+      localStorage.setItem('antriaja_active_tenant_slug', slugVal);
+      if (keyVal) {
+        localStorage.setItem(`antriaja_display_key_${slugVal}`, keyVal);
+      }
+
+      if (setupModal) setupModal.classList.add('hidden');
+      window.location.search = `?slug=${encodeURIComponent(slugVal)}${keyVal ? `&device_key=${encodeURIComponent(keyVal)}` : ''}`;
+    });
+  }
+
+  if (btnCancelSetup && setupModal) {
+    btnCancelSetup.addEventListener('click', () => {
+      setupModal.classList.add('hidden');
+    });
+  }
+
+  // Keyboard shortcut Ctrl + Shift + S untuk buka menu konfigurasi
+  window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
+      if (setupModal) setupModal.classList.toggle('hidden');
+    }
+  });
+
+  // Eksekusi Inisialisasi saat window dimuat
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDisplay);
+  } else {
+    initDisplay();
+  }
+</script>
+
+<style is:global>
+  .display-workspace {
+    display: grid;
+    grid-template-columns: 65% 35%;
+    gap: 1.5rem;
+    padding: 1.5rem 2.5rem;
+    height: calc(100vh - 5.5rem - 3.5rem);
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .display-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .active-call-wrapper {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .recent-calls-wrapper-section {
+    height: 9.5rem;
+    flex-shrink: 0;
+  }
+
+  .display-right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .promo-container {
+    height: 48%;
+    flex-shrink: 0;
+  }
+
+  .counters-container {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .counter-card-mini {
+    background: #1e293b;
+    border: 1px solid var(--border-display);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    text-align: center;
+  }
+
+  .counter-card-mini.status-serving {
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+  }
+
+  .mini-counter-name {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #94a3b8;
+  }
+
+  .mini-ticket-number {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffffff;
+  }
+
+  .mini-status-badge {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+  }
+
+  .counter-card-mini.status-serving .mini-status-badge {
+    background: rgba(56, 189, 248, 0.2);
+    color: #38bdf8;
+  }
+</style>

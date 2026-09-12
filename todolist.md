@@ -133,25 +133,26 @@ src/
 ---
 
 ### Fase 4: Layar Display TV Ruang Tunggu (`/display/[slug]`) & Audio Engine
-- [ ] Service layer: `src/services/displayService.ts` (`getDisplaySnapshot`)
-- [ ] Web Audio Engine: `src/lib/audioPlayer.ts`
-  - [ ] Inisialisasi AudioContext browser
-  - [ ] Mekanisme antrian pemutaran serial (Sequential Playlist) anti tumpang-tindih suara
-  - [ ] Penyusunan klip audio bahasa Indonesia (*Bell -> Nomor Antrian -> Huruf -> Angka -> Menuju ke -> Loket -> Nomor Loket*)
-- [ ] Penyediaan/pengorganisasian berkas audio suara (.mp3) di `public/audio/`
-- [ ] Layout TV: `src/layouts/DisplayLayout.astro` (Rasio 16:9, typography high-contrast, jarak pandang 5-10m)
-- [ ] Komponen UI Display di `src/components/display/`:
-  - [ ] `AutoplayOverlay.astro` (Splash screen modal *"Klik Layar untuk Mengaktifkan Suara"*)
-  - [ ] `ActiveCallCard.astro` (Tampilan nomor aktif besar sisi kiri dengan animasi border pulse)
-  - [ ] `RecentCallsList.astro` (Riwayat 3 panggilan terakhir di sisi kiri bawah)
-  - [ ] `MediaPromoSlim.astro` (Pemutar video/gambar promosi sisi kanan tanpa suara)
-  - [ ] `RunningText.astro` (Running text marquee di footer)
-  - [ ] `DigitalClock.astro` (Jam digital real-time & tanggal)
-- [ ] Halaman rute: `src/pages/display/[slug].astro`
-  - [ ] Load snapshot inisialisasi TV
-  - [ ] Langganan realtime SSE (`TICKET_CALLED`, `COUNTER_STATUS_CHANGED`, `DISPLAY_SETTINGS_UPDATED`, `QUEUE_RESET`)
-  - [ ] Sinkronisasi state panggilan dan pemutaran audio otomatis
-- [ ] Unit & Container test untuk Display TV & Audio Player
+- [x] Service layer: `src/services/displayService.ts` (`getDisplaySnapshot`)
+- [x] Web Audio Engine: `src/lib/audioPlayer.ts`
+  - [x] Inisialisasi AudioContext browser & unlock via gesture
+  - [x] Mekanisme antrian pemutaran serial (Sequential FIFO Queue) anti tumpang-tindih suara
+  - [x] Penyusunan ucapan bahasa Indonesia (*Bell -> Nomor Antrian -> Huruf -> Angka -> Menuju ke -> Loket -> Nomor Loket*)
+  - [x] Sintesis bel lonceng Web Audio API (2-tone harmonic chime) & SpeechSynthesis bahasa Indonesia zero-dependency
+- [x] Layout TV: `src/layouts/DisplayLayout.astro` (Rasio 16:9, typography high-contrast, jarak pandang 5-10m, jam digital live, indikator status SSE)
+- [x] Komponen UI Display di `src/components/display/`:
+  - [x] `AudioUnlockOverlay.astro` (Splash screen modal transparan *"Aktifkan Suara & Layar Penuh"*)
+  - [x] `ActiveCallCard.astro` (Tampilan nomor aktif raksasa sisi kiri dengan animasi border pulse & fallback)
+  - [x] `RecentCallsList.astro` (Riwayat 3-4 panggilan terakhir di sisi kiri bawah)
+  - [x] `MediaPromoSlim.astro` (Pemutar video muted autoplay loop / banner gambar promosi sisi kanan)
+  - [x] `CountersGrid.astro` (Grid informasi status seluruh loket operasional dan tiket yang dilayani)
+  - [x] `RunningText.astro` (Running text marquee bergerak mulus di footer)
+  - [x] `DisplaySetupModal.astro` (Modal pairing Device Key dan slug instansi)
+- [x] Halaman rute: `src/pages/display/index.astro` (Mendukung dynamic query `?slug=...` dan path fallback `/display/[slug]`)
+  - [x] Load snapshot inisialisasi TV dari endpoint backend
+  - [x] Langganan realtime SSE (`TICKET_CALLED`, `TICKET_SERVING`, `TICKET_HOLD`, `TICKET_COMPLETED`, `TICKET_TRANSFERRED`, `COUNTER_STATUS_CHANGED`, `DISPLAY_SETTINGS_UPDATED`, `QUEUE_RESET`)
+  - [x] Sinkronisasi state panggilan, transisi visual, dan pemutaran audio otomatis
+- [x] Unit & Container test untuk Display TV & Audio Player (`audioPlayer.test.ts`, `displayService.test.ts`, `displayComponents.test.ts`, `displayPage.test.ts` - 31 tests PASS)
 
 ---
 
