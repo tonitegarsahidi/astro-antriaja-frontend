@@ -1,0 +1,1003 @@
+---
+import StaffLayout from '../../layouts/StaffLayout.astro';
+import CurrentServingCard from '../../components/staff/CurrentServingCard.astro';
+import ActionButtonBar from '../../components/staff/ActionButtonBar.astro';
+import WaitingListTab from '../../components/staff/WaitingListTab.astro';
+import HoldListTab from '../../components/staff/HoldListTab.astro';
+import TransferModal from '../../components/staff/TransferModal.astro';
+import CounterSelectorModal from '../../components/staff/CounterSelectorModal.astro';
+import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
+---
+
+<StaffLayout title="Konsol Staf Loket - AntriAja" description="Meja Kerja Operasional Petugas Loket AntriAja">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <!-- Top Alert Banner for Notifications -->
+    <div id="staff-notification-banner" class="hidden p-4 rounded-xl text-sm font-medium transition-all shadow-xs"></div>
+
+    <!-- Header Summary Strip -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+          <span>Konsol Loket</span>
+          <span id="active-counter-name" class="text-blue-600 font-bold">-</span>
+        </h1>
+        <p class="text-xs text-slate-500 mt-1">
+          Layanan ditangani: <span id="counter-services-list" class="font-semibold text-slate-700">Semua Layanan</span>
+        </p>
+      </div>
+
+      <div class="flex items-center space-x-3 text-xs">
+        <div class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg flex items-center space-x-2">
+          <span class="text-slate-400">Antrian Menunggu:</span>
+          <span id="badge-waiting-count" class="font-bold text-slate-800 font-mono text-sm">0</span>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg flex items-center space-x-2">
+          <span class="text-slate-400">Antrian Tunda:</span>
+          <span id="badge-hold-count" class="font-bold text-amber-700 font-mono text-sm">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Operational Workspace: 2-Columns Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Left Column: Active Call Ticket Card & Action Bar (7 Cols) -->
+      <div class="lg:col-span-7 space-y-6">
+        <!-- Current Active Ticket Hero Card -->
+        <CurrentServingCard currentTicket={null} counterStatus="idle" />
+
+        <!-- Operational Action Button Bar -->
+        <ActionButtonBar />
+      </div>
+
+      <!-- Right Column: Queue Tabs (Waiting & Hold Lists) (5 Cols) -->
+      <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-5 flex flex-col min-h-[480px]">
+        <!-- Tabs Header -->
+        <div class="flex items-center border-b border-slate-200 mb-4">
+          <button
+            id="tab-btn-waiting"
+            type="button"
+            class="flex items-center space-x-2 py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition-colors focus:outline-none cursor-pointer"
+          >
+            <span>Antrian Menunggu</span>
+            <span id="tab-waiting-badge" class="px-2 py-0.5 rounded-full text-xs font-mono bg-blue-100 text-blue-800">0</span>
+          </button>
+          <button
+            id="tab-btn-hold"
+            type="button"
+            class="flex items-center space-x-2 py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors focus:outline-none cursor-pointer"
+          >
+            <span>Daftar Tunda</span>
+            <span id="tab-hold-badge" class="px-2 py-0.5 rounded-full text-xs font-mono bg-slate-100 text-slate-600">0</span>
+          </button>
+        </div>
+
+        <!-- Tab Panels Container -->
+        <div class="flex-1 overflow-y-auto">
+          <!-- Waiting List Tab Panel -->
+          <div id="panel-waiting">
+            <WaitingListTab tickets={[]} />
+          </div>
+
+          <!-- Hold List Tab Panel -->
+          <div id="panel-hold" class="hidden">
+            <HoldListTab tickets={[]} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <CounterSelectorModal />
+  <TransferModal />
+  <StaffReleaseModal />
+</StaffLayout>
+
+<script>
+  import { getToken, getActiveCounterId, setActiveCounterId, removeActiveCounterId, getUser, getTenantSlug, clearStorage } from '../../lib/storage';
+  import { getMe } from '../../services/authService';
+  import { listCounters, occupyCounter, releaseCounter } from '../../services/counterService';
+  import {
+    getCounterQueueState,
+    callNext,
+    recall,
+    serve,
+    hold,
+    callHold,
+    transfer,
+    complete,
+  } from '../../services/queueService';
+  import { SSEClient } from '../../lib/sseClient';
+  import type { CounterQueueStateResponse, TicketResponse } from '../../types/queue.types';
+
+  let activeCounterId: string | null = null;
+  let activeState: CounterQueueStateResponse | null = null;
+  let sseClient: SSEClient | null = null;
+  let stopwatchInterval: number | null = null;
+  let branchServices: Array<{ id: string; name: string; prefix: string }> = [];
+
+  // ==================== INITIALIZATION & AUTH ====================
+
+  async function initStaffConsole() {
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/staff/login';
+      return;
+    }
+
+    // Populate user profile info in header
+    const user = getUser();
+    const staffNameEl = document.getElementById('staff-name-display');
+    const staffTenantEl = document.getElementById('staff-tenant-display');
+    if (user && staffNameEl) {
+      staffNameEl.textContent = user.full_name;
+    }
+    if (staffTenantEl) {
+      staffTenantEl.textContent = getTenantSlug() || 'Cabang AntriAja';
+    }
+
+    // Verify session
+    const meRes = await getMe();
+    if (!meRes.success || !meRes.data) {
+      clearStorage();
+      window.location.href = '/staff/login';
+      return;
+    }
+
+    // Setup Event Listeners
+    setupActionButtons();
+    setupTabSwitching();
+    setupModalListeners();
+    setupHeaderListeners();
+
+    // Check Counter Selection
+    activeCounterId = getActiveCounterId();
+    if (!activeCounterId) {
+      await showCounterSelectorModal();
+    } else {
+      await loadCounterState(activeCounterId);
+      connectRealtimeSSE(token);
+    }
+  }
+
+  // ==================== STATE MANAGEMENT & RENDER ====================
+
+  async function loadCounterState(counterId: string) {
+    showNotification('Menyinkronkan data loket...', 'info');
+    const res = await getCounterQueueState(counterId);
+
+    if (!res.success || !res.data) {
+      if (res.error?.code === 'COUNTER_NOT_FOUND') {
+        removeActiveCounterId();
+        await showCounterSelectorModal();
+        return;
+      }
+      showNotification(res.error?.message || 'Gagal memuat state loket', 'error');
+      return;
+    }
+
+    activeState = res.data;
+    renderCounterState(activeState);
+    hideNotification();
+  }
+
+  function renderCounterState(state: CounterQueueStateResponse) {
+    // 1. Update Header Counter Badge
+    const counterBadge = document.getElementById('staff-counter-badge');
+    const counterLabel = document.getElementById('counter-label');
+    const counterNameHeader = document.getElementById('active-counter-name');
+    const counterDot = document.getElementById('counter-dot');
+    const servicesListEl = document.getElementById('counter-services-list');
+
+    if (counterBadge && counterLabel && state.counter) {
+      counterBadge.classList.remove('hidden');
+      counterLabel.textContent = `Loket ${state.counter.counter_number}`;
+      if (counterNameHeader) {
+        counterNameHeader.textContent = state.counter.name || `Loket ${state.counter.counter_number}`;
+      }
+      if (counterDot) {
+        counterDot.className = `w-2 h-2 rounded-full mr-1.5 ${
+          state.counter.status === 'serving' ? 'bg-emerald-500' : 'bg-blue-500'
+        }`;
+      }
+
+      if (state.counter.services && state.counter.services.length > 0) {
+        branchServices = state.counter.services.map((s) => ({
+          id: s.id,
+          name: s.name,
+          prefix: s.prefix,
+        }));
+        if (servicesListEl) {
+          servicesListEl.textContent = state.counter.services
+            .map((s) => `[${s.prefix}] ${s.name}`)
+            .join(', ');
+        }
+      }
+    }
+
+    // 2. Update Counter Counts
+    const waitingCount = state.waiting_tickets ? state.waiting_tickets.length : 0;
+    const holdCount = state.hold_tickets ? state.hold_tickets.length : 0;
+
+    const bWaiting = document.getElementById('badge-waiting-count');
+    const bHold = document.getElementById('badge-hold-count');
+    const tWaiting = document.getElementById('tab-waiting-badge');
+    const tHold = document.getElementById('tab-hold-badge');
+
+    if (bWaiting) bWaiting.textContent = String(waitingCount);
+    if (bHold) bHold.textContent = String(holdCount);
+    if (tWaiting) tWaiting.textContent = String(waitingCount);
+    if (tHold) tHold.textContent = String(holdCount);
+
+    // 3. Render Current Serving Card
+    renderCurrentTicket(state.current_ticket, state.counter.status);
+
+    // 4. Update Button Bar Action States
+    updateButtonStates(state.current_ticket);
+
+    // 5. Render Waiting List Items
+    renderWaitingList(state.waiting_tickets || []);
+
+    // 6. Render Hold List Items
+    renderHoldList(state.hold_tickets || []);
+  }
+
+  function renderCurrentTicket(ticket: TicketResponse | null | undefined, counterStatus: string) {
+    const cardEl = document.querySelector('.current-ticket-card');
+    if (!cardEl) return;
+
+    if (!ticket) {
+      stopStopwatch();
+      cardEl.innerHTML = `
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500"></div>
+        <div class="w-full py-8 flex flex-col items-center justify-center space-y-4 text-slate-400">
+          <div class="w-20 h-20 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-300">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-700">Menunggu Panggilan Antrian</h3>
+            <p class="text-sm text-slate-500 max-w-sm mt-1">Loket siap melayani. Klik tombol "Panggil Berikutnya" untuk memanggil pengunjung sesuai urutan.</p>
+          </div>
+          <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+            Status Loket: <span class="uppercase ml-1 font-bold">${counterStatus}</span>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const isServing = ticket.status === 'serving';
+    const isCalled = ticket.status === 'called';
+
+    cardEl.innerHTML = `
+      <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500"></div>
+      <div class="w-full flex flex-col items-center space-y-4">
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          ${
+            ticket.is_vip
+              ? `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                  <svg class="w-3.5 h-3.5 mr-1 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                  PRIORITAS
+                </span>`
+              : ''
+          }
+          ${
+            isCalled
+              ? `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 animate-pulse">
+                  <span class="w-2 h-2 rounded-full bg-blue-600 mr-1.5 animate-ping"></span>
+                  DIPANGGIL KE LOKET
+                </span>`
+              : ''
+          }
+          ${
+            isServing
+              ? `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600 mr-1.5"></span>
+                  SEDANG DILAYANI
+                </span>`
+              : ''
+          }
+        </div>
+
+        <div class="my-2">
+          <span class="text-xs uppercase tracking-wider font-semibold text-slate-400">Nomor Antrian</span>
+          <div id="current-ticket-number" class="text-6xl sm:text-7xl font-black text-slate-800 tracking-tight font-mono">
+            ${ticket.ticket_number}
+          </div>
+        </div>
+
+        <div class="text-slate-600 font-medium text-sm sm:text-base">
+          Status: <span id="current-service-name" class="font-semibold text-slate-900 capitalize">${ticket.status}</span>
+        </div>
+
+        <div class="mt-2 bg-slate-50 border border-slate-200 rounded-xl px-6 py-3 flex items-center space-x-3">
+          <div class="p-2 rounded-lg bg-white border border-slate-200 text-slate-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="text-left">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Durasi Pelayanan</span>
+            <span id="service-duration-timer" class="text-2xl font-black font-mono text-slate-800">
+              00:00
+            </span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Start or Stop Stopwatch depending on status
+    if (isServing && ticket.served_at) {
+      startStopwatch(new Date(ticket.served_at).getTime());
+    } else {
+      stopStopwatch();
+    }
+  }
+
+  function updateButtonStates(ticket: TicketResponse | null | undefined) {
+    const btnCallNext = document.getElementById('btn-call-next') as HTMLButtonElement | null;
+    const btnRecall = document.getElementById('btn-recall') as HTMLButtonElement | null;
+    const btnServe = document.getElementById('btn-serve') as HTMLButtonElement | null;
+    const btnHold = document.getElementById('btn-hold') as HTMLButtonElement | null;
+    const btnComplete = document.getElementById('btn-complete') as HTMLButtonElement | null;
+    const btnTransfer = document.getElementById('btn-transfer') as HTMLButtonElement | null;
+
+    if (!ticket) {
+      // Idle state
+      if (btnCallNext) btnCallNext.disabled = false;
+      if (btnRecall) btnRecall.disabled = true;
+      if (btnServe) btnServe.disabled = true;
+      if (btnHold) btnHold.disabled = true;
+      if (btnComplete) btnComplete.disabled = true;
+      if (btnTransfer) btnTransfer.disabled = true;
+      return;
+    }
+
+    if (ticket.status === 'called') {
+      if (btnCallNext) btnCallNext.disabled = false; // Backend will auto-hold current ticket
+      if (btnRecall) btnRecall.disabled = false;
+      if (btnServe) btnServe.disabled = false;
+      if (btnHold) btnHold.disabled = false;
+      if (btnComplete) btnComplete.disabled = true;
+      if (btnTransfer) btnTransfer.disabled = true;
+    } else if (ticket.status === 'serving') {
+      if (btnCallNext) btnCallNext.disabled = true;
+      if (btnRecall) btnRecall.disabled = true;
+      if (btnServe) btnServe.disabled = true;
+      if (btnHold) btnHold.disabled = true; // State machine disallows holding serving ticket
+      if (btnComplete) btnComplete.disabled = false;
+      if (btnTransfer) btnTransfer.disabled = false;
+    }
+  }
+
+  function renderWaitingList(tickets: TicketResponse[]) {
+    const container = document.getElementById('panel-waiting');
+    if (!container) return;
+
+    if (tickets.length === 0) {
+      container.innerHTML = `
+        <div id="waiting-empty-state" class="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+          <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p class="text-sm font-medium text-slate-500">Tidak ada antrian menunggu</p>
+          <p class="text-xs text-slate-400 mt-1">Pengunjung baru yang mengambil tiket di kiosk akan muncul di sini secara otomatis.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="overflow-hidden bg-white border border-slate-200 rounded-xl shadow-sm">
+        <ul id="waiting-list-items" class="divide-y divide-slate-100">
+          ${tickets
+            .map(
+              (t, idx) => `
+            <li class="p-4 flex items-center justify-between transition-colors hover:bg-slate-50/80 ${
+              t.is_vip ? 'bg-amber-50/40' : ''
+            }">
+              <div class="flex items-center space-x-4">
+                <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center">
+                  ${idx + 1}
+                </span>
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-lg font-black font-mono text-slate-800">${t.ticket_number}</span>
+                    ${
+                      t.is_vip
+                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">VIP</span>`
+                        : ''
+                    }
+                  </div>
+                  <span class="text-xs text-slate-400">
+                    Diambil: ${new Date(t.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                  Menunggu
+                </span>
+              </div>
+            </li>
+          `
+            )
+            .join('')}
+        </ul>
+      </div>
+    `;
+  }
+
+  function renderHoldList(tickets: TicketResponse[]) {
+    const container = document.getElementById('panel-hold');
+    if (!container) return;
+
+    if (tickets.length === 0) {
+      container.innerHTML = `
+        <div id="hold-empty-state" class="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+          <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p class="text-sm font-medium text-slate-500">Tidak ada antrian yang ditunda</p>
+          <p class="text-xs text-slate-400 mt-1">Pengunjung yang tidak hadir setelah dipanggil akan masuk ke daftar tunda ini.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="overflow-hidden bg-white border border-slate-200 rounded-xl shadow-sm">
+        <ul id="hold-list-items" class="divide-y divide-slate-100">
+          ${tickets
+            .map(
+              (t) => `
+            <li class="p-4 flex items-center justify-between transition-colors hover:bg-slate-50/80">
+              <div class="flex items-center space-x-4">
+                <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-lg font-black font-mono text-slate-800">${t.ticket_number}</span>
+                    ${
+                      t.is_vip
+                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">VIP</span>`
+                        : ''
+                    }
+                    <span class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      Ditunda
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <button
+                  type="button"
+                  class="btn-call-hold inline-flex items-center px-3.5 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  data-ticket-id="${t.id}"
+                  data-ticket-number="${t.ticket_number}"
+                >
+                  <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                  </svg>
+                  Panggil Kembali
+                </button>
+              </div>
+            </li>
+          `
+            )
+            .join('')}
+        </ul>
+      </div>
+    `;
+
+    // Attach listeners for dynamic call-hold buttons
+    container.querySelectorAll('.btn-call-hold').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const ticketId = target.dataset.ticketId;
+        if (ticketId && activeCounterId) {
+          await handleCallHold(ticketId);
+        }
+      });
+    });
+  }
+
+  // ==================== STOPWATCH TIMER ====================
+
+  function startStopwatch(startTimeMs: number) {
+    stopStopwatch();
+    const timerEl = document.getElementById('service-duration-timer');
+
+    function tick() {
+      const now = Date.now();
+      const diffSec = Math.max(0, Math.floor((now - startTimeMs) / 1000));
+      const mins = Math.floor(diffSec / 60);
+      const secs = diffSec % 60;
+      const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      if (timerEl) {
+        timerEl.textContent = formatted;
+      }
+    }
+
+    tick();
+    stopwatchInterval = window.setInterval(tick, 1000);
+  }
+
+  function stopStopwatch() {
+    if (stopwatchInterval !== null) {
+      clearInterval(stopwatchInterval);
+      stopwatchInterval = null;
+    }
+    const timerEl = document.getElementById('service-duration-timer');
+    if (timerEl) {
+      timerEl.textContent = '00:00';
+    }
+  }
+
+  // ==================== OPERATIONAL ACTIONS ====================
+
+  function setupActionButtons() {
+    const btnCallNext = document.getElementById('btn-call-next');
+    const btnRecall = document.getElementById('btn-recall');
+    const btnServe = document.getElementById('btn-serve');
+    const btnHold = document.getElementById('btn-hold');
+    const btnComplete = document.getElementById('btn-complete');
+    const btnTransfer = document.getElementById('btn-transfer');
+
+    btnCallNext?.addEventListener('click', async () => {
+      if (!activeCounterId) return;
+      showNotification('Memanggil antrian berikutnya...', 'info');
+      const res = await callNext(activeCounterId);
+      if (!res.success) {
+        showNotification(res.error?.message || 'Gagal memanggil antrian', 'error');
+        return;
+      }
+      showNotification(`Memanggil tiket ${res.data?.ticket_number}`, 'success');
+      await loadCounterState(activeCounterId);
+    });
+
+    btnRecall?.addEventListener('click', async () => {
+      if (!activeCounterId || !activeState?.current_ticket) return;
+      showNotification('Memanggil ulang pengunjung...', 'info');
+      const res = await recall(activeCounterId, activeState.current_ticket.id);
+      if (!res.success) {
+        showNotification(res.error?.message || 'Gagal memanggil ulang', 'error');
+        return;
+      }
+      showNotification(`Panggilan ulang terkirim untuk ${res.data?.ticket_number}`, 'success');
+    });
+
+    btnServe?.addEventListener('click', async () => {
+      if (!activeCounterId || !activeState?.current_ticket) return;
+      const res = await serve(activeCounterId, activeState.current_ticket.id);
+      if (!res.success) {
+        showNotification(res.error?.message || 'Gagal memulai layanan', 'error');
+        return;
+      }
+      showNotification('Pelayanan dimulai. Stopwatch aktif.', 'success');
+      await loadCounterState(activeCounterId);
+    });
+
+    btnHold?.addEventListener('click', async () => {
+      if (!activeCounterId || !activeState?.current_ticket) return;
+      const res = await hold(activeCounterId, activeState.current_ticket.id);
+      if (!res.success) {
+        showNotification(res.error?.message || 'Gagal menunda tiket', 'error');
+        return;
+      }
+      showNotification(`Tiket ${res.data?.ticket_number} ditunda ke daftar tunda.`, 'warning');
+      await loadCounterState(activeCounterId);
+    });
+
+    btnComplete?.addEventListener('click', async () => {
+      if (!activeCounterId || !activeState?.current_ticket) return;
+      const res = await complete(activeCounterId, activeState.current_ticket.id);
+      if (!res.success) {
+        showNotification(res.error?.message || 'Gagal menyelesaikan tiket', 'error');
+        return;
+      }
+      showNotification(`Pelayanan tiket ${res.data?.ticket_number} selesai.`, 'success');
+      await loadCounterState(activeCounterId);
+    });
+
+    btnTransfer?.addEventListener('click', () => {
+      if (!activeState?.current_ticket) return;
+      openTransferModal();
+    });
+  }
+
+  async function handleCallHold(ticketId: string) {
+    if (!activeCounterId) return;
+    showNotification('Memanggil tiket dari daftar tunda...', 'info');
+    const res = await callHold(activeCounterId, ticketId);
+    if (!res.success) {
+      showNotification(res.error?.message || 'Gagal memanggil tiket tunda', 'error');
+      return;
+    }
+    showNotification(`Tiket ${res.data?.ticket_number} berhasil dipanggil kembali`, 'success');
+    await loadCounterState(activeCounterId);
+  }
+
+  // ==================== COUNTER SELECTOR & OCCUPY ====================
+
+  async function showCounterSelectorModal() {
+    const modal = document.getElementById('counter-selector-modal');
+    const listContainer = document.getElementById('counter-list-container');
+    const loadingEl = document.getElementById('counter-list-loading');
+    const errorAlert = document.getElementById('occupy-error-alert');
+    const btnOccupy = document.getElementById('btn-occupy-counter') as HTMLButtonElement | null;
+    const selectedInfo = document.getElementById('selected-counter-info');
+
+    if (!modal || !listContainer || !loadingEl) return;
+
+    modal.classList.remove('hidden');
+    listContainer.classList.add('hidden');
+    loadingEl.classList.remove('hidden');
+    if (errorAlert) errorAlert.classList.add('hidden');
+    if (btnOccupy) btnOccupy.disabled = true;
+
+    let selectedId: string | null = null;
+
+    const res = await listCounters();
+    loadingEl.classList.add('hidden');
+    listContainer.classList.remove('hidden');
+
+    if (!res.success || !res.data) {
+      if (errorAlert) {
+        errorAlert.textContent = res.error?.message || 'Gagal memuat daftar loket cabang.';
+        errorAlert.classList.remove('hidden');
+      }
+      return;
+    }
+
+    const counters = res.data;
+    if (counters.length === 0) {
+      listContainer.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">Belum ada loket fisik yang terdaftar.</p>';
+      return;
+    }
+
+    listContainer.innerHTML = counters
+      .map((c) => {
+        const isOccupied = !!c.current_staff_id;
+        return `
+        <div
+          class="counter-option-item p-3.5 rounded-xl border transition-all cursor-pointer ${
+            isOccupied
+              ? 'bg-slate-50 border-slate-200 opacity-60'
+              : 'bg-white border-slate-200 hover:border-blue-400 hover:bg-blue-50/30'
+          }"
+          data-counter-id="${c.id}"
+          data-counter-number="${c.counter_number}"
+          data-is-occupied="${isOccupied}"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center font-mono">
+                ${c.counter_number}
+              </span>
+              <div>
+                <h4 class="font-bold text-sm text-slate-800">${c.name || `Loket ${c.counter_number}`}</h4>
+                <p class="text-xs text-slate-400">
+                  ${c.services && c.services.length > 0 ? c.services.map((s) => s.prefix).join(', ') : 'Semua Layanan'}
+                </p>
+              </div>
+            </div>
+            <div>
+              ${
+                isOccupied
+                  ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">
+                      Dijaga: ${c.current_staff?.full_name || 'Staf Lain'}
+                    </span>`
+                  : `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      Kosong
+                    </span>`
+              }
+            </div>
+          </div>
+        </div>
+      `;
+      })
+      .join('');
+
+    // Attach selection listener
+    listContainer.querySelectorAll('.counter-option-item').forEach((item) => {
+      item.addEventListener('click', (e) => {
+        const el = e.currentTarget as HTMLElement;
+        const cid = el.dataset.counterId;
+        const cnum = el.dataset.counterNumber;
+
+        listContainer.querySelectorAll('.counter-option-item').forEach((i) => {
+          i.classList.remove('border-blue-600', 'bg-blue-50', 'ring-2', 'ring-blue-500');
+        });
+
+        el.classList.add('border-blue-600', 'bg-blue-50', 'ring-2', 'ring-blue-500');
+        selectedId = cid || null;
+        if (selectedInfo) selectedInfo.textContent = `Pilihan: Loket ${cnum}`;
+        if (btnOccupy) btnOccupy.disabled = false;
+      });
+    });
+
+    // Occupy Button action
+    if (btnOccupy) {
+      btnOccupy.onclick = async () => {
+        if (!selectedId) return;
+        btnOccupy.disabled = true;
+        btnOccupy.textContent = 'Menghubungkan...';
+
+        const occRes = await occupyCounter(selectedId);
+        if (!occRes.success) {
+          if (errorAlert) {
+            errorAlert.textContent = occRes.error?.message || 'Gagal menduduki loket.';
+            errorAlert.classList.remove('hidden');
+          }
+          btnOccupy.disabled = false;
+          btnOccupy.textContent = 'Mulai Jaga Loket';
+          return;
+        }
+
+        setActiveCounterId(selectedId);
+        activeCounterId = selectedId;
+        modal.classList.add('hidden');
+
+        await loadCounterState(activeCounterId);
+        const token = getToken();
+        if (token) connectRealtimeSSE(token);
+      };
+    }
+  }
+
+  // ==================== TRANSFER MODAL ====================
+
+  function openTransferModal() {
+    const modal = document.getElementById('transfer-modal');
+    const selectEl = document.getElementById('select-target-service') as HTMLSelectElement | null;
+    const ticketNumEl = document.getElementById('transfer-current-ticket-number');
+    const errorAlert = document.getElementById('transfer-error-alert');
+
+    if (!modal || !activeState?.current_ticket) return;
+
+    if (ticketNumEl) ticketNumEl.textContent = activeState.current_ticket.ticket_number;
+    if (errorAlert) errorAlert.classList.add('hidden');
+
+    // Populate services dropdown
+    if (selectEl && branchServices.length > 0) {
+      selectEl.innerHTML = '<option value="" disabled selected>Pilih layanan tujuan...</option>' +
+        branchServices
+          .filter((s) => s.id !== activeState?.current_ticket?.service_id)
+          .map((s) => `<option value="${s.id}">[${s.prefix}] ${s.name}</option>`)
+          .join('');
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function setupModalListeners() {
+    // Transfer Modal Closers
+    const transferModal = document.getElementById('transfer-modal');
+    const btnCancelTransfer = document.getElementById('btn-cancel-transfer');
+    const btnCloseTransfer = document.getElementById('btn-close-transfer-modal');
+    const btnConfirmTransfer = document.getElementById('btn-confirm-transfer');
+
+    const closeTransfer = () => transferModal?.classList.add('hidden');
+    btnCancelTransfer?.addEventListener('click', closeTransfer);
+    btnCloseTransfer?.addEventListener('click', closeTransfer);
+
+    btnConfirmTransfer?.addEventListener('click', async () => {
+      const selectEl = document.getElementById('select-target-service') as HTMLSelectElement | null;
+      const errorAlert = document.getElementById('transfer-error-alert');
+      const targetServiceId = selectEl?.value;
+
+      if (!targetServiceId || !activeCounterId || !activeState?.current_ticket) {
+        if (errorAlert) {
+          errorAlert.textContent = 'Harap pilih layanan tujuan transfer.';
+          errorAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const res = await transfer(activeCounterId, activeState.current_ticket.id, targetServiceId);
+      if (!res.success) {
+        if (errorAlert) {
+          errorAlert.textContent = res.error?.message || 'Gagal mengalihkan tiket.';
+          errorAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      showNotification(`Tiket berhasil dialihkan ke layanan baru.`, 'success');
+      closeTransfer();
+      await loadCounterState(activeCounterId);
+    });
+
+    // Staff Release Modal Closers
+    const releaseModal = document.getElementById('staff-release-modal');
+    const btnCancelRelease = document.getElementById('btn-cancel-release');
+    const btnCloseRelease = document.getElementById('btn-close-release-modal');
+    const btnConfirmRelease = document.getElementById('btn-confirm-release');
+    const releaseError = document.getElementById('release-error-alert');
+
+    const closeRelease = () => releaseModal?.classList.add('hidden');
+    btnCancelRelease?.addEventListener('click', closeRelease);
+    btnCloseRelease?.addEventListener('click', closeRelease);
+
+    btnConfirmRelease?.addEventListener('click', async () => {
+      if (!activeCounterId) return;
+
+      const res = await releaseCounter(activeCounterId);
+      if (!res.success) {
+        if (releaseError) {
+          releaseError.textContent = res.error?.message || 'Gagal melepaskan loket.';
+          releaseError.classList.remove('hidden');
+        }
+        return;
+      }
+
+      removeActiveCounterId();
+      activeCounterId = null;
+      activeState = null;
+      closeRelease();
+
+      showNotification('Loket berhasil dilepaskan. Silakan pilih loket baru jika ingin melanjutkan.', 'info');
+      await showCounterSelectorModal();
+    });
+  }
+
+  function setupHeaderListeners() {
+    const btnRelease = document.getElementById('btn-release-counter');
+    const releaseModal = document.getElementById('staff-release-modal');
+    const busyWarning = document.getElementById('release-busy-warning');
+
+    btnRelease?.addEventListener('click', () => {
+      if (!releaseModal) return;
+      if (busyWarning) {
+        if (activeState?.current_ticket && (activeState.current_ticket.status === 'called' || activeState.current_ticket.status === 'serving')) {
+          busyWarning.classList.remove('hidden');
+        } else {
+          busyWarning.classList.add('hidden');
+        }
+      }
+      releaseModal.classList.remove('hidden');
+    });
+
+    const btnLogout = document.getElementById('btn-logout');
+    btnLogout?.addEventListener('click', () => {
+      if (confirm('Apakah Anda yakin ingin keluar dari Konsol Staf?')) {
+        clearStorage();
+        window.location.href = '/staff/login';
+      }
+    });
+  }
+
+  function setupTabSwitching() {
+    const tabWaitingBtn = document.getElementById('tab-btn-waiting');
+    const tabHoldBtn = document.getElementById('tab-btn-hold');
+    const panelWaiting = document.getElementById('panel-waiting');
+    const panelHold = document.getElementById('panel-hold');
+
+    tabWaitingBtn?.addEventListener('click', () => {
+      panelWaiting?.classList.remove('hidden');
+      panelHold?.classList.add('hidden');
+
+      tabWaitingBtn.className = 'flex items-center space-x-2 py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition-colors focus:outline-none cursor-pointer';
+      if (tabHoldBtn) {
+        tabHoldBtn.className = 'flex items-center space-x-2 py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors focus:outline-none cursor-pointer';
+      }
+    });
+
+    tabHoldBtn?.addEventListener('click', () => {
+      panelHold?.classList.remove('hidden');
+      panelWaiting?.classList.add('hidden');
+
+      tabHoldBtn.className = 'flex items-center space-x-2 py-2.5 px-4 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition-colors focus:outline-none cursor-pointer';
+      if (tabWaitingBtn) {
+        tabWaitingBtn.className = 'flex items-center space-x-2 py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition-colors focus:outline-none cursor-pointer';
+      }
+    });
+  }
+
+  // ==================== REALTIME SSE SINKRONISASI ====================
+
+  function connectRealtimeSSE(token: string) {
+    if (sseClient) {
+      sseClient.disconnect();
+    }
+
+    const sseStatusBadge = document.getElementById('sse-status-badge');
+    const sseStatusText = document.getElementById('sse-status-text');
+
+    sseClient = new SSEClient();
+    sseClient.onStatusChange((status) => {
+      if (!sseStatusBadge || !sseStatusText) return;
+      if (status === 'connected') {
+        sseStatusBadge.className = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200';
+        sseStatusText.textContent = 'Realtime';
+      } else {
+        sseStatusBadge.className = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200';
+        sseStatusText.textContent = 'Terputus';
+      }
+    });
+
+    // Event Listeners
+    sseClient.on('TICKET_CREATED', async () => {
+      if (activeCounterId) await loadCounterState(activeCounterId);
+    });
+
+    sseClient.on('TICKET_CALLED', async () => {
+      if (activeCounterId) await loadCounterState(activeCounterId);
+    });
+
+    sseClient.on('TICKET_SERVING', async () => {
+      if (activeCounterId) await loadCounterState(activeCounterId);
+    });
+
+    sseClient.on('TICKET_HOLD', async () => {
+      if (activeCounterId) await loadCounterState(activeCounterId);
+    });
+
+    sseClient.on('TICKET_TRANSFERRED', async () => {
+      if (activeCounterId) await loadCounterState(activeCounterId);
+    });
+
+    sseClient.on('TICKET_COMPLETED', async () => {
+      if (activeCounterId) await loadCounterState(activeCounterId);
+    });
+
+    sseClient.on('COUNTER_STATUS_CHANGED', async () => {
+      if (activeCounterId) await loadCounterState(activeCounterId);
+    });
+
+    sseClient.on('QUEUE_RESET', async () => {
+      showNotification('Siklus antrian harian telah direset oleh sistem/admin.', 'warning');
+      if (activeCounterId) await loadCounterState(activeCounterId);
+    });
+
+    sseClient.connect({ token });
+  }
+
+  // ==================== TOAST / NOTIFICATION HELPER ====================
+
+  function showNotification(message: string, type: 'info' | 'success' | 'warning' | 'error') {
+    const banner = document.getElementById('staff-notification-banner');
+    if (!banner) return;
+
+    const colors = {
+      info: 'bg-blue-50 text-blue-800 border border-blue-200',
+      success: 'bg-emerald-50 text-emerald-800 border border-emerald-200',
+      warning: 'bg-amber-50 text-amber-800 border border-amber-200',
+      error: 'bg-rose-50 text-rose-800 border border-rose-200',
+    };
+
+    banner.className = `p-4 rounded-xl text-sm font-medium transition-all shadow-xs ${colors[type]}`;
+    banner.textContent = message;
+    banner.classList.remove('hidden');
+
+    if (type !== 'error') {
+      setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 5000);
+    }
+  }
+
+  function hideNotification() {
+    const banner = document.getElementById('staff-notification-banner');
+    if (banner) banner.classList.add('hidden');
+  }
+
+  // DOM Boot
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStaffConsole);
+  } else {
+    initStaffConsole();
+  }
+</script>

@@ -157,22 +157,23 @@ src/
 ---
 
 ### Fase 5: Konsol Operasional Staf Loket (`/staff`)
-- [ ] Service layer: `src/services/queueService.ts` (`callNext`, `recall`, `serve`, `hold`, `callHold`, `transfer`, `complete`, `getCounterQueueState`)
-- [ ] Layout Konsol Staf: `src/layouts/StaffLayout.astro`
-- [ ] Komponen UI Staf di `src/components/staff/`:
-  - [ ] `CounterSelectorModal.astro` (Pilih & Occupy loket saat mulai shift)
-  - [ ] `CurrentServingCard.astro` (Info tiket aktif + stopwatch timer durasi pelayanan)
-  - [ ] `ActionButtonBar.astro` (Panggil Berikutnya, Panggil Ulang, Mulai Layani, Tunda, Selesai, Oper)
-  - [ ] `WaitingListTab.astro` (Daftar antrian menunggu dengan penanda VIP di baris teratas)
-  - [ ] `HoldListTab.astro` (Daftar tiket tunda dengan tombol Panggil Kembali)
-  - [ ] `TransferModal.astro` (Modal pilih layanan tujuan transfer)
-- [ ] Halaman rute:
-  - [ ] `src/pages/staff/login.astro` (Form login staf, simpan JWT token & tenant slug)
-  - [ ] `src/pages/staff/index.astro` (Dashboard utama konsol operasional)
-- [ ] Penanganan proteksi operasional:
-  - [ ] Penanganan error `409 Conflict` (`COUNTER_STILL_BUSY`, `STAFF_HAS_ACTIVE_TICKET`)
-  - [ ] Konfirmasi sebelum Release loket
-- [ ] Unit & Container test untuk Konsol Staf
+- [x] Service layer: `src/services/authService.ts`, `src/services/counterService.ts`, `src/services/queueService.ts` (`callNext`, `recall`, `serve`, `hold`, `callHold`, `transfer`, `complete`, `getCounterQueueState`)
+- [x] Layout Konsol Staf: `src/layouts/StaffLayout.astro` (Header status, jam digital, indikator SSE, lepas loket & logout)
+- [x] Komponen UI Staf di `src/components/staff/`:
+  - [x] `CounterSelectorModal.astro` (Pilih & Occupy loket saat mulai shift)
+  - [x] `CurrentServingCard.astro` (Info tiket aktif + stopwatch timer durasi pelayanan)
+  - [x] `ActionButtonBar.astro` (Panggil Berikutnya, Panggil Ulang, Mulai Layani, Tunda, Selesai, Oper)
+  - [x] `WaitingListTab.astro` (Daftar antrian menunggu dengan penanda VIP di baris teratas)
+  - [x] `HoldListTab.astro` (Daftar tiket tunda dengan tombol Panggil Kembali)
+  - [x] `TransferModal.astro` (Modal pilih layanan tujuan transfer)
+  - [x] `StaffReleaseModal.astro` (Modal konfirmasi pelepasan loket dengan proteksi tiket sibuk)
+- [x] Halaman rute:
+  - [x] `src/pages/staff/login.astro` (Form login staf, simpan JWT token & tenant slug)
+  - [x] `src/pages/staff/index.astro` (Dashboard utama konsol operasional dengan sinkronisasi realtime SSE multi-event)
+- [x] Penanganan proteksi operasional:
+  - [x] Penanganan error `409 Conflict` (`COUNTER_STILL_BUSY`, `STAFF_HAS_ACTIVE_TICKET`, `COUNTER_ALREADY_OCCUPIED`)
+  - [x] Konfirmasi sebelum Release loket
+- [x] Unit & Container test untuk Konsol Staf (5 test suites, 32 tests PASS 100%)
 
 ---
 

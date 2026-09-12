@@ -50,5 +50,21 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
   - Pembuatan halaman interaktif `src/pages/display/index.astro` dengan split-screen 65%:35%, integrasi SSE realtime multi-event (`TICKET_CALLED`, `TICKET_SERVING`, `TICKET_HOLD`, `TICKET_COMPLETED`, `TICKET_TRANSFERRED`, `COUNTER_STATUS_CHANGED`, `DISPLAY_SETTINGS_UPDATED`, `QUEUE_RESET`), pemutaran suara berseri otomatis, dan shortcut keyboard `Ctrl + Shift + S`.
   - Penambahan 4 test suite baru (total 98 tests PASS 100% di 18 test files) dan Astro build static sukses.
   - Penambahan parameter `deviceKey` pada `getDisplaySnapshot` (`displayService.ts`) dan integrasi injection header `X-Device-Key` untuk otorisasi snapshot TV Display pada backend.
+- **Fase 5: Konsol Operasional Staf Loket (`/staff`):**
+  - Pembuatan service client `src/services/authService.ts` untuk autentikasi staf (`login`, `getMe`).
+  - Pembuatan service client `src/services/counterService.ts` untuk interaksi master loket (`listCounters`, `occupyCounter`, `releaseCounter`).
+  - Pembuatan service client `src/services/queueService.ts` untuk orkestrasi operasional antrian loket (`callNext`, `recall`, `serve`, `hold`, `callHold`, `transfer`, `complete`, `getCounterQueueState`).
+  - Pembuatan layout induk konsol staf `src/layouts/StaffLayout.astro` lengkap dengan status loket live, jam digital, indikator SSE, tombol lepas loket, dan logout.
+  - Pembuatan komponen UI operasional modular:
+    - `CurrentServingCard.astro`: Kartu tiket aktif dengan nomor besar, badge prioritas VIP, status, dan stopwatch durasi pelayanan aktif (mm:ss).
+    - `ActionButtonBar.astro`: Bilah 6 aksi operasional loket (*Panggil Berikutnya*, *Panggil Ulang*, *Mulai Layani*, *Tunda*, *Selesai*, *Oper*).
+    - `WaitingListTab.astro`: Panel tab daftar antrian pengunjung yang sedang menunggu dengan visual penanda VIP teratas.
+    - `HoldListTab.astro`: Panel tab daftar tiket tunda (*no-show*) dengan tombol aksi cepat *Panggil Kembali*.
+    - `TransferModal.astro`: Modal pemilihan layanan tujuan saat staf mengalihkan pengunjung.
+    - `CounterSelectorModal.astro`: Modal interaktif pemilihan dan pendudukan (*occupy*) loket fisik saat staf mulai bertugas.
+    - `StaffReleaseModal.astro`: Modal konfirmasi pelepasan loket dengan pesan proteksi tiket aktif (`COUNTER_STILL_BUSY`).
+  - Pembuatan halaman `src/pages/staff/login.astro` untuk login kredensial staf berbasis JWT token dan penyimpanan session storage.
+  - Pembuatan halaman operasional `src/pages/staff/index.astro` dengan sinkronisasi realtime SSE multi-event (`TICKET_CREATED`, `TICKET_CALLED`, `TICKET_SERVING`, `TICKET_HOLD`, `TICKET_TRANSFERRED`, `TICKET_COMPLETED`, `COUNTER_STATUS_CHANGED`, `QUEUE_RESET`), penanganan error status `409 Conflict`, dan stopwatch otomatis.
+  - Penambahan 5 automated test suite baru (total 130 tests PASS 100% di 23 test files) serta Astro static production build sukses.
 
 

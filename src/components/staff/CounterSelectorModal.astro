@@ -1,0 +1,61 @@
+---
+interface Props {
+  className?: string;
+}
+
+const { className = '' } = Astro.props;
+---
+
+<div
+  id="counter-selector-modal"
+  class={`fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200 ${className}`}
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="counter-modal-title"
+>
+  <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+    <!-- Modal Header -->
+    <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </div>
+        <div>
+          <h3 id="counter-modal-title" class="text-lg font-bold text-slate-800">Pilih Loket Tugas</h3>
+          <p class="text-xs text-slate-500">Pilih meja loket yang akan Anda jaga selama shift ini</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+      <div id="occupy-error-alert" class="hidden p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium"></div>
+
+      <!-- Loading State -->
+      <div id="counter-list-loading" class="text-center py-8 text-slate-400 space-y-2">
+        <div class="inline-block w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs font-medium">Memuat daftar loket cabang...</p>
+      </div>
+
+      <!-- Counters List Grid -->
+      <div id="counter-list-container" class="space-y-2.5 hidden">
+        <!-- Injected dynamically via client script -->
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+      <span class="text-xs text-slate-500" id="selected-counter-info">Belum ada loket dipilih</span>
+      <button
+        id="btn-occupy-counter"
+        type="button"
+        disabled
+        class="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
+      >
+        Mulai Jaga Loket
+      </button>
+    </div>
+  </div>
+</div>
