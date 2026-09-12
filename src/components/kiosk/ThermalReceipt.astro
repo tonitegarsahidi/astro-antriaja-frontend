@@ -1,0 +1,128 @@
+---
+// Template struk cetak thermal printer (58mm / 80mm)
+// Tersembunyi di layar normal, otomatis aktif saat window.print()
+---
+
+<div class="thermal-receipt" id="thermal-receipt-area">
+  <div class="thermal-header">
+    <h2 class="receipt-tenant" id="thermal-tenant-name">AntriAja</h2>
+    <p class="receipt-subtitle">STRUK NOMOR ANTRIAN</p>
+  </div>
+
+  <div class="thermal-divider">================================</div>
+
+  <div class="thermal-ticket-body">
+    <span class="thermal-service" id="thermal-service-name">Layanan</span>
+    <div class="thermal-number" id="thermal-ticket-number">A-000</div>
+    <span class="thermal-vip is-hidden" id="thermal-vip-label">** JALUR PRIORITAS **</span>
+  </div>
+
+  <div class="thermal-divider">--------------------------------</div>
+
+  <div class="thermal-qr-section">
+    <div class="thermal-qr" id="thermal-qr-code"></div>
+    <p class="thermal-qr-text">Scan QR untuk cek posisi nomor Anda dari HP</p>
+  </div>
+
+  <div class="thermal-divider">--------------------------------</div>
+
+  <div class="thermal-meta">
+    <p id="thermal-date">Tanggal: --/--/----</p>
+    <p class="thermal-msg">Harap menunggu panggilan nomor Anda.</p>
+    <p class="thermal-footer">Terima kasih atas kunjungan Anda</p>
+  </div>
+
+  <div class="thermal-cut-line">. . . . . . . . . . . . . . . .</div>
+</div>
+
+<style>
+  /* Sembunyikan dari layar normal */
+  .thermal-receipt {
+    display: none;
+  }
+
+  /* Aturan cetak khusus thermal roll paper */
+  @media print {
+    body * {
+      visibility: hidden !important;
+    }
+
+    #thermal-receipt-area,
+    #thermal-receipt-area * {
+      visibility: visible !important;
+    }
+
+    #thermal-receipt-area {
+      display: flex !important;
+      flex-direction: column;
+      align-items: center;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 58mm;
+      padding: 2mm 1mm;
+      margin: 0;
+      background: #ffffff;
+      color: #000000;
+      font-family: 'Courier New', Courier, monospace;
+      text-align: center;
+      line-height: 1.25;
+    }
+
+    @page {
+      size: 58mm auto;
+      margin: 0;
+    }
+
+    .receipt-tenant {
+      font-size: 14pt;
+      font-weight: bold;
+    }
+
+    .receipt-subtitle {
+      font-size: 8pt;
+    }
+
+    .thermal-divider {
+      font-size: 7pt;
+      margin: 2mm 0;
+    }
+
+    .thermal-service {
+      font-size: 10pt;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .thermal-number {
+      font-size: 28pt;
+      font-weight: 900;
+      margin: 2mm 0;
+    }
+
+    .thermal-vip {
+      font-size: 9pt;
+      font-weight: bold;
+    }
+
+    .thermal-qr svg {
+      width: 38mm !important;
+      height: 38mm !important;
+      margin: 1mm 0;
+    }
+
+    .thermal-qr-text {
+      font-size: 7pt;
+    }
+
+    .thermal-meta {
+      font-size: 7.5pt;
+      margin-top: 1mm;
+    }
+
+    .thermal-cut-line {
+      font-size: 8pt;
+      margin-top: 3mm;
+    }
+  }
+</style>

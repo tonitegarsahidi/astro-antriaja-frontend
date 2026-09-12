@@ -1,0 +1,196 @@
+---
+interface Props {
+  isOpen?: boolean;
+}
+
+const { isOpen = false } = Astro.props;
+---
+
+<div
+  class={`vip-modal-backdrop ${isOpen ? 'is-open' : 'is-hidden'}`}
+  id="vip-keypad-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="vip-modal-title"
+>
+  <div class="vip-keypad-card">
+    <header class="vip-card-header">
+      <span class="vip-icon">⭐</span>
+      <h2 id="vip-modal-title">Jalur Khusus / Prioritas</h2>
+      <p>Masukkan 6-digit PIN otorisasi petugas untuk menerbitkan nomor antrian prioritas.</p>
+    </header>
+
+    <!-- Visual masked PIN dots -->
+    <div class="pin-display-wrapper">
+      <div class="pin-display" id="vip-pin-display">
+        <span class="pin-dot" data-index="0"></span>
+        <span class="pin-dot" data-index="1"></span>
+        <span class="pin-dot" data-index="2"></span>
+        <span class="pin-dot" data-index="3"></span>
+        <span class="pin-dot" data-index="4"></span>
+        <span class="pin-dot" data-index="5"></span>
+      </div>
+      <div class="pin-error-msg" id="vip-pin-error"></div>
+    </div>
+
+    <!-- On-screen Numeric Keypad -->
+    <div class="keypad-grid">
+      <button type="button" class="keypad-btn" data-key="1">1</button>
+      <button type="button" class="keypad-btn" data-key="2">2</button>
+      <button type="button" class="keypad-btn" data-key="3">3</button>
+
+      <button type="button" class="keypad-btn" data-key="4">4</button>
+      <button type="button" class="keypad-btn" data-key="5">5</button>
+      <button type="button" class="keypad-btn" data-key="6">6</button>
+
+      <button type="button" class="keypad-btn" data-key="7">7</button>
+      <button type="button" class="keypad-btn" data-key="8">8</button>
+      <button type="button" class="keypad-btn" data-key="9">9</button>
+
+      <button type="button" class="keypad-btn btn-cancel-action" id="btn-cancel-vip">Batal</button>
+      <button type="button" class="keypad-btn" data-key="0">0</button>
+      <button type="button" class="keypad-btn btn-backspace-action" data-action="backspace">⌫</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .vip-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1.5rem;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+  }
+
+  .vip-modal-backdrop.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .vip-modal-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .vip-keypad-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem 2rem;
+    max-width: 440px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    border: 2px solid #fde047;
+  }
+
+  .vip-card-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .vip-icon {
+    font-size: 2.75rem;
+  }
+
+  .vip-card-header h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-text);
+  }
+
+  .vip-card-header p {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+  }
+
+  .pin-display-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pin-display {
+    display: flex;
+    gap: 1rem;
+    background: #f8fafc;
+    border: 2px solid var(--color-border);
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--radius-full);
+  }
+
+  .pin-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #94a3b8;
+    background: transparent;
+    transition: all 0.2s ease;
+  }
+
+  .pin-dot.filled {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    transform: scale(1.15);
+  }
+
+  .pin-error-msg {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-danger);
+    min-height: 1.25rem;
+    text-align: center;
+  }
+
+  .keypad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .keypad-btn {
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-text);
+    padding: 1.1rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.05);
+    transition: background 0.1s ease, transform 0.1s ease;
+  }
+
+  .keypad-btn:active {
+    background: #e2e8f0;
+    transform: scale(0.95);
+  }
+
+  .btn-cancel-action {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+  }
+
+  .btn-backspace-action {
+    color: #ef4444;
+  }
+</style>

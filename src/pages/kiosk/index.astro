@@ -1,0 +1,596 @@
+---
+import KioskLayout from '../../layouts/KioskLayout.astro';
+import VIPModal from '../../components/kiosk/VIPModal.astro';
+import TicketModal from '../../components/kiosk/TicketModal.astro';
+import ThermalReceipt from '../../components/kiosk/ThermalReceipt.astro';
+import KioskSetupModal from '../../components/kiosk/KioskSetupModal.astro';
+---
+
+<KioskLayout title="Kiosk Mandiri" tenantName="AntriAja">
+  <div class="kiosk-viewport">
+    <div class="kiosk-top-prompt">
+      <h2>Ambil Antrian Anda</h2>
+      <p>Silakan pilih kategori layanan yang Anda perlukan di bawah ini:</p>
+    </div>
+
+    <!-- State 1: Loading -->
+    <div class="kiosk-loading-view" id="kiosk-loading">
+      <div class="kiosk-spinner"></div>
+      <p>Memuat daftar layanan antrian...</p>
+    </div>
+
+    <!-- State 2: Error Connection -->
+    <div class="kiosk-error-view is-hidden" id="kiosk-error">
+      <div class="error-badge">⚠️</div>
+      <h3 id="kiosk-error-title">Gagal Menghubungkan ke Server</h3>
+      <p id="kiosk-error-message">Periksa koneksi jaringan kiosk atau konfigurasi perangkat.</p>
+      <div class="error-actions">
+        <button type="button" class="btn-kiosk-retry" id="btn-kiosk-retry">Coba Lagi</button>
+        <button type="button" class="btn-kiosk-config" id="btn-open-config">Ubah Konfigurasi</button>
+      </div>
+    </div>
+
+    <!-- State 3: Service Cards Grid -->
+    <div class="service-cards-grid is-hidden" id="service-cards-container">
+      <!-- Diinjeksi dinamis oleh client script -->
+    </div>
+
+    <!-- Floating VIP Button di pojok kanan bawah -->
+    <div class="vip-action-wrapper">
+      <button type="button" class="btn-vip-floating" id="btn-open-vip-modal">
+        <span class="vip-star">⭐</span>
+        <span class="vip-text">Jalur Khusus / Prioritas</span>
+      </button>
+    </div>
+
+    <!-- Modal Keypad VIP -->
+    <VIPModal isOpen={false} />
+
+    <!-- Modal Dialog Tiket Sukses -->
+    <TicketModal isOpen={false} />
+
+    <!-- Modal Setup Konfigurasi Kiosk -->
+    <KioskSetupModal isOpen={false} />
+
+    <!-- Template Thermal Receipt Print -->
+    <ThermalReceipt />
+  </div>
+</KioskLayout>
+
+<script>
+  import {
+    getKioskServices,
+    issueKioskTicket,
+    verifyVIPPIN,
+  } from '../../services/kioskService';
+  import { generateQRCodeSvg } from '../../lib/qrCode';
+  import { sseClient } from '../../lib/sseClient';
+  import {
+    getTenantSlug,
+    setTenantSlug,
+    getDeviceKey,
+    setDeviceKey,
+  } from '../../lib/storage';
+  import { formatIndonesianDate } from '../../lib/formatters';
+  import type { KioskServiceSummaryResponse, TicketResponse } from '../../types/queue.types';
+
+  let currentSlug = '';
+  let currentKey = '';
+  let servicesList: KioskServiceSummaryResponse[] = [];
+  let selectedServiceForVIP: KioskServiceSummaryResponse | null = null;
+  let enteredPin = '';
+  let countdownInterval: ReturnType<typeof setInterval> | null = null;
+  let isIssuing = false;
+
+  // DOM Elements
+  const loadingEl = document.getElementById('kiosk-loading');
+  const errorEl = document.getElementById('kiosk-error');
+  const errorMsgEl = document.getElementById('kiosk-error-message');
+  const cardsContainer = document.getElementById('service-cards-container');
+  const clockEl = document.getElementById('kiosk-clock');
+  const dateEl = document.getElementById('kiosk-date');
+  const tenantTitleEl = document.getElementById('kiosk-tenant-title');
+  const signalEl = document.getElementById('kiosk-signal');
+
+  // VIP Modal Elements
+  const vipModal = document.getElementById('vip-keypad-modal');
+  const btnOpenVip = document.getElementById('btn-open-vip-modal');
+  const btnCancelVip = document.getElementById('btn-cancel-vip');
+  const vipPinError = document.getElementById('vip-pin-error');
+  const pinDots = document.querySelectorAll('.pin-dot');
+
+  // Ticket Modal Elements
+  const ticketModal = document.getElementById('ticket-modal-overlay');
+  const modalTicketNumber = document.getElementById('modal-ticket-number');
+  const modalServiceName = document.getElementById('modal-service-name');
+  const modalVipBadge = document.getElementById('modal-vip-badge');
+  const qrCanvas = document.getElementById('qr-code-canvas');
+  const btnPrintReceipt = document.getElementById('btn-print-receipt');
+  const btnCloseTicket = document.getElementById('btn-close-ticket-modal');
+  const countdownEl = document.getElementById('countdown-timer');
+
+  // Thermal Elements
+  const thermalTicketNum = document.getElementById('thermal-ticket-number');
+  const thermalService = document.getElementById('thermal-service-name');
+  const thermalQr = document.getElementById('thermal-qr-code');
+  const thermalDate = document.getElementById('thermal-date');
+  const thermalVip = document.getElementById('thermal-vip-label');
+  const thermalTenant = document.getElementById('thermal-tenant-name');
+
+  // Setup Elements
+  const setupModal = document.getElementById('kiosk-setup-modal');
+  const formSetup = document.getElementById('form-kiosk-setup') as HTMLFormElement;
+  const inputSlug = document.getElementById('input-kiosk-slug') as HTMLInputElement;
+  const inputKey = document.getElementById('input-kiosk-key') as HTMLInputElement;
+  const btnOpenConfig = document.getElementById('btn-open-config');
+  const btnRetry = document.getElementById('btn-kiosk-retry');
+
+  // Live Digital Clock
+  function updateClock(): void {
+    const now = new Date();
+    if (clockEl) {
+      clockEl.textContent = now.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    }
+    if (dateEl) {
+      dateEl.textContent = formatIndonesianDate(now);
+    }
+  }
+
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  function setSignalStatus(connected: boolean): void {
+    if (!signalEl) return;
+    const dot = signalEl.querySelector('.dot');
+    const text = signalEl.querySelector('.signal-text');
+    if (dot) dot.className = connected ? 'dot connected' : 'dot disconnected';
+    if (text) text.textContent = connected ? 'Kiosk Siap' : 'Terputus';
+  }
+
+  function renderServiceCards(services: KioskServiceSummaryResponse[]): void {
+    if (!cardsContainer) return;
+    cardsContainer.innerHTML = '';
+
+    services.forEach((srv) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'kiosk-service-btn';
+      card.setAttribute('data-service-id', srv.id);
+      card.setAttribute('data-service-name', srv.name);
+      card.setAttribute('data-service-prefix', srv.prefix);
+
+      card.innerHTML = `
+        <div class="service-prefix-badge">${srv.prefix}</div>
+        <div class="service-body">
+          <h3 class="service-title">${srv.name}</h3>
+          <span class="service-duration">Estimasi: ~${srv.estimated_duration_mins} mnt</span>
+        </div>
+        <div class="service-waiting-badge">
+          <span class="waiting-label">Menunggu:</span>
+          <strong class="waiting-number" data-waiting-for="${srv.id}">${srv.waiting_count}</strong>
+          <span class="waiting-unit">Orang</span>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        handleServiceClick(srv);
+      });
+
+      cardsContainer.appendChild(card);
+    });
+
+    loadingEl?.classList.add('is-hidden');
+    errorEl?.classList.add('is-hidden');
+    cardsContainer.classList.remove('is-hidden');
+  }
+
+  async function handleServiceClick(service: KioskServiceSummaryResponse): Promise<void> {
+    if (isIssuing) return;
+    isIssuing = true;
+    toggleCardsDisabled(true);
+
+    const res = await issueKioskTicket(currentSlug, service.id, currentKey);
+
+    if (res.success && res.data) {
+      showTicketModal(res.data, service.name);
+    } else {
+      alert(res.error?.message || 'Gagal menerbitkan tiket antrian.');
+    }
+
+    isIssuing = false;
+    toggleCardsDisabled(false);
+  }
+
+  function toggleCardsDisabled(disabled: boolean): void {
+    const buttons = cardsContainer?.querySelectorAll('.kiosk-service-btn');
+    buttons?.forEach((btn) => {
+      if (disabled) {
+        btn.classList.add('is-disabled');
+      } else {
+        btn.classList.remove('is-disabled');
+      }
+    });
+  }
+
+  function showTicketModal(ticket: TicketResponse, serviceName: string): void {
+    if (!ticketModal) return;
+
+    if (modalTicketNumber) modalTicketNumber.textContent = ticket.ticket_number;
+    if (modalServiceName) modalServiceName.textContent = serviceName;
+
+    if (modalVipBadge) {
+      if (ticket.is_vip) {
+        modalVipBadge.classList.remove('is-hidden');
+      } else {
+        modalVipBadge.classList.add('is-hidden');
+      }
+    }
+
+    // Generate Mobile Ticket Tracking QR Code
+    const mobileUrl = `${window.location.origin}/ticket?token=${encodeURIComponent(ticket.token)}`;
+    const qrSvg = generateQRCodeSvg(mobileUrl, { size: 160, darkColor: '#1e3a8a' });
+    if (qrCanvas) {
+      qrCanvas.innerHTML = qrSvg;
+    }
+
+    // Setup Thermal Print Receipt
+    if (thermalTicketNum) thermalTicketNum.textContent = ticket.ticket_number;
+    if (thermalService) thermalService.textContent = serviceName;
+    if (thermalQr) thermalQr.innerHTML = qrSvg;
+    if (thermalDate) thermalDate.textContent = `Tanggal: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}`;
+    if (thermalVip) {
+      if (ticket.is_vip) thermalVip.classList.remove('is-hidden');
+      else thermalVip.classList.add('is-hidden');
+    }
+    if (thermalTenant && tenantTitleEl) {
+      thermalTenant.textContent = tenantTitleEl.textContent || 'AntriAja';
+    }
+
+    ticketModal.classList.remove('is-hidden');
+    ticketModal.classList.add('is-open');
+
+    // Auto-close countdown (8 detik)
+    let secondsLeft = 8;
+    if (countdownEl) countdownEl.textContent = String(secondsLeft);
+
+    if (countdownInterval) clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+      secondsLeft--;
+      if (countdownEl) countdownEl.textContent = String(secondsLeft);
+      if (secondsLeft <= 0) {
+        closeTicketModal();
+      }
+    }, 1000);
+  }
+
+  function closeTicketModal(): void {
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+    if (ticketModal) {
+      ticketModal.classList.remove('is-open');
+      ticketModal.classList.add('is-hidden');
+    }
+  }
+
+  // Keypad VIP Logic
+  function updatePinDots(): void {
+    pinDots.forEach((dot, index) => {
+      if (index < enteredPin.length) {
+        dot.classList.add('filled');
+      } else {
+        dot.classList.remove('filled');
+      }
+    });
+  }
+
+  function handleKeypadPress(key: string): void {
+    if (vipPinError) vipPinError.textContent = '';
+
+    if (key === 'backspace') {
+      enteredPin = enteredPin.slice(0, -1);
+      updatePinDots();
+      return;
+    }
+
+    if (enteredPin.length < 6) {
+      enteredPin += key;
+      updatePinDots();
+    }
+
+    if (enteredPin.length === 6) {
+      submitVIPPin();
+    }
+  }
+
+  async function submitVIPPin(): Promise<void> {
+    if (!selectedServiceForVIP && servicesList.length > 0) {
+      selectedServiceForVIP = servicesList[0];
+    }
+    if (!selectedServiceForVIP) return;
+
+    if (vipPinError) vipPinError.textContent = 'Memverifikasi PIN...';
+
+    const res = await verifyVIPPIN(
+      currentSlug,
+      selectedServiceForVIP.id,
+      enteredPin,
+      currentKey
+    );
+
+    if (res.success && res.data) {
+      closeVipModal();
+      showTicketModal(res.data, selectedServiceForVIP.name);
+    } else {
+      if (vipPinError) {
+        vipPinError.textContent = res.error?.message || 'PIN tidak valid.';
+      }
+      enteredPin = '';
+      updatePinDots();
+    }
+  }
+
+  function openVipModal(): void {
+    enteredPin = '';
+    updatePinDots();
+    if (vipPinError) vipPinError.textContent = '';
+    selectedServiceForVIP = servicesList[0] || null;
+
+    vipModal?.classList.remove('is-hidden');
+    vipModal?.classList.add('is-open');
+  }
+
+  function closeVipModal(): void {
+    enteredPin = '';
+    updatePinDots();
+    vipModal?.classList.remove('is-open');
+    vipModal?.classList.add('is-hidden');
+  }
+
+  async function initKiosk(): Promise<void> {
+    const params = new URLSearchParams(window.location.search);
+    const slugParam = params.get('slug') || getTenantSlug() || 'demo-bank';
+    const keyParam = params.get('key') || getDeviceKey('kiosk') || 'kiosk-demo-key-123';
+
+    currentSlug = slugParam;
+    currentKey = keyParam;
+
+    setTenantSlug(currentSlug);
+    setDeviceKey('kiosk', currentKey);
+
+    if (tenantTitleEl) {
+      tenantTitleEl.textContent = currentSlug.replace(/-/g, ' ').toUpperCase();
+    }
+
+    loadingEl?.classList.remove('is-hidden');
+    errorEl?.classList.add('is-hidden');
+    cardsContainer?.classList.add('is-hidden');
+
+    const res = await getKioskServices(currentSlug, currentKey);
+
+    if (res.success && res.data) {
+      servicesList = res.data;
+      renderServiceCards(servicesList);
+      setupRealtime(currentSlug, currentKey);
+      setSignalStatus(true);
+    } else {
+      loadingEl?.classList.add('is-hidden');
+      errorEl?.classList.remove('is-hidden');
+      if (errorMsgEl && res.error?.message) {
+        errorMsgEl.textContent = res.error.message;
+      }
+      setSignalStatus(false);
+    }
+  }
+
+  function setupRealtime(slug: string, key: string): void {
+    sseClient.connect({ tenantSlug: slug, deviceKey: key });
+
+    const refreshServices = () => {
+      getKioskServices(slug, key).then((res) => {
+        if (res.success && res.data) {
+          servicesList = res.data;
+          servicesList.forEach((srv) => {
+            const countEl = document.querySelector(`[data-waiting-for="${srv.id}"]`);
+            if (countEl) countEl.textContent = String(srv.waiting_count);
+          });
+        }
+      });
+    };
+
+    sseClient.on('TICKET_CREATED', refreshServices);
+    sseClient.on('TICKET_CALLED', refreshServices);
+    sseClient.on('TICKET_COMPLETED', refreshServices);
+    sseClient.on('QUEUE_RESET', refreshServices);
+
+    sseClient.onStatusChange((status) => {
+      setSignalStatus(status === 'connected');
+    });
+  }
+
+  // Setup Event Listeners
+  btnOpenVip?.addEventListener('click', openVipModal);
+  btnCancelVip?.addEventListener('click', closeVipModal);
+
+  document.querySelectorAll('.keypad-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const target = e.currentTarget as HTMLElement;
+      const key = target.getAttribute('data-key');
+      const action = target.getAttribute('data-action');
+      if (key) handleKeypadPress(key);
+      else if (action === 'backspace') handleKeypadPress('backspace');
+    });
+  });
+
+  btnPrintReceipt?.addEventListener('click', () => {
+    window.print();
+  });
+
+  btnCloseTicket?.addEventListener('click', closeTicketModal);
+
+  btnRetry?.addEventListener('click', initKiosk);
+
+  btnOpenConfig?.addEventListener('click', () => {
+    if (inputSlug) inputSlug.value = currentSlug;
+    if (inputKey) inputKey.value = currentKey;
+    setupModal?.classList.remove('is-hidden');
+    setupModal?.classList.add('is-open');
+  });
+
+  formSetup?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const slug = inputSlug?.value.trim();
+    const key = inputKey?.value.trim();
+    if (slug && key) {
+      setTenantSlug(slug);
+      setDeviceKey('kiosk', key);
+      setupModal?.classList.remove('is-open');
+      setupModal?.classList.add('is-hidden');
+      initKiosk();
+    }
+  });
+
+  initKiosk();
+</script>
+
+<style>
+  .kiosk-viewport {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    width: 100%;
+    position: relative;
+    height: 100%;
+  }
+
+  .kiosk-top-prompt {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .kiosk-top-prompt h2 {
+    font-size: 2.25rem;
+    font-weight: 900;
+    color: var(--color-primary);
+    letter-spacing: -0.025em;
+  }
+
+  .kiosk-top-prompt p {
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+  }
+
+  .service-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .vip-action-wrapper {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .btn-vip-floating {
+    background: #fef08a;
+    border: 2px solid #eab308;
+    color: #854d0e;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+
+  .btn-vip-floating:active {
+    transform: scale(0.95);
+    background: #fde047;
+  }
+
+  .kiosk-loading-view,
+  .kiosk-error-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    text-align: center;
+  }
+
+  .kiosk-spinner {
+    width: 56px;
+    height: 56px;
+    border: 5px solid #e2e8f0;
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .kiosk-error-view .error-badge {
+    font-size: 3.5rem;
+  }
+
+  .kiosk-error-view h3 {
+    font-size: 1.75rem;
+    font-weight: 800;
+  }
+
+  .kiosk-error-view p {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    max-width: 500px;
+  }
+
+  .error-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .btn-kiosk-retry,
+  .btn-kiosk-config {
+    padding: 0.85rem 1.75rem;
+    border-radius: var(--radius-md);
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .btn-kiosk-retry {
+    background: var(--color-primary);
+    color: #ffffff;
+  }
+
+  .btn-kiosk-config {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+  }
+
+  .is-hidden {
+    display: none !important;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

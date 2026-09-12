@@ -113,20 +113,22 @@ src/
 ---
 
 ### Fase 3: Portal Kiosk Mandiri Pintu Masuk (`/kiosk/[slug]`)
-- [ ] Service layer: `src/services/kioskService.ts` (`getKioskServices`, `issueTicket`, `verifyVIPPIN`)
-- [ ] Layout khusus kiosk: `src/layouts/KioskLayout.astro` (Fullscreen, non-scroll, touch-friendly)
-- [ ] Komponen UI Kiosk di `src/components/kiosk/`:
-  - [ ] `ServiceCard.astro` (Kartu tombol layanan besar dengan indikator sisa antrian)
-  - [ ] `VIPModal.astro` (Modal input PIN 6-digit untuk jalur prioritas)
-  - [ ] `TicketModal.astro` (Tampilan pop-up struk tiket dengan QR Code ke URL mobile)
-  - [ ] `ThermalReceipt.astro` (Layout struk cetak thermal CSS `@media print` 58mm/80mm)
-- [ ] Halaman rute: `src/pages/kiosk/[slug].astro`
-  - [ ] Inisialisasi Device Key (`kiosk_key`) dari query atau localStorage
-  - [ ] Fetch daftar layanan aktif
-  - [ ] Alur ambil tiket reguler
-  - [ ] Alur ambil tiket VIP via PIN modal
-  - [ ] Auto-print & timer reset otomatis kembali ke layar awal (8–10 detik)
-- [ ] Unit & Container test untuk Kiosk
+- [x] Service layer: `src/services/kioskService.ts` (`getKioskServices`, `issueKioskTicket`, `verifyVIPPIN`)
+- [x] Layout khusus kiosk: `src/layouts/KioskLayout.astro` (Fullscreen, non-scroll, touch-friendly, jam digital & status koneksi)
+- [x] Generator QR Code mandiri: `src/lib/qrCode.ts` (Zero-dependency SVG generator)
+- [x] Komponen UI Kiosk di `src/components/kiosk/`:
+  - [x] `ServiceCard.astro` (Kartu tombol layanan besar dengan indikator sisa antrian)
+  - [x] `VIPModal.astro` (Modal keypad numerik sentuh layar 0-9 & visual dots untuk jalur prioritas)
+  - [x] `TicketModal.astro` (Tampilan pop-up struk tiket dengan QR Code ke URL mobile dan hitung mundur 8 detik)
+  - [x] `ThermalReceipt.astro` (Layout struk cetak thermal CSS `@media print` 58mm/80mm)
+  - [x] `KioskSetupModal.astro` (Modal pairing Device Key dan URL API kiosk)
+- [x] Halaman rute: `src/pages/kiosk/index.astro` (Mendukung query parameter `?slug=...` dan path fallback `/kiosk/[slug]`)
+  - [x] Inisialisasi Device Key (`kiosk_key`) dari query atau localStorage
+  - [x] Fetch daftar layanan aktif & realtime refresh
+  - [x] Alur ambil tiket reguler
+  - [x] Alur ambil tiket VIP via PIN modal keypad
+  - [x] Auto-print & timer reset otomatis kembali ke layar awal (8 detik)
+- [x] Unit & Container test untuk Kiosk (`qrCode.test.ts`, `kioskService.test.ts`, `kioskComponents.test.ts`, `kioskPage.test.ts` - 15 tests PASS)
 
 ---
 

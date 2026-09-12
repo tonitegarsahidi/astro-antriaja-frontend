@@ -1,0 +1,207 @@
+---
+import { pwaInfo } from 'virtual:pwa-info';
+
+interface Props {
+  title?: string;
+  tenantName?: string;
+}
+
+const { title = 'Kiosk Antrian', tenantName = 'AntriAja' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#2563eb" />
+    <title>{title} | {tenantName}</title>
+    {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
+    <script src="/src/pwa.ts"></script>
+  </head>
+  <body class="kiosk-mode">
+    <div class="kiosk-frame">
+      <header class="kiosk-header">
+        <div class="header-tenant">
+          <span class="tenant-logo">🏛️</span>
+          <div class="tenant-details">
+            <h1 id="kiosk-tenant-title">{tenantName}</h1>
+            <p>Kiosk Pengambilan Antrian Mandiri</p>
+          </div>
+        </div>
+
+        <div class="header-meta">
+          <div class="kiosk-clock-box">
+            <span class="live-clock" id="kiosk-clock">--:--:--</span>
+            <span class="live-date" id="kiosk-date">Memuat tanggal...</span>
+          </div>
+          <div class="kiosk-signal-badge" id="kiosk-signal">
+            <span class="dot connected"></span>
+            <span class="signal-text">Kiosk Siap</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="kiosk-main">
+        <slot />
+      </main>
+
+      <footer class="kiosk-footer">
+        <p>Sentuh salah satu tombol kategori layanan di atas untuk mengambil tiket antrian.</p>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --color-primary: #2563eb;
+    --color-primary-hover: #1d4ed8;
+    --color-surface: #ffffff;
+    --color-bg: #f1f5f9;
+    --color-text: #0f172a;
+    --color-text-muted: #64748b;
+    --color-border: #e2e8f0;
+    --color-success: #16a34a;
+    --color-danger: #dc2626;
+    --font-sans: system-ui, -apple-system, sans-serif;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-full: 9999px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body.kiosk-mode {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .kiosk-frame {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    gap: 1.5rem;
+    justify-content: space-between;
+  }
+
+  .kiosk-header {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  }
+
+  .header-tenant {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .tenant-logo {
+    font-size: 2.5rem;
+  }
+
+  .tenant-details h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    line-height: 1.2;
+  }
+
+  .tenant-details p {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .kiosk-clock-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .live-clock {
+    font-size: 1.75rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text);
+    line-height: 1;
+  }
+
+  .live-date {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.2rem;
+  }
+
+  .kiosk-signal-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot.connected {
+    background-color: var(--color-success);
+    box-shadow: 0 0 8px var(--color-success);
+  }
+
+  .dot.disconnected {
+    background-color: var(--color-danger);
+  }
+
+  .kiosk-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kiosk-footer {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.75rem;
+  }
+</style>
