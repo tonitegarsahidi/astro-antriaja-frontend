@@ -81,11 +81,8 @@
 
     if (retryBtn) {
       retryBtn.addEventListener('click', () => {
-        if (navigator.onLine) {
-          window.location.reload();
-        } else {
-          showOffline();
-        }
+        retryBtn.textContent = 'Menghubungkan...';
+        window.location.reload();
       });
     }
 

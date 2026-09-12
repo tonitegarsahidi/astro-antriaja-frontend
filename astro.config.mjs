@@ -65,7 +65,7 @@ export const pwaOptions = {
   },
   workbox: {
     navigateFallback: '/offline',
-    navigateFallbackDenylist: [/^\/api/],
+    navigateFallbackDenylist: [/^\/api/, /^\/@/, /^\/node_modules/, /^\/src/],
     globPatterns: ['**/*.{css,js,html,svg,png,ico,txt}'],
     runtimeCaching: [
       {
@@ -89,7 +89,7 @@ export const pwaOptions = {
     ],
   },
   devOptions: {
-    enabled: true,
+    enabled: false,
   },
 };
 

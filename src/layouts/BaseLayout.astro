@@ -27,7 +27,11 @@ const pageTitle = title === 'AntriAja' ? 'AntriAja' : `${title} | AntriAja`;
     <meta name="description" content={description} />
     <meta name="theme-color" content="#2563eb" />
     <title>{pageTitle}</title>
-    {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
+    {pwaInfo ? (
+      <Fragment set:html={pwaInfo.webManifest.linkTag} />
+    ) : (
+      <link rel="manifest" href="/manifest.webmanifest" />
+    )}
     <script src="/src/pwa.ts"></script>
   </head>
   <body>
