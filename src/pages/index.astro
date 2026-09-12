@@ -1,21 +1,160 @@
 ---
-import { pwaInfo } from 'virtual:pwa-info';
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<!doctype html>
-<html lang="id">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <meta name="theme-color" content="#2563eb" />
-    <title>AntriAja</title>
-    {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
-    <script src="/src/pwa.ts"></script>
-  </head>
-  <body>
-    <h1>AntriAja</h1>
-  </body>
-</html>
+<BaseLayout title="AntriAja">
+  <main class="portal-wrapper">
+    <header class="hero-section">
+      <div class="hero-badge">Cloud Queue Management SaaS</div>
+      <h1>AntriAja</h1>
+      <p class="hero-subtitle">
+        Platform manajemen antrian online modern, mandiri, dan paperless untuk efisiensi instansi & kenyamanan pengunjung.
+      </p>
+    </header>
+
+    <div class="portals-container">
+      <div class="portals-grid">
+        <div class="portal-card">
+          <div class="card-icon">🖥️</div>
+          <h2>Kiosk Mandiri</h2>
+          <p>Antarmuka layar sentuh pintu masuk untuk pengambilan tiket reguler & VIP.</p>
+          <span class="status-tag active">Fase 3</span>
+        </div>
+
+        <div class="portal-card">
+          <div class="card-icon">📺</div>
+          <h2>Display TV</h2>
+          <p>Monitor panggilan nomor split-screen dengan pengumuman suara otomatis Bahasa Indonesia.</p>
+          <span class="status-tag active">Fase 4</span>
+        </div>
+
+        <div class="portal-card">
+          <div class="card-icon">👤</div>
+          <h2>Konsol Staf</h2>
+          <p>Meja operasional loket untuk pemanggilan, penundaan, oper antrian, dan stopwatch pelayanan.</p>
+          <span class="status-tag active">Fase 5</span>
+        </div>
+
+        <div class="portal-card">
+          <div class="card-icon">📱</div>
+          <h2>Mobile Pengunjung</h2>
+          <p>Pemantauan posisi tiket secara langsung lewat smartphone tanpa perlu antri berdiri.</p>
+          <span class="status-tag highlight">Fase 2 (Berikutnya)</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer-info">
+      <p>Sistem AntriAja &bull; Frontend Astro v7 &bull; Backend Golang Fiber & PostgreSQL</p>
+    </footer>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  .portal-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    min-height: 100vh;
+    justify-content: space-between;
+  }
+
+  .hero-section {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .hero-badge {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.35rem 1rem;
+    border-radius: var(--radius-full);
+    display: inline-block;
+    border: 1px solid #bfdbfe;
+  }
+
+  .hero-section h1 {
+    font-size: 3.25rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    letter-spacing: -0.025em;
+  }
+
+  .hero-subtitle {
+    font-size: 1.125rem;
+    color: var(--color-text-muted);
+    max-width: 650px;
+    line-height: 1.6;
+  }
+
+  .portals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .portal-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .portal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-icon {
+    font-size: 2rem;
+  }
+
+  .portal-card h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .portal-card p {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    flex-grow: 1;
+  }
+
+  .status-tag {
+    align-self: flex-start;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-sm);
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .status-tag.highlight {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .footer-info {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+  }
+</style>
