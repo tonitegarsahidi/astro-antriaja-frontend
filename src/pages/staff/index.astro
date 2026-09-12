@@ -14,6 +14,28 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
     <!-- Top Alert Banner for Notifications -->
     <div id="staff-notification-banner" class="hidden p-4 rounded-xl text-sm font-medium transition-all shadow-xs"></div>
 
+    <!-- No Counter Selected Guidance Banner -->
+    <div id="no-counter-banner" class="hidden p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+      <div class="flex items-center space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h4 class="text-sm font-bold text-amber-900">Anda belum memilih loket tugas</h4>
+          <p class="text-xs text-amber-700 mt-0.5">Silakan pilih meja loket operasional Anda hari ini untuk mulai memanggil dan melayani antrian.</p>
+        </div>
+      </div>
+      <button
+        id="btn-select-counter-banner"
+        type="button"
+        class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-2xs cursor-pointer shrink-0"
+      >
+        Pilih Meja Loket
+      </button>
+    </div>
+
     <!-- Header Summary Strip -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
       <div>
@@ -152,9 +174,12 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
 
     // Check Counter Selection
     activeCounterId = getActiveCounterId();
+    const noCounterBanner = document.getElementById('no-counter-banner');
     if (!activeCounterId) {
+      if (noCounterBanner) noCounterBanner.classList.remove('hidden');
       await showCounterSelectorModal();
     } else {
+      if (noCounterBanner) noCounterBanner.classList.add('hidden');
       await loadCounterState(activeCounterId);
       connectRealtimeSSE(token);
     }
@@ -182,6 +207,10 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
   }
 
   function renderCounterState(state: CounterQueueStateResponse) {
+    // Hide no counter banner once a counter is active
+    const noCounterBanner = document.getElementById('no-counter-banner');
+    if (noCounterBanner) noCounterBanner.classList.add('hidden');
+
     // 1. Update Header Counter Badge
     const counterBadge = document.getElementById('staff-counter-badge');
     const counterLabel = document.getElementById('counter-label');
@@ -928,6 +957,9 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
       activeState = null;
       closeRelease();
 
+      const noCounterBanner = document.getElementById('no-counter-banner');
+      if (noCounterBanner) noCounterBanner.classList.remove('hidden');
+
       showNotification('Loket berhasil dilepaskan. Silakan pilih loket baru jika ingin melanjutkan.', 'info');
       await showCounterSelectorModal();
     });
@@ -948,6 +980,11 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
         }
       }
       releaseModal.classList.remove('hidden');
+    });
+
+    const btnSelectCounterBanner = document.getElementById('btn-select-counter-banner');
+    btnSelectCounterBanner?.addEventListener('click', async () => {
+      await showCounterSelectorModal();
     });
 
     const counterBadge = document.getElementById('staff-counter-badge');

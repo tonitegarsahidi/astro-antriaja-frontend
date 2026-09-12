@@ -6,7 +6,7 @@ import StaffIndexPage from '../src/pages/staff/index.astro';
 
 describe('Staff Pages & Layouts', () => {
   describe('StaffLayout.astro', () => {
-    it('renders header, counter status badge, digital clock, SSE indicator, and logout button', async () => {
+    it('renders header, counter status badge, digital clock, SSE indicator, quick links, and logout button', async () => {
       const container = await AstroContainer.create();
       const result = await container.renderToString(StaffLayout, {
         props: {
@@ -21,6 +21,7 @@ describe('Staff Pages & Layouts', () => {
       expect(result).toContain('id="sse-status-badge"');
       expect(result).toContain('id="btn-release-counter"');
       expect(result).toContain('id="btn-logout"');
+      expect(result).toContain('href="/display"');
     });
   });
 
@@ -41,12 +42,14 @@ describe('Staff Pages & Layouts', () => {
   });
 
   describe('staff/index.astro', () => {
-    it('renders operational console dashboard with tabs, current serving card, and action bar', async () => {
+    it('renders operational console dashboard with tabs, current serving card, guide banner, and action bar', async () => {
       const container = await AstroContainer.create();
       const result = await container.renderToString(StaffIndexPage);
 
       expect(result).toContain('Konsol Loket');
       expect(result).toContain('current-ticket-card');
+      expect(result).toContain('id="no-counter-banner"');
+      expect(result).toContain('id="btn-select-counter-banner"');
       expect(result).toContain('id="btn-call-next"');
       expect(result).toContain('Antrian Menunggu');
       expect(result).toContain('Daftar Tunda');
@@ -54,3 +57,4 @@ describe('Staff Pages & Layouts', () => {
     });
   });
 });
+

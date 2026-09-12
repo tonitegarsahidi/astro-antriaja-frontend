@@ -175,7 +175,8 @@ src/
   - [x] Konfirmasi sebelum Release loket
   - [x] Refaktor 1-Klik Occupy Modal Loket: eksekusi langsung, visual spinner loading kartu, auto-dismiss modal, dan tombol batal ganti loket
   - [x] Redesain & Polishing Halaman Login Staf & Admin (Sub-Langkah 2): layout split-hero desktop, tab alih peran Staf/Admin, helper 1-klik autofill demo, dan toggle intip password
-- [x] Unit & Container test untuk Konsol Staf (5 test suites, 32 tests PASS 100%)
+  - [x] Polishing Layout & Estetika Konsol Staf & Admin (Sub-Langkah 3): banner pemandu loket belum dipilih, tombol aksi loket ergonomis, kartu tiket modern, drawer menu mobile responsif Admin, dan kartu metrik dashboard
+- [x] Unit & Container test untuk Konsol Staf & Admin (159 tests PASS 100%)
 
 ---
 

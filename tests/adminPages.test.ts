@@ -9,7 +9,7 @@ import AdminDisplayPage from '../src/pages/admin/display.astro';
 
 describe('Admin Pages & Layouts', () => {
   describe('AdminLayout.astro', () => {
-    it('renders sidebar navigation, brand logo, admin role badge, and logout button', async () => {
+    it('renders sidebar navigation, brand logo, admin role badge, mobile toggle, and logout button', async () => {
       const container = await AstroContainer.create();
       const result = await container.renderToString(AdminLayout, {
         props: {
@@ -24,6 +24,7 @@ describe('Admin Pages & Layouts', () => {
       expect(result).toContain('href="/admin/services"');
       expect(result).toContain('href="/admin/counters"');
       expect(result).toContain('href="/admin/display"');
+      expect(result).toContain('id="btn-toggle-mobile-sidebar"');
       expect(result).toContain('id="btn-trigger-reset-modal"');
       expect(result).toContain('id="btn-admin-logout"');
     });

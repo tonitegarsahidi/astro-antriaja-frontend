@@ -104,6 +104,19 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
     - Penambahan tombol *1-Click Demo Quick Fill* (`#btn-quick-fill-demo`) yang otomatis mengisikan data instansi (`demo-bank`), email demo, dan kata sandi tanpa perlu ketik manual.
     - Penambahan tombol toggle intip password interaktif (`#btn-toggle-password`) dengan transisi ikon mata (`eye` / `eye-slash`).
     - Penyelarasan pengujian unit test pada `tests/staffPages.test.ts` dan `tests/adminPages.test.ts` untuk memverifikasi fungsionalitas autofill demo, password toggle, dan navigasi peran.
-    - Verifikasi kualitas menyeluruh: `npm run check` (0 errors), `npm test` (159/159 tests PASS), dan `npm run build` sukses.
-
-
+  - **Polishing Layout, Flow & Estetika Konsol Staf & Panel Admin (Sub-Langkah 3):**
+    - **Konsol Staf (`/staff` & `StaffLayout`):**
+      - Penambahan banner pemandu interaktif (`#no-counter-banner` & `#btn-select-counter-banner`) jika staf belum memilih meja loket tugas.
+      - Peningkatan visibilitas badge nomor loket tugas di navbar pada semua ukuran layar (`inline-flex`).
+      - Desain ulang kartu tiket aktif (`CurrentServingCard.astro`) dengan nomor tiket kontras tinggi font monospace, badge status dinamis, dan stopwatch durasi pelayanan yang elegan.
+      - Restrukturisasi bilah aksi operasional (`ActionButtonBar.astro`) dengan tombol yang proporsional, label yang rapi dan tidak terpotong, serta tata letak responsif.
+      - Penambahan tautan cepat inspeksi Display TV (`href="/display"`) dan avatar inisial petugas pada header konsol staf.
+    - **Panel Administrasi (`/admin` & `AdminLayout`):**
+      - Penambahan header mobile responsif dengan tombol hamburger toggle (`#btn-toggle-mobile-sidebar`) agar sidebar navigasi gelap tidak menumpuk dan menutupi konten pada layar kecil.
+      - Modernisasi 4 kartu metrik statistik cabang dengan garis aksen warna, efek hover interaktif, dan tipografi monospace.
+      - Penataan kartu navigasi cepat manajemen layanan, loket, dan TV display.
+    - **Verifikasi Kualitas Menyeluruh:**
+      - Pembaruan unit test `tests/staffPages.test.ts` dan `tests/adminPages.test.ts`.
+      - Verifikasi lulus 100% pada seluruh 159 automated unit tests (`npm test`).
+      - Validasi tipe data Astro dan TypeScript strict mode (`npm run check`) 0 errors.
+      - Validasi static build (`npm run build`) sukses 12 halaman tanpa error.
