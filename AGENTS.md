@@ -6,15 +6,15 @@ File ini adalah komando operasional utama (single source of truth) untuk AI Codi
 
 ## 1. Filosofi & Perilaku Utama (Core Principles)
 - **Anti "Prompt Sapu Jagat":** Jangan pernah mencoba membangun seluruh aplikasi atau multi-fitur sekaligus dalam satu respon. Kerjakan sistem secara modular dan bertahap.
-- **Plan → Review → Build:** Jangan langsung menulis atau mengedit kode kecuali diperintahkan eksplisit atau hanya untuk perubahan kosmetik/minor (CSS styling sepele, ubah teks label).
+- **Plan → Review → Test → Review → Build:** Jangan langsung menulis kode implementasi fitur. Setiap modul wajib melalui perancangan, review rencana, penyusunan test plan & unit test, review test, baru eksekusi implementasi (Test-Driven Mindset).
 - **Klarifikasi Sebelum Asumsi:** Jika instruksi pengguna memiliki ambiguitas logika, arsitektur, atau dependensi bisnis, ajukan pertanyaan klarifikasi terlebih dahulu sebelum membuat rencana atau menulis kode.
 - **Production-Grade Mindset:** Tolak mentalitas "yang penting jalan". Setiap kode harus mempertimbangkan penanganan error, transaksi database (DB transaction), pencegahan race condition, dan logging terstruktur.
 
 ---
 
-## 2. Protokol Alur Kerja: Plan → Review → Build
+## 2. Protokol Alur Kerja: Plan → Review → Test → Review → Build
 
-Setiap kali menerima tugas fitur, modul, atau refactoring baru, Agent wajib mengikuti 3 tahapan berikut:
+Setiap kali menerima tugas fitur, modul, atau refactoring baru, Agent wajib mengikuti 5 tahapan berurutan berikut:
 
 ### Tahap 1: Analisis & Klarifikasi
 1. Pelajari file arsitektur dan dokumentasi terkait di folder `/docs` serta panduan gaya di `codingstyleguide.md`.
@@ -23,16 +23,27 @@ Setiap kali menerima tugas fitur, modul, atau refactoring baru, Agent wajib meng
 ### Tahap 2: Implementation Plan (Rencana Implementasi)
 Sajikan draf rencana implementasi tertulis kepada user dengan format:
 - **Daftar File:** File yang akan dibuat baru (`NEW`), diubah (`MODIFIED`), atau dihapus (`DELETED`).
-- **Skema / Migrasi:** Detail perubahan tabel/kolom (jika ada).
+- **Skema / Migrasi / Konfigurasi:** Detail perubahan tabel/kolom/env (jika ada).
 - **Fungsi & Method:** Rincian fungsi/endpoint/interface yang akan ditambahkan.
 - **Alur Logika & Validasi:** Ringkasan alur data dari input sampai output.
 - **Risiko / Edge Cases:** Potensi kegagalan data atau race condition.
-> **PENTING:** Berhenti di sini. Tunggu persetujuan (*review/approval*) dari user sebelum mengeksekusi kode!
+> **PENTING:** Berhenti di sini. Tunggu persetujuan (*review/approval*) dari user sebelum membuat test plan atau menulis test!
 
-### Tahap 3: Eksekusi Kode (Build)
-1. Eksekusi kode hanya untuk sub-langkah atau modul yang telah disetujui.
-2. Jangan menyentuh file di luar cakupan rencana yang telah disepakati.
-3. Setelah implementasi tuntas, update checklist progres pada `todolist.md` dan catat perubahan pada `changelog.md`.
+### Tahap 3: Test Plan & Pembuatan Unit Test (Test-First)
+1. Susun Test Plan (skenario pengujian positif, negatif, edge cases, input-output).
+2. Tulis file automated unit test (`*.test.ts`) sesuai skenario yang direncanakan.
+3. Sajikan Test Plan dan file test kepada user untuk direview.
+> **PENTING:** Berhenti di sini. Tunggu persetujuan (*review/approval*) dari user atas Test Plan & Unit Test sebelum mengeksekusi kode implementasi fitur!
+
+### Tahap 4: Eksekusi Kode Implementasi (Build & Green Test)
+1. Eksekusi kode implementasi hanya untuk modul atau sub-langkah yang telah disetujui.
+2. Pastikan seluruh unit test yang dibuat pada Tahap 3 lulus (`npm test` berstatus PASS).
+3. Pastikan tidak ada type/lint error (`npm run check` 0 errors).
+4. Jangan menyentuh file di luar cakupan rencana yang telah disepakati.
+
+### Tahap 5: Verifikasi & Pencatatan Progres
+1. Jalankan `npm run check`, `npm test`, dan `npm run build`.
+2. Update checklist progres pada `todolist.md` dan catat perubahan pada `changelog.md`.
 
 ---
 
