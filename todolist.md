@@ -192,8 +192,9 @@ src/
 ---
 
 ### Fase 7: PWA Hardening, Offline Resilience, & Final Audit
-- [ ] Sinkronisasi manifest PWA dan icon set (192x192, 512x512 maskable, apple-touch-icon)
-- [ ] Pengaturan Workbox runtime caching untuk file audio dan layout statis
-- [ ] Offline fallback view (ketika koneksi internet terputus total)
-- [ ] Audit menyeluruh: `npm run check`, `npm test`, dan `npm run build`
-- [ ] Dokumentasi penggunaan frontend lengkap pada `README.md`
+- [x] Sinkronisasi manifest PWA dan icon set (192x192, 512x512 maskable, apple-touch-icon)
+- [x] Pengaturan Workbox runtime caching untuk file audio dan layout statis
+- [x] Offline fallback view (ketika koneksi internet terputus total)
+- [x] Audit menyeluruh: `npm run check`, `npm test`, dan `npm run build`
+- [x] Dokumentasi penggunaan frontend lengkap pada `README.md`
+

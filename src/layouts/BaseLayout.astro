@@ -1,5 +1,6 @@
 ---
 import { pwaInfo } from 'virtual:pwa-info';
+import OfflineBanner from '../components/ui/OfflineBanner.astro';
 
 interface Props {
   title?: string;
@@ -30,6 +31,7 @@ const pageTitle = title === 'AntriAja' ? 'AntriAja' : `${title} | AntriAja`;
     <script src="/src/pwa.ts"></script>
   </head>
   <body>
+    <OfflineBanner />
     <div class="app-shell">
       <slot />
     </div>

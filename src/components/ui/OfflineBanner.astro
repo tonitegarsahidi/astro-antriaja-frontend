@@ -1,0 +1,109 @@
+---
+/**
+ * OfflineBanner.astro - Banner Notifikasi Koneksi Terputus Global
+ * Menampilkan peringatan floating saat koneksi internet klien terputus.
+ */
+---
+
+<div
+  id="offline-banner"
+  class="fixed top-0 inset-x-0 z-50 hidden bg-amber-500 text-slate-900 px-4 py-2 text-xs font-bold shadow-md transition-all duration-300"
+  role="alert"
+>
+  <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+    <div class="flex items-center space-x-2">
+      <!-- Wifi Off Icon -->
+      <svg class="w-4 h-4 text-slate-900 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 4.243a1 1 0 010-1.414m0 0l-2.829-2.829m0 0L3 3m2.828 2.828a9 9 0 0112.728 0" />
+      </svg>
+      <span id="offline-banner-text">
+        Koneksi internet terputus. Sistem berjalan dalam mode offline lokal.
+      </span>
+    </div>
+
+    <div class="flex items-center space-x-2 shrink-0">
+      <button
+        id="offline-banner-retry"
+        type="button"
+        class="px-2.5 py-1 text-[11px] font-extrabold bg-slate-900 text-white hover:bg-slate-800 rounded-md transition-colors cursor-pointer"
+      >
+        Coba Hubungkan
+      </button>
+      <button
+        id="offline-banner-close"
+        type="button"
+        class="text-slate-900 hover:text-slate-700 p-0.5"
+        title="Tutup banner"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function initOfflineBanner() {
+    const banner = document.getElementById('offline-banner');
+    const textEl = document.getElementById('offline-banner-text');
+    const retryBtn = document.getElementById('offline-banner-retry');
+    const closeBtn = document.getElementById('offline-banner-close');
+
+    if (!banner) return;
+
+    function showOffline() {
+      if (!banner) return;
+      banner.className = 'fixed top-0 inset-x-0 z-50 bg-amber-500 text-slate-900 px-4 py-2 text-xs font-bold shadow-md transition-all duration-300';
+      if (textEl) {
+        textEl.textContent = 'Koneksi internet terputus. Sistem berjalan dalam mode offline lokal.';
+      }
+      banner.classList.remove('hidden');
+    }
+
+    function showOnline() {
+      if (!banner) return;
+      banner.className = 'fixed top-0 inset-x-0 z-50 bg-emerald-600 text-white px-4 py-2 text-xs font-bold shadow-md transition-all duration-300';
+      if (textEl) {
+        textEl.textContent = 'Koneksi kembali terhubung. Menyinkronkan data antrian...';
+      }
+      banner.classList.remove('hidden');
+
+      setTimeout(() => {
+        if (banner && navigator.onLine) {
+          banner.classList.add('hidden');
+        }
+      }, 3000);
+    }
+
+    window.addEventListener('offline', showOffline);
+    window.addEventListener('online', showOnline);
+
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => {
+        if (navigator.onLine) {
+          window.location.reload();
+        } else {
+          showOffline();
+        }
+      });
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        banner.classList.add('hidden');
+      });
+    }
+
+    // Initial check on page load
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      showOffline();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initOfflineBanner);
+  } else {
+    initOfflineBanner();
+  }
+</script>

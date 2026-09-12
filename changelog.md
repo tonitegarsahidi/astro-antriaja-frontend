@@ -82,5 +82,15 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
     - `counters.astro`: Grid master loket fisik dengan daftar layanan yang ditangani, status operasional, dan modal penugasan M:N (penanganan error `COUNTER_NUMBER_ALREADY_EXISTS`).
     - `display.astro`: Form konfigurasi TV Display (running text, jenis media promo, URL media, toggle suara panggilan) dilengkapi Live Preview monitor TV interaktif.
   - Penambahan 6 automated test suites baru (total 154 tests PASS 100% di 29 test files) dan verifikasi sukses `npm run check`, `npm test`, serta `npm run build` (11 static pages).
+- **Fase 7: PWA Hardening, Offline Resilience, & Final Audit:**
+  - Penyelarasan Web Manifest PWA lengkap (`name`, `short_name`, `theme_color #2563eb`, `background_color #f8fafc`, `display standalone`) dan 4 aplikasi shortcuts (Kiosk Mandiri, Layar Display TV, Konsol Staf Loket, Panel Administrasi).
+  - Konfigurasi Workbox runtime caching dengan strategi `CacheFirst` untuk gambar/ikon dan `StaleWhileRevalidate` untuk aset statis script/style.
+  - Implementasi perlindungan API dengan `navigateFallbackDenylist: [/^\/api/]` agar permintaan backend tidak terganggu saat navigasi offline.
+  - Pembuatan komponen floating notification `src/components/ui/OfflineBanner.astro` dengan pendengar event jaringan `online`/`offline` terotomatisasi.
+  - Pemasangan `OfflineBanner.astro` secara global di dalam `src/layouts/BaseLayout.astro` sehingga melindungi seluruh 12 halaman web secara terpadu.
+  - Pembuatan halaman fallback mandiri `src/pages/offline.astro` dengan tombol muat ulang koneksi dan panduan pemulihan jaringan.
+  - Pembaruan test suite `tests/pwa.test.ts` dan penambahan container test `tests/offlinePage.test.ts`.
+  - Verifikasi audit akhir: 30 test files, **159 automated tests PASS (100%)**, `npm run check` 0 errors, dan `npm run build` berhasil membangun 12 halaman statis beserta `sw.js` dan `manifest.webmanifest`.
+
 
 
