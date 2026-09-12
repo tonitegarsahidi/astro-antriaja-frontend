@@ -90,9 +90,12 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
   - Pemasangan `OfflineBanner.astro` secara global di dalam `src/layouts/BaseLayout.astro` sehingga melindungi seluruh 12 halaman web secara terpadu.
   - Pembuatan halaman fallback mandiri `src/pages/offline.astro` dengan tombol muat ulang koneksi dan panduan pemulihan jaringan.
   - Pembaruan test suite `tests/pwa.test.ts` dan penambahan container test `tests/offlinePage.test.ts`.
-  - **Perbaikan Styling & Generator QR Code Offline:**
-  - Integrasi pustaka resmi Tailwind CSS v4 (`@tailwindcss/vite` & `tailwindcss`) ke dalam pipeline build frontend.
-  - Pembuatan lembar gaya global `src/styles/global.css` dengan pemuatan Tailwind theme utilities dan selector pengaman `.hidden { display: none !important; }`.
-  - Penambahan pustaka generator QR Code industri `qrcode` (100% offline) pada `src/lib/qrCode.ts` untuk menghasilkan QR code standar yang dapat dibaca oleh kamera smartphone mana pun tanpa koneksi internet.
-  - Penyesuaian `src/pwa.ts` dan konfigurasi `astro.config.mjs` (`devOptions.enabled: false`) agar service worker dev tidak membajak rute dinamis lokal saat proses pengembangan (development mode).
-  - Verifikasi audit akhir: 30 test files, **159 automated tests PASS (100%)**, `npm run check` 0 errors, dan `npm run build` berhasil membangun 12 halaman statis beserta `sw.js` dan `manifest.webmanifest`.
+  - **Perbaikan Flow & UX Modal Pilih Loket Tugas (Sub-Langkah 1):**
+    - Refaktor alur pemilihan loket pada `src/components/staff/CounterSelectorModal.astro` dan `src/pages/staff/index.astro` menjadi **1-Klik Langsung Bertugas** (*Single-Action Occupy*), mengeliminasi gesekan tombol submit footer ganda yang membingungkan.
+    - Penambahan animasi loading spinner instan pada kartu loket yang diklik (*"Menghubungkan..."*), penonaktifan kartu lain untuk mencegah *double-click*, dan penutupan otomatis modal (*auto-dismiss*) setelah loket berhasil diduduki.
+    - Penambahan proteksi visual tegas untuk loket yang sedang dijaga staf lain (`opacity-60`, `cursor-not-allowed`, badge *"Dijaga: [Nama Staf]"*).
+    - Penambahan tombol batal/tutup modal (`#btn-close-counter-modal`) yang dapat digunakan jika staf sudah memiliki loket aktif dan hanya ingin membatalkan perpindahan loket.
+    - Penambahan tombol penyegaran status loket (`#btn-refresh-counter-list`) pada footer modal.
+    - Integrasi badge loket di navbar `StaffLayout.astro` agar dapat diklik langsung untuk memunculkan modal pergantian loket.
+    - Pembaruan unit test `tests/staffComponents.test.ts` (10 tests PASS) dan verifikasi sukses `npm run check` (0 errors), `npm test` (159 tests PASS), serta `npm run build`.
+

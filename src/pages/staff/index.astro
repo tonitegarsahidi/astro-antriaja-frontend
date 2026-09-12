@@ -636,125 +636,205 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
     const listContainer = document.getElementById('counter-list-container');
     const loadingEl = document.getElementById('counter-list-loading');
     const errorAlert = document.getElementById('occupy-error-alert');
-    const btnOccupy = document.getElementById('btn-occupy-counter') as HTMLButtonElement | null;
     const selectedInfo = document.getElementById('selected-counter-info');
+    const btnClose = document.getElementById('btn-close-counter-modal');
+    const btnRefresh = document.getElementById('btn-refresh-counter-list');
 
     if (!modal || !listContainer || !loadingEl) return;
 
     modal.classList.remove('hidden');
-    listContainer.classList.add('hidden');
-    loadingEl.classList.remove('hidden');
     if (errorAlert) errorAlert.classList.add('hidden');
-    if (btnOccupy) btnOccupy.disabled = true;
 
-    let selectedId: string | null = null;
-
-    const res = await listCounters();
-    loadingEl.classList.add('hidden');
-    listContainer.classList.remove('hidden');
-
-    if (!res.success || !res.data) {
-      if (errorAlert) {
-        errorAlert.textContent = res.error?.message || 'Gagal memuat daftar loket cabang.';
-        errorAlert.classList.remove('hidden');
+    // Close button handling (allow closing if staff already has active counter)
+    if (btnClose) {
+      if (activeCounterId) {
+        btnClose.classList.remove('hidden');
+        btnClose.onclick = () => modal?.classList.add('hidden');
+      } else {
+        btnClose.classList.add('hidden');
+        btnClose.onclick = null;
       }
-      return;
     }
 
-    const counters = res.data;
-    if (counters.length === 0) {
-      listContainer.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">Belum ada loket fisik yang terdaftar.</p>';
-      return;
-    }
+    let isSubmitting = false;
 
-    listContainer.innerHTML = counters
-      .map((c) => {
-        const isOccupied = !!c.current_staff_id;
-        return `
-        <div
-          class="counter-option-item p-3.5 rounded-xl border transition-all cursor-pointer ${
-            isOccupied
-              ? 'bg-slate-50 border-slate-200 opacity-60'
-              : 'bg-white border-slate-200 hover:border-blue-400 hover:bg-blue-50/30'
-          }"
-          data-counter-id="${c.id}"
-          data-counter-number="${c.counter_number}"
-          data-is-occupied="${isOccupied}"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center font-mono">
-                ${c.counter_number}
-              </span>
-              <div>
-                <h4 class="font-bold text-sm text-slate-800">${c.name || `Loket ${c.counter_number}`}</h4>
-                <p class="text-xs text-slate-400">
-                  ${c.services && c.services.length > 0 ? c.services.map((s) => s.prefix).join(', ') : 'Semua Layanan'}
-                </p>
+    async function loadCounters() {
+      if (!listContainer || !loadingEl) return;
+      listContainer.classList.add('hidden');
+      loadingEl.classList.remove('hidden');
+      if (errorAlert) errorAlert.classList.add('hidden');
+      if (selectedInfo) selectedInfo.textContent = 'Klik loket yang tersedia untuk langsung bertugas';
+
+      const res = await listCounters();
+      loadingEl.classList.add('hidden');
+      listContainer.classList.remove('hidden');
+
+      if (!res.success || !res.data) {
+        if (errorAlert) {
+          errorAlert.textContent = res.error?.message || 'Gagal memuat daftar loket cabang.';
+          errorAlert.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const counters = res.data;
+      if (counters.length === 0) {
+        listContainer.innerHTML = '<p class="text-sm text-slate-500 text-center py-6">Belum ada loket fisik yang terdaftar.</p>';
+        return;
+      }
+
+      const currentUser = getUser();
+
+      listContainer.innerHTML = counters
+        .map((c) => {
+          const isMyCounter = activeCounterId === c.id || (currentUser && c.current_staff_id === currentUser.id);
+          const isOccupiedByOther = !!c.current_staff_id && !isMyCounter;
+
+          return `
+          <div
+            class="counter-option-card group relative p-4 rounded-xl border transition-all ${
+              isOccupiedByOther
+                ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
+                : isMyCounter
+                ? 'bg-blue-50/60 border-blue-300 ring-2 ring-blue-400 hover:border-blue-500 cursor-pointer shadow-xs'
+                : 'bg-white border-slate-200 hover:border-blue-400 hover:bg-blue-50/20 hover:shadow-md cursor-pointer'
+            }"
+            data-counter-id="${c.id}"
+            data-counter-number="${c.counter_number}"
+            data-is-occupied="${isOccupiedByOther}"
+            data-is-my-counter="${isMyCounter}"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center space-x-3.5 min-w-0">
+                <span class="w-10 h-10 rounded-xl ${
+                  isMyCounter ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700'
+                } font-black text-base flex items-center justify-center font-mono shrink-0 shadow-2xs">
+                  ${c.counter_number}
+                </span>
+                <div class="min-w-0">
+                  <div class="flex items-center space-x-2">
+                    <h4 class="font-bold text-sm text-slate-900 truncate">${c.name || `Loket ${c.counter_number}`}</h4>
+                    ${
+                      isMyCounter
+                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                            Loket Anda
+                          </span>`
+                        : ''
+                    }
+                  </div>
+                  <p class="text-xs text-slate-500 truncate mt-0.5">
+                    ${c.services && c.services.length > 0 ? c.services.map((s) => `[${s.prefix}] ${s.name}`).join(', ') : 'Semua Layanan'}
+                  </p>
+                </div>
+              </div>
+
+              <div class="shrink-0 flex items-center space-x-2">
+                ${
+                  isOccupiedByOther
+                    ? `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700">
+                        Dijaga: ${c.current_staff?.full_name || 'Staf Lain'}
+                      </span>`
+                    : isMyCounter
+                    ? `<button type="button" class="btn-action-counter inline-flex items-center space-x-1 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-2xs pointer-events-none">
+                        <span>Lanjutkan Bertugas</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                      </button>`
+                    : `<button type="button" class="btn-action-counter inline-flex items-center space-x-1 px-3.5 py-2 rounded-xl text-xs font-bold text-blue-600 group-hover:text-white bg-blue-50 group-hover:bg-blue-600 border border-blue-200 group-hover:border-blue-600 shadow-2xs transition-all pointer-events-none">
+                        <span>Pilih & Jaga Loket</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                      </button>`
+                }
               </div>
             </div>
-            <div>
-              ${
-                isOccupied
-                  ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">
-                      Dijaga: ${c.current_staff?.full_name || 'Staf Lain'}
-                    </span>`
-                  : `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                      Kosong
-                    </span>`
-              }
-            </div>
           </div>
-        </div>
-      `;
-      })
-      .join('');
+        `;
+        })
+        .join('');
 
-    // Attach selection listener
-    listContainer.querySelectorAll('.counter-option-item').forEach((item) => {
-      item.addEventListener('click', (e) => {
-        const el = e.currentTarget as HTMLElement;
-        const cid = el.dataset.counterId;
-        const cnum = el.dataset.counterNumber;
+      // 1-Click Occupy Listener
+      listContainer.querySelectorAll('.counter-option-card').forEach((cardEl) => {
+        cardEl.addEventListener('click', async (e) => {
+          if (isSubmitting) return;
+          const el = e.currentTarget as HTMLElement;
+          const isOccupiedOther = el.dataset.isOccupied === 'true';
+          const isMyCounter = el.dataset.isMyCounter === 'true';
+          const cid = el.dataset.counterId;
+          const cnum = el.dataset.counterNumber;
 
-        listContainer.querySelectorAll('.counter-option-item').forEach((i) => {
-          i.classList.remove('border-blue-600', 'bg-blue-50', 'ring-2', 'ring-blue-500');
-        });
-
-        el.classList.add('border-blue-600', 'bg-blue-50', 'ring-2', 'ring-blue-500');
-        selectedId = cid || null;
-        if (selectedInfo) selectedInfo.textContent = `Pilihan: Loket ${cnum}`;
-        if (btnOccupy) btnOccupy.disabled = false;
-      });
-    });
-
-    // Occupy Button action
-    if (btnOccupy) {
-      btnOccupy.onclick = async () => {
-        if (!selectedId) return;
-        btnOccupy.disabled = true;
-        btnOccupy.textContent = 'Menghubungkan...';
-
-        const occRes = await occupyCounter(selectedId);
-        if (!occRes.success) {
-          if (errorAlert) {
-            errorAlert.textContent = occRes.error?.message || 'Gagal menduduki loket.';
-            errorAlert.classList.remove('hidden');
+          if (isOccupiedOther) {
+            if (errorAlert) {
+              errorAlert.textContent = `Loket ${cnum} sedang dijaga oleh staf lain. Silakan pilih loket yang kosong.`;
+              errorAlert.classList.remove('hidden');
+            }
+            return;
           }
-          btnOccupy.disabled = false;
-          btnOccupy.textContent = 'Mulai Jaga Loket';
-          return;
-        }
 
-        setActiveCounterId(selectedId);
-        activeCounterId = selectedId;
-        modal.classList.add('hidden');
+          if (!cid) return;
 
-        await loadCounterState(activeCounterId);
-        const token = getToken();
-        if (token) connectRealtimeSSE(token);
-      };
+          // If already my counter, just close modal and ensure state loaded
+          if (isMyCounter && activeCounterId === cid) {
+            modal?.classList.add('hidden');
+            return;
+          }
+
+          isSubmitting = true;
+          if (errorAlert) errorAlert.classList.add('hidden');
+
+          // Visual loading state on the clicked card
+          const actionBtn = el.querySelector('.btn-action-counter');
+          const originalBtnHtml = actionBtn?.innerHTML;
+          if (actionBtn) {
+            actionBtn.innerHTML = `
+              <div class="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+              <span>Menghubungkan...</span>
+            `;
+          }
+
+          try {
+            const occRes = await occupyCounter(cid);
+            if (!occRes.success) {
+              if (errorAlert) {
+                errorAlert.textContent = occRes.error?.message || `Gagal menduduki Loket ${cnum}.`;
+                errorAlert.classList.remove('hidden');
+              }
+              if (actionBtn && originalBtnHtml) {
+                actionBtn.innerHTML = originalBtnHtml;
+              }
+              isSubmitting = false;
+              // Re-fetch to sync if another staff took it
+              await loadCounters();
+              return;
+            }
+
+            // Success: update state and dismiss modal
+            setActiveCounterId(cid);
+            activeCounterId = cid;
+            modal?.classList.add('hidden');
+            showNotification(`Berhasil menduduki Loket ${cnum}`, 'success');
+
+            await loadCounterState(activeCounterId);
+            const token = getToken();
+            if (token) connectRealtimeSSE(token);
+          } catch (err: unknown) {
+            if (errorAlert) {
+              errorAlert.textContent = 'Terjadi kesalahan jaringan saat menghubungkan ke loket.';
+              errorAlert.classList.remove('hidden');
+            }
+            if (actionBtn && originalBtnHtml) {
+              actionBtn.innerHTML = originalBtnHtml;
+            }
+          } finally {
+            isSubmitting = false;
+          }
+        });
+      });
     }
+
+    if (btnRefresh) {
+      btnRefresh.onclick = () => loadCounters();
+    }
+
+    await loadCounters();
   }
 
   // ==================== TRANSFER MODAL ====================
@@ -868,6 +948,11 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
         }
       }
       releaseModal.classList.remove('hidden');
+    });
+
+    const counterBadge = document.getElementById('staff-counter-badge');
+    counterBadge?.addEventListener('click', async () => {
+      await showCounterSelectorModal();
     });
 
     const btnLogout = document.getElementById('btn-logout');

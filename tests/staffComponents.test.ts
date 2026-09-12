@@ -153,14 +153,17 @@ describe('Staff Console UI Components', () => {
   });
 
   describe('CounterSelectorModal.astro', () => {
-    it('renders counter selector modal with list container and occupy button', async () => {
+    it('renders counter selector modal with close button, loading indicator, list container, and refresh button', async () => {
       const container = await AstroContainer.create();
       const result = await container.renderToString(CounterSelectorModal);
 
       expect(result).toContain('id="counter-selector-modal"');
       expect(result).toContain('Pilih Loket Tugas');
+      expect(result).toContain('id="counter-list-loading"');
       expect(result).toContain('id="counter-list-container"');
-      expect(result).toContain('id="btn-occupy-counter"');
+      expect(result).toContain('id="occupy-error-alert"');
+      expect(result).toContain('id="btn-close-counter-modal"');
+      expect(result).toContain('id="btn-refresh-counter-list"');
     });
   });
 
