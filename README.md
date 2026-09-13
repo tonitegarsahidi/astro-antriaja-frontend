@@ -21,13 +21,13 @@ AntriAja adalah sistem manajemen antrian cloud modern berbasis web yang dibangun
   - Sintesis nada bel dua nada harmonik (C5 $\rightarrow$ E5) via Web Audio API tanpa dependensi berkas suara eksternal.
   - Antrian serial FIFO (*anti-collision*) untuk mencegah tabrakan audio saat multi-loket memanggil serentak.
 - **Automated Unit & Container Testing (Vitest)**:
-  - **35 Test Suites**, **199 Automated Tests PASS (100%)** menguji komponen, routing, audio engine, HTTP/SSE client, storage, RBAC platform, CMS supervisi, analitik, dan proteksi operasional.
+  - **36 Test Suites**, **205 Automated Tests PASS (100%)** menguji komponen, routing, audio engine, HTTP/SSE client, storage, RBAC platform, CMS supervisi, analitik, paket langganan & penegakan kuota, dan proteksi operasional.
 - **AI Agent Guardrails & Guidelines**:
   - Terintegrasi dengan [`AGENTS.md`](./AGENTS.md), [`codingstyleguide.md`](./codingstyleguide.md), dan [`todolist.md`](./todolist.md).
 
 ---
 
-## 📱 Katalog Rute Aplikasi (20 Halaman Statis)
+## 📱 Katalog Rute Aplikasi (21 Halaman Statis)
 
 | Rute | Modul / Antarmuka | Deskripsi Fitur Utama |
 | :--- | :--- | :--- |
@@ -42,6 +42,7 @@ AntriAja adalah sistem manajemen antrian cloud modern berbasis web yang dibangun
 | `/admin/login` | Login Administrator Cabang | Form login khusus administrator cabang dengan proteksi RBAC role `admin` dan rate limiting. |
 | `/admin` | Dashboard Admin Cabang | Ringkasan statistik operasional cabang (layanan, loket, staf on duty, tiket menunggu) dan navigasi cepat. |
 | `/admin/analytics` | Dashboard Analitik & Laporan | Visualisasi metrik volume, jam sibuk 24 jam (SVG/CSS chart), breakdown performa layanan, throughput staf, filter tanggal, dan 1-klik unduh CSV. |
+| `/admin/billing` | Paket & Manajemen Langganan | Dashboard paket SaaS: ringkasan paket aktif, 4 meteran kuota progres dinamis (loket, layanan, staf, tiket harian), komparasi tier paket, modal upgrade instan, dan riwayat invoice tagihan. |
 | `/admin/services` | Master Kategori Layanan | Manajemen tabel layanan (tambah, edit, nonaktifkan), prefix kode tiket (A-Z), dan estimasi waktu pelayanan. |
 | `/admin/counters` | Master Meja Loket | Manajemen kartu loket fisik dan pemetaan relasi multi-layanan (M:N) yang ditangani tiap loket. |
 | `/admin/users` | Manajemen Staf Petugas | Manajemen akun staf loket cabang (tambah, edit nama/password, filter role/status, soft deactivation). |
@@ -67,6 +68,7 @@ src/
 │   ├── platform.types.ts # PlatformUser, PlatformMetrics, PlatformTenant DTO
 │   ├── queue.types.ts    # Ticket, TicketStatus, QueueState, ResetQueueResponse DTO
 │   ├── sse.types.ts      # Event types, AudioInstruction & SSE payloads
+│   ├── subscription.types.ts # PlanResponse, UsageStats, SubscriptionDetail, Invoice DTO
 │   └── user.types.ts     # CreateUser, UpdateUser, UserList DTO
 ├── lib/                  # Utilities & Helpers
 │   ├── audioPlayer.ts    # Web Audio Engine & serial queue pemanggil suara Indonesia
@@ -86,6 +88,7 @@ src/
 │   ├── publicService.ts  # Cek status tiket mobile pengunjung
 │   ├── queueService.ts   # Orkestrasi operasional staf loket (panggil, layani, tunda, oper)
 │   ├── serviceService.ts # CRUD master kategori layanan antrian
+│   ├── subscriptionService.ts # API Plans, Subscriptions current, upgrade & invoices
 │   ├── tenantService.ts  # Pengaturan profil instansi & rotasi kunci perangkat
 │   └── userService.ts    # CRUD manajemen staf petugas loket
 ├── layouts/              # Master Layouts
