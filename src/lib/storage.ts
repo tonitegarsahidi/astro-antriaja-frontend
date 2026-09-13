@@ -2,6 +2,7 @@ import type { UserResponse } from '../types/auth.types';
 
 const STORAGE_KEYS = {
   TOKEN: 'antriaja_token',
+  PLATFORM_TOKEN: 'antriaja_platform_token',
   TENANT_SLUG: 'antriaja_tenant_slug',
   KIOSK_KEY: 'antriaja_kiosk_key',
   DISPLAY_KEY: 'antriaja_display_key',
@@ -51,6 +52,19 @@ export function setToken(token: string): void {
 
 export function removeToken(): void {
   safeRemoveItem(STORAGE_KEYS.TOKEN);
+}
+
+// Platform Token (Super-Admin CMS)
+export function getPlatformToken(): string | null {
+  return safeGetItem(STORAGE_KEYS.PLATFORM_TOKEN);
+}
+
+export function setPlatformToken(token: string): void {
+  safeSetItem(STORAGE_KEYS.PLATFORM_TOKEN, token);
+}
+
+export function removePlatformToken(): void {
+  safeRemoveItem(STORAGE_KEYS.PLATFORM_TOKEN);
 }
 
 // Tenant Slug
@@ -133,6 +147,9 @@ export const storage = {
   getToken,
   setToken,
   removeToken,
+  getPlatformToken,
+  setPlatformToken,
+  removePlatformToken,
   getTenantSlug,
   setTenantSlug,
   removeTenantSlug,

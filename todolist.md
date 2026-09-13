@@ -269,6 +269,35 @@ src/
   - [x] Tombol CTA "Daftar Gratis" di navbar atas dan "🚀 Daftar Gratis Sekarang" di hero section
 - [x] Automated testing: 33 test suites / 177 automated tests PASS 100% dan verifikasi `npm run check` 0 errors, `npm run build` sukses (16 static routes).
 
+---
+
+### Fase 12: Platform Super-Admin CMS Dashboard (Modul C3)
+- [x] Kontrak Tipe Data TypeScript di `src/types/platform.types.ts`:
+  - [x] `PlatformAdmin`, `PlatformLoginRequest`, `PlatformLoginResponse`
+  - [x] `PlatformMetricsResponse` (total_tenants, active_tenants, suspended_tenants, trial_tenants, total_tickets_today)
+  - [x] `PlatformTenantListItem`, `PlatformTenantListResponse`, `PlatformTenantDetailResponse`
+  - [x] `CreatePlatformTenantRequest`, `UpdatePlatformTenantStatusRequest`, `RotatePlatformDeviceKeyRequest`, `RotatePlatformDeviceKeyResponse`
+- [x] Isolasi Storage Token Platform di `src/lib/storage.ts`:
+  - [x] `getPlatformToken()`, `setPlatformToken()`, `removePlatformToken()` terisolasi dalam key `antriaja_platform_token` tanpa tabrakan sesi dengan admin tenant (`antriaja_token`).
+- [x] Service layer di `src/services/platformService.ts`:
+  - [x] `platformLogin(req)`
+  - [x] `getPlatformMe()`
+  - [x] `getPlatformMetrics()`
+  - [x] `listPlatformTenants(params)`
+  - [x] `getPlatformTenant(id)`
+  - [x] `createPlatformTenant(req)`
+  - [x] `updatePlatformTenantStatus(id, status, reason)`
+  - [x] `rotatePlatformDeviceKey(id, type)`
+  - [x] `deletePlatformTenant(id)`
+- [x] Layout Super-Admin di `src/layouts/PlatformLayout.astro`:
+  - [x] Sidebar navigasi mandiri, badge super-admin ungu, proteksi sesi client-side, dan tombol logout.
+- [x] Halaman Super-Admin Baru di `src/pages/platform/`:
+  - [x] `login.astro`: Form login super-admin dengan penanganan error dan redirect otomatis.
+  - [x] `index.astro`: Dashboard metrik global real-time (Total Tenant, Aktif, Suspended, Tiket Hari Ini) serta panduan dan aksi cepat.
+  - [x] `tenants.astro`: Konsol supervisi tenant lengkap dengan live search, filter status, tabel instansi, paginasi, modal tambah tenant, modal penangguhan/aktivasi, dan modal rotasi kunci perangkat darurat (Kiosk/Display).
+- [x] Automated testing: 34 test suites / 192 automated tests PASS 100% dan verifikasi `npm run check` 0 errors, `npm run build` sukses (19 static routes).
+
+
 
 
 

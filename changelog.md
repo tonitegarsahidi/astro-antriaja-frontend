@@ -5,9 +5,18 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
 
 ---
 
-## [Unreleased] - 2026-09-12
+## [Unreleased] - 2026-09-13
 
 ### Ditambahkan
+- **Fase 12: Platform Super-Admin CMS Dashboard (Modul C3 SaaS):**
+  - Pembuatan kontrak tipe data TypeScript di `src/types/platform.types.ts` (`PlatformAdmin`, `PlatformLoginRequest`, `PlatformLoginResponse`, `PlatformMetricsResponse`, `PlatformTenantListItem`, `PlatformTenantListResponse`, `PlatformTenantDetailResponse`, `CreatePlatformTenantRequest`, `RotatePlatformDeviceKeyRequest`, dll).
+  - Isolasi token platform pada `src/lib/storage.ts` (`getPlatformToken`, `setPlatformToken`, `removePlatformToken`) menggunakan key `antriaja_platform_token` untuk mencegah tabrakan sesi dengan akun admin tenant cabang (`antriaja_token`) pada browser yang sama.
+  - Implementasi layer komunikasi API komprehensif di `src/services/platformService.ts` (`platformLogin`, `getPlatformMe`, `getPlatformMetrics`, `listPlatformTenants`, `getPlatformTenant`, `createPlatformTenant`, `updatePlatformTenantStatus`, `rotatePlatformDeviceKey`, `deletePlatformTenant`).
+  - Pembuatan layout mandiri `src/layouts/PlatformLayout.astro` dengan tema warna indigo platform console, sidebar navigasi responsif, badge superadmin, dan proteksi sesi login client-side.
+  - Pembuatan halaman login super-admin `src/pages/platform/login.astro` dengan form email/password, indikator error interaktif, dan penyimpanan token aman.
+  - Pembuatan dashboard platform `src/pages/platform/index.astro` dengan 4 kartu metrik global live (Total Instansi, Aktif, Suspended, Total Tiket Hari Ini Seluruh Cabang), panduan operasional super-admin, dan jalan pintas manajemen.
+  - Pembuatan halaman pengawasan instansi `src/pages/platform/tenants.astro` dengan live search debounce, filter status operasional, tabel rincian fasilitas tenant, paginasi, modal tambah tenant baru, modal konfirmasi penangguhan/pemulihan status, serta modal rotasi darurat kunci kriptografi perangkat Kiosk/Display.
+  - Penambahan automated test suite `tests/platformCMS.test.ts` dan pembaruan `tests/storage.test.ts` (34 test suites, 192 tests PASS 100%, TypeScript check 0 errors, static build 19 halaman sukses).
 - **Fase 11: Registrasi Mandiri Tenant & Onboarding Setup Wizard (Modul B2 SaaS):**
   - Pembaruan kontrak tipe data TypeScript di `src/types/auth.types.ts` (`TenantResponse`, `UserResponse`, `RegisterTenantRequest`) dengan dukungan atribut profil instansi multi-tenant SaaS.
   - Implementasi fungsi klien `registerTenant` pada `src/services/authService.ts`.

@@ -1,0 +1,611 @@
+---
+import PlatformLayout from '../../layouts/PlatformLayout.astro';
+---
+
+<PlatformLayout title="Manajemen Tenant - AntriAja Super-Admin" activePage="tenants">
+  <div class="p-6 md:p-8 space-y-6">
+    <!-- Top Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Manajemen Tenant</h1>
+        <p class="text-sm text-slate-500 mt-1">
+          Daftar seluruh instansi terdaftar, supervisi status akun, dan manajemen keamanan perangkat.
+        </p>
+      </div>
+
+      <button
+        id="btn-add-tenant"
+        type="button"
+        class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Tambah Tenant Baru
+      </button>
+    </div>
+
+    <!-- Filters & Search Bar -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="relative w-full sm:w-80">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </span>
+        <input
+          id="input-tenant-search"
+          type="text"
+          placeholder="Cari nama atau slug tenant..."
+          class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+        />
+      </div>
+
+      <div class="flex items-center space-x-3 w-full sm:w-auto">
+        <label for="select-status-filter" class="text-xs font-semibold text-slate-500 shrink-0">Filter Status:</label>
+        <select
+          id="select-status-filter"
+          class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all cursor-pointer"
+        >
+          <option value="">Semua Status</option>
+          <option value="active">Aktif</option>
+          <option value="suspended">Suspended</option>
+          <option value="trial">Trial</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div id="table-tenants-container" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold text-xs uppercase tracking-wider">
+              <th class="py-3.5 px-4">Instansi & Slug</th>
+              <th class="py-3.5 px-4">Status</th>
+              <th class="py-3.5 px-4">Kontak & Zona</th>
+              <th class="py-3.5 px-4 text-center">Fasilitas</th>
+              <th class="py-3.5 px-4">Terdaftar</th>
+              <th class="py-3.5 px-4 text-right">Aksi Supervisi</th>
+            </tr>
+          </thead>
+          <tbody id="table-tenants-body" class="divide-y divide-slate-100">
+            <tr>
+              <td colspan="6" class="py-12 text-center text-slate-400 text-sm">
+                Memuat data seluruh tenant...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div id="pagination-controls" class="p-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+        <span id="pagination-info">Menampilkan 0 dari 0 instansi</span>
+        <div class="flex items-center space-x-2">
+          <button
+            id="btn-prev-page"
+            disabled
+            class="px-3 py-1.5 border border-slate-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-medium cursor-pointer"
+          >
+            Sebelumnya
+          </button>
+          <span id="current-page-display" class="px-2 font-bold text-slate-700">1</span>
+          <button
+            id="btn-next-page"
+            disabled
+            class="px-3 py-1.5 border border-slate-200 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-medium cursor-pointer"
+          >
+            Selanjutnya
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 1: Create Tenant Modal -->
+  <div id="modal-create-tenant" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-bold text-slate-900">Tambah Instansi (Tenant) Baru</h3>
+        <button id="btn-close-create-modal" type="button" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div id="alert-create-error" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs"></div>
+
+      <form id="form-create-tenant" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Instansi *</label>
+          <input id="create-tenant-name" type="text" required placeholder="Contoh: RS Siloam Kebon Jeruk" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Slug URL Tenant *</label>
+          <input id="create-tenant-slug" type="text" required placeholder="siloam-kebonjeruk" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+          <span class="text-[11px] text-slate-400 mt-1 block">Akses Kiosk: <code>/siloam-kebonjeruk/kiosk</code></span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Administrator *</label>
+            <input id="create-admin-name" type="text" required placeholder="Dr. Budi Santoso" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Email Administrator *</label>
+            <input id="create-admin-email" type="email" required placeholder="admin@siloam.com" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Kata Sandi Default Admin *</label>
+          <input id="create-admin-password" type="password" required minlength="8" placeholder="Minimal 8 karakter" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Telepon (Opsional)</label>
+            <input id="create-tenant-phone" type="text" placeholder="08123456789" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Zona Waktu</label>
+            <select id="create-tenant-timezone" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="Asia/Jakarta">WIB (Asia/Jakarta)</option>
+              <option value="Asia/Makassar">WITA (Asia/Makassar)</option>
+              <option value="Asia/Jayapura">WIT (Asia/Jayapura)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+          <button id="btn-cancel-create" type="button" class="px-4 py-2 border border-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 cursor-pointer">
+            Batal
+          </button>
+          <button id="btn-submit-create" type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 shadow-md shadow-indigo-600/20 cursor-pointer">
+            Simpan & Provisioning
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Suspend / Activate Status Confirm Modal -->
+  <div id="modal-status-confirm" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center space-x-3">
+        <div id="icon-status-modal" class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div>
+          <h3 id="status-modal-title" class="text-base font-bold text-slate-900">Ubah Status Tenant</h3>
+          <p id="status-modal-desc" class="text-xs text-slate-500 mt-0.5">Konfirmasi perubahan operasional instansi</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed" id="status-modal-message">
+        Apakah Anda yakin ingin memperbarui status tenant ini?
+      </p>
+
+      <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+        <button id="btn-cancel-status" type="button" class="px-4 py-2 border border-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 cursor-pointer">
+          Batal
+        </button>
+        <button id="btn-confirm-status" type="button" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 shadow-md cursor-pointer">
+          Konfirmasi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Rotate Device Key Modal -->
+  <div id="modal-rotate-key" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Rotasi Kunci Perangkat Darurat</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Putar kunci kriptografi perangkat secara instan</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Tipe Perangkat</label>
+          <select id="select-rotate-type" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            <option value="kiosk">Mesin Tiket (Kiosk Mandiri)</option>
+            <option value="display">Display Layar TV Antrian</option>
+          </select>
+        </div>
+
+        <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs leading-relaxed">
+          <strong>Perhatian:</strong> Perangkat fisik terkait akan terputus dan menampilkan status <em>Unauthorized</em> sampai staf memperbarui kunci baru.
+        </div>
+
+        <!-- Result Box (shown after rotation) -->
+        <div id="box-rotate-result" class="hidden space-y-2 p-3 rounded-xl bg-slate-900 text-white">
+          <span class="text-[11px] text-slate-400 block font-mono">Kunci Baru Berhasil Dibuat:</span>
+          <div class="flex items-center space-x-2">
+            <input id="input-new-rotated-key" type="text" readonly class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300 font-mono" />
+            <button id="btn-copy-rotated-key" type="button" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded shrink-0 cursor-pointer">
+              Salin
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+        <button id="btn-close-rotate-modal" type="button" class="px-4 py-2 border border-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 cursor-pointer">
+          Tutup
+        </button>
+        <button id="btn-execute-rotate" type="button" class="px-4 py-2 bg-rose-600 text-white rounded-xl text-sm font-semibold hover:bg-rose-700 shadow-md shadow-rose-600/20 cursor-pointer">
+          Rotasi Kunci Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+</PlatformLayout>
+
+<script>
+  import {
+    listPlatformTenants,
+    createPlatformTenant,
+    updatePlatformTenantStatus,
+    rotatePlatformDeviceKey,
+  } from '../../services/platformService';
+  import type { PlatformTenantListItem } from '../../types/platform.types';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    let currentPage = 1;
+    const limit = 10;
+    let currentSearch = '';
+    let currentStatus = '';
+
+    // Active target for status/rotate actions
+    let activeTenantId: string | null = null;
+    let activeTargetStatus: 'active' | 'suspended' | 'trial' = 'active';
+
+    const searchInput = document.getElementById('input-tenant-search') as HTMLInputElement | null;
+    const statusSelect = document.getElementById('select-status-filter') as HTMLSelectElement | null;
+    const tableBody = document.getElementById('table-tenants-body');
+    const paginationInfo = document.getElementById('pagination-info');
+    const pageDisplay = document.getElementById('current-page-display');
+    const btnPrev = document.getElementById('btn-prev-page') as HTMLButtonElement | null;
+    const btnNext = document.getElementById('btn-next-page') as HTMLButtonElement | null;
+
+    // Modals
+    const modalCreate = document.getElementById('modal-create-tenant');
+    const btnAddTenant = document.getElementById('btn-add-tenant');
+    const btnCloseCreate = document.getElementById('btn-close-create-modal');
+    const btnCancelCreate = document.getElementById('btn-cancel-create');
+    const formCreate = document.getElementById('form-create-tenant') as HTMLFormElement | null;
+    const alertCreate = document.getElementById('alert-create-error');
+
+    const modalStatus = document.getElementById('modal-status-confirm');
+    const btnCancelStatus = document.getElementById('btn-cancel-status');
+    const btnConfirmStatus = document.getElementById('btn-confirm-status');
+    const statusModalMsg = document.getElementById('status-modal-message');
+
+    const modalRotate = document.getElementById('modal-rotate-key');
+    const btnCloseRotate = document.getElementById('btn-close-rotate-modal');
+    const btnExecuteRotate = document.getElementById('btn-execute-rotate') as HTMLButtonElement | null;
+    const selectRotateType = document.getElementById('select-rotate-type') as HTMLSelectElement | null;
+    const boxRotateResult = document.getElementById('box-rotate-result');
+    const inputNewRotatedKey = document.getElementById('input-new-rotated-key') as HTMLInputElement | null;
+    const btnCopyRotatedKey = document.getElementById('btn-copy-rotated-key');
+
+    // Auto open create modal if URL query ?action=create
+    if (new URLSearchParams(window.location.search).get('action') === 'create') {
+      modalCreate?.classList.remove('hidden');
+    }
+
+    async function loadTenants() {
+      if (!tableBody) return;
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="6" class="py-12 text-center text-slate-400 text-sm">
+            Memuat data...
+          </td>
+        </tr>
+      `;
+
+      try {
+        const res = await listPlatformTenants({
+          page: currentPage,
+          limit,
+          search: currentSearch,
+          status: currentStatus,
+        });
+
+        if (res.success && res.data) {
+          const tenants = res.data.tenants || [];
+          const pagination = res.data.pagination;
+
+          if (paginationInfo) {
+            paginationInfo.textContent = `Menampilkan ${tenants.length} dari ${pagination?.total_items ?? tenants.length} instansi`;
+          }
+          if (pageDisplay) {
+            pageDisplay.textContent = currentPage.toString();
+          }
+          if (btnPrev) {
+            btnPrev.disabled = currentPage <= 1;
+          }
+          if (btnNext) {
+            btnNext.disabled = pagination ? currentPage >= pagination.total_pages : true;
+          }
+
+          if (tenants.length === 0) {
+            tableBody.innerHTML = `
+              <tr>
+                <td colspan="6" class="py-12 text-center text-slate-400 text-sm">
+                  Tidak ditemukan instansi tenant yang sesuai filter.
+                </td>
+              </tr>
+            `;
+            return;
+          }
+
+          tableBody.innerHTML = tenants.map((t: PlatformTenantListItem) => renderTenantRow(t)).join('');
+          wireRowActions();
+        } else {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="6" class="py-12 text-center text-rose-500 text-sm">
+                ${res.error?.message || 'Gagal memuat data tenant.'}
+              </td>
+            </tr>
+          `;
+        }
+      } catch {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-12 text-center text-rose-500 text-sm">
+              Koneksi gagal saat menghubungi server platform.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderTenantRow(t: PlatformTenantListItem): string {
+      let statusBadge = '';
+      if (t.status === 'active') {
+        statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Aktif</span>';
+      } else if (t.status === 'suspended') {
+        statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">Suspended</span>';
+      } else {
+        statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Trial</span>';
+      }
+
+      const isSuspended = t.status === 'suspended';
+      const toggleActionLabel = isSuspended ? 'Aktifkan Kembali' : 'Tangguhkan';
+      const toggleActionClass = isSuspended ? 'text-emerald-600 hover:text-emerald-800' : 'text-amber-600 hover:text-amber-800';
+
+      const dateFormatted = t.created_at ? new Date(t.created_at).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }) : '-';
+
+      return `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="py-3.5 px-4 font-medium text-slate-900">
+            <div class="font-bold text-slate-900">${t.name}</div>
+            <div class="text-xs text-slate-400 font-mono">/${t.slug}</div>
+          </td>
+          <td class="py-3.5 px-4">
+            ${statusBadge}
+          </td>
+          <td class="py-3.5 px-4 text-xs text-slate-600">
+            <div>${t.phone || '-'}</div>
+            <div class="text-slate-400 text-[11px]">${t.timezone || 'Asia/Jakarta'}</div>
+          </td>
+          <td class="py-3.5 px-4 text-center text-xs text-slate-600">
+            <div class="flex items-center justify-center space-x-2">
+              <span title="Layanan" class="bg-slate-100 px-1.5 py-0.5 rounded text-[11px] font-semibold">${t.total_services ?? 0} Layanan</span>
+              <span title="Loket" class="bg-slate-100 px-1.5 py-0.5 rounded text-[11px] font-semibold">${t.total_counters ?? 0} Loket</span>
+            </div>
+          </td>
+          <td class="py-3.5 px-4 text-xs text-slate-500">
+            ${dateFormatted}
+          </td>
+          <td class="py-3.5 px-4 text-right space-x-2 text-xs font-semibold">
+            <button
+              class="btn-toggle-status ${toggleActionClass} cursor-pointer"
+              data-id="${t.id}"
+              data-name="${t.name}"
+              data-status="${t.status}"
+            >
+              ${toggleActionLabel}
+            </button>
+            <span class="text-slate-200">|</span>
+            <button
+              class="btn-open-rotate text-indigo-600 hover:text-indigo-800 cursor-pointer"
+              data-id="${t.id}"
+              data-name="${t.name}"
+            >
+              Rotasi Kunci
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    function wireRowActions() {
+      // Toggle status buttons
+      document.querySelectorAll('.btn-toggle-status').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const name = btn.getAttribute('data-name');
+          const currentStat = btn.getAttribute('data-status');
+
+          if (!id) return;
+          activeTenantId = id;
+          activeTargetStatus = currentStat === 'suspended' ? 'active' : 'suspended';
+
+          if (statusModalMsg) {
+            statusModalMsg.innerHTML = activeTargetStatus === 'suspended'
+              ? `Apakah Anda yakin ingin menangguhkan (suspend) instansi <strong>${name}</strong>? Seluruh layanan, kiosk, dan display akan segera terblokir.`
+              : `Apakah Anda yakin ingin mengaktifkan kembali instansi <strong>${name}</strong>? Akses kiosk dan operasional akan pulih.`;
+          }
+
+          modalStatus?.classList.remove('hidden');
+        });
+      });
+
+      // Rotate keys buttons
+      document.querySelectorAll('.btn-open-rotate').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          if (!id) return;
+          activeTenantId = id;
+          boxRotateResult?.classList.add('hidden');
+          if (btnExecuteRotate) btnExecuteRotate.disabled = false;
+          modalRotate?.classList.remove('hidden');
+        });
+      });
+    }
+
+    // Search & Filter event listeners
+    let searchDebounce: any;
+    searchInput?.addEventListener('input', (e) => {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        currentSearch = (e.target as HTMLInputElement).value.trim();
+        currentPage = 1;
+        loadTenants();
+      }, 350);
+    });
+
+    statusSelect?.addEventListener('change', (e) => {
+      currentStatus = (e.target as HTMLSelectElement).value;
+      currentPage = 1;
+      loadTenants();
+    });
+
+    btnPrev?.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        loadTenants();
+      }
+    });
+
+    btnNext?.addEventListener('click', () => {
+      currentPage++;
+      loadTenants();
+    });
+
+    // Create Modal
+    btnAddTenant?.addEventListener('click', () => {
+      modalCreate?.classList.remove('hidden');
+    });
+    btnCloseCreate?.addEventListener('click', () => {
+      modalCreate?.classList.add('hidden');
+    });
+    btnCancelCreate?.addEventListener('click', () => {
+      modalCreate?.classList.add('hidden');
+    });
+
+    formCreate?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = (document.getElementById('create-tenant-name') as HTMLInputElement)?.value.trim();
+      const slug = (document.getElementById('create-tenant-slug') as HTMLInputElement)?.value.trim();
+      const admin_name = (document.getElementById('create-admin-name') as HTMLInputElement)?.value.trim();
+      const admin_email = (document.getElementById('create-admin-email') as HTMLInputElement)?.value.trim();
+      const admin_password = (document.getElementById('create-admin-password') as HTMLInputElement)?.value;
+      const phone = (document.getElementById('create-tenant-phone') as HTMLInputElement)?.value.trim();
+      const timezone = (document.getElementById('create-tenant-timezone') as HTMLSelectElement)?.value;
+
+      try {
+        const res = await createPlatformTenant({
+          name,
+          slug,
+          admin_name,
+          admin_email,
+          admin_password,
+          phone: phone || undefined,
+          timezone: timezone || undefined,
+        });
+
+        if (res.success) {
+          modalCreate?.classList.add('hidden');
+          formCreate.reset();
+          loadTenants();
+        } else if (alertCreate) {
+          alertCreate.textContent = res.error?.message || 'Gagal menambahkan tenant.';
+          alertCreate.classList.remove('hidden');
+        }
+      } catch {
+        if (alertCreate) {
+          alertCreate.textContent = 'Gagal terhubung ke server.';
+          alertCreate.classList.remove('hidden');
+        }
+      }
+    });
+
+    // Status Confirm Modal
+    btnCancelStatus?.addEventListener('click', () => {
+      modalStatus?.classList.add('hidden');
+    });
+
+    btnConfirmStatus?.addEventListener('click', async () => {
+      if (!activeTenantId) return;
+      try {
+        const res = await updatePlatformTenantStatus(activeTenantId, activeTargetStatus);
+        if (res.success) {
+          modalStatus?.classList.add('hidden');
+          loadTenants();
+        }
+      } catch {
+        // Handle error
+      }
+    });
+
+    // Rotate Key Modal
+    btnCloseRotate?.addEventListener('click', () => {
+      modalRotate?.classList.add('hidden');
+    });
+
+    btnExecuteRotate?.addEventListener('click', async () => {
+      if (!activeTenantId) return;
+      const deviceType = (selectRotateType?.value || 'kiosk') as 'kiosk' | 'display';
+
+      if (btnExecuteRotate) {
+        btnExecuteRotate.disabled = true;
+        btnExecuteRotate.textContent = 'Memutar Kunci...';
+      }
+
+      try {
+        const res = await rotatePlatformDeviceKey(activeTenantId, deviceType);
+        if (res.success && res.data?.new_key) {
+          if (inputNewRotatedKey) inputNewRotatedKey.value = res.data.new_key;
+          boxRotateResult?.classList.remove('hidden');
+          btnExecuteRotate.textContent = 'Kunci Diperbarui';
+        }
+      } catch {
+        btnExecuteRotate.textContent = 'Gagal Rotasi';
+      }
+    });
+
+    btnCopyRotatedKey?.addEventListener('click', () => {
+      if (inputNewRotatedKey?.value) {
+        navigator.clipboard.writeText(inputNewRotatedKey.value);
+        if (btnCopyRotatedKey) btnCopyRotatedKey.textContent = 'Tersalin!';
+        setTimeout(() => {
+          if (btnCopyRotatedKey) btnCopyRotatedKey.textContent = 'Salin';
+        }, 2000);
+      }
+    });
+
+    // Initial load
+    loadTenants();
+  });
+</script>

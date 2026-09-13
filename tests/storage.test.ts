@@ -4,6 +4,9 @@ import {
   getToken,
   setToken,
   removeToken,
+  getPlatformToken,
+  setPlatformToken,
+  removePlatformToken,
   getTenantSlug,
   setTenantSlug,
   removeTenantSlug,
@@ -33,6 +36,15 @@ describe('storage utility (localStorage wrapper)', () => {
       expect(getToken()).toBe('mock-jwt-token-123');
       removeToken();
       expect(getToken()).toBeNull();
+    });
+
+    it('sets, gets, and removes platform token separately', () => {
+      expect(getPlatformToken()).toBeNull();
+      setPlatformToken('mock-platform-token-456');
+      expect(getPlatformToken()).toBe('mock-platform-token-456');
+      expect(getToken()).toBeNull();
+      removePlatformToken();
+      expect(getPlatformToken()).toBeNull();
     });
   });
 

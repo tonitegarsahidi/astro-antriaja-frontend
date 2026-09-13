@@ -1,0 +1,162 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  activePage?: 'dashboard' | 'tenants' | 'settings';
+}
+
+const {
+  title = 'Platform Dashboard - AntriAja Super-Admin',
+  description = 'Konsol Supervisi & Tata Kelola Tenant Platform AntriAja',
+  activePage = 'dashboard',
+} = Astro.props;
+
+const navItems = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard Metrik',
+    href: '/platform',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />`,
+  },
+  {
+    id: 'tenants',
+    label: 'Manajemen Tenant',
+    href: '/platform/tenants',
+    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />`,
+  },
+];
+---
+
+<BaseLayout title={title} description={description} hideNav={true}>
+  <div class="min-h-screen bg-slate-100 flex flex-col md:flex-row font-sans">
+    <!-- Mobile Top Navigation Bar -->
+    <div class="md:hidden bg-slate-950 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 sticky top-0 z-50 shadow-md">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-indigo-500/30">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <span class="text-sm font-black tracking-tight block text-white">AntriAja</span>
+          <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-wider block -mt-0.5">PLATFORM ADMIN</span>
+        </div>
+      </div>
+
+      <button
+        id="btn-toggle-platform-mobile"
+        type="button"
+        class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+        aria-label="Toggle Menu Navigasi"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="platform-sidebar" class="hidden md:flex w-full md:w-64 bg-slate-950 text-white flex-col shrink-0 border-r border-slate-800 transition-all">
+      <!-- Brand & Super-Admin Badge -->
+      <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center font-black shadow-md shadow-indigo-500/30">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <span class="text-base font-black tracking-tight text-white block">AntriAja</span>
+            <span id="badge-superadmin" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-widest">
+              SUPER ADMIN
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
+        {navItems.map((item) => {
+          const isActive = activePage === item.id;
+          return (
+            <a
+              href={item.href}
+              class={`flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                isActive
+                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20 font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" set:html={item.icon} />
+              <span>{item.label}</span>
+            </a>
+          );
+        })}
+      </nav>
+
+      <!-- User Info & Logout -->
+      <div class="p-4 border-t border-slate-800 bg-slate-900/50">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2.5 overflow-hidden">
+            <div class="w-8 h-8 rounded-full bg-indigo-900 text-indigo-200 border border-indigo-700 flex items-center justify-center font-bold text-xs shrink-0">
+              SA
+            </div>
+            <div class="truncate">
+              <span id="platform-admin-name" class="text-xs font-semibold text-white block truncate">Super Admin</span>
+              <span class="text-[10px] text-slate-400 block truncate">Platform Console</span>
+            </div>
+          </div>
+          <button
+            id="btn-platform-logout"
+            type="button"
+            class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+            title="Keluar dari Konsol Platform"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <slot />
+    </main>
+  </div>
+</BaseLayout>
+
+<script>
+  import { getPlatformToken, removePlatformToken } from '../lib/storage';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = getPlatformToken();
+    if (!token && window.location.pathname !== '/platform/login') {
+      window.location.href = '/platform/login';
+      return;
+    }
+
+    const logoutBtn = document.getElementById('btn-platform-logout');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        removePlatformToken();
+        window.location.href = '/platform/login';
+      });
+    }
+
+    const toggleBtn = document.getElementById('btn-toggle-platform-mobile');
+    const sidebar = document.getElementById('platform-sidebar');
+    if (toggleBtn && sidebar) {
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+      });
+    }
+  });
+</script>
