@@ -120,3 +120,9 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
       - Verifikasi lulus 100% pada seluruh 159 automated unit tests (`npm test`).
       - Validasi tipe data Astro dan TypeScript strict mode (`npm run check`) 0 errors.
       - Validasi static build (`npm run build`) sukses 12 halaman tanpa error.
+  - **Pemulihan CSS Cascade Layers Tailwind v4 & Clean Modern SaaS Style:**
+    - Mengeliminasi aturan unlayered reset liar `* { margin: 0; padding: 0; }` dan `button { border: none; background: none; }` pada `src/layouts/BaseLayout.astro` yang sebelumnya menimpa seluruh utility class `@layer utilities` bawaan Tailwind CSS v4.
+    - Mengembalikan fungsi padding (`p-4`, `p-6`, `px-4`), margin (`m-4`, `space-y-6`), rounded corners (`rounded-2xl`), shadow (`shadow-sm`, `shadow-md`), serta warna dan border tombol di seluruh halaman `/admin`, `/staff`, dan login.
+    - Penambahan automated test di `tests/baseLayout.test.ts` untuk memastikan tidak ada aturan unlayered yang merusak cascade layer Tailwind di masa mendatang.
+    - Verifikasi 160/160 tests PASS (100%), `npm run check` 0 errors, dan static build sukses.
+

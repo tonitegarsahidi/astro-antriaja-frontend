@@ -200,5 +200,6 @@ src/
 - [x] Offline fallback view (ketika koneksi internet terputus total)
 - [x] Audit menyeluruh: `npm run check`, `npm test`, dan `npm run build`
 - [x] Integrasi styling Tailwind CSS v4 dan generator QR Code standar offline
+- [x] Eliminasi unlayered universal reset pada BaseLayout yang menimpa CSS Cascade Layers Tailwind v4 (pemulihan padding, margin, border, dan modern clean styling pada /staff, /admin, dan login)
 - [x] Dokumentasi penggunaan frontend lengkap pada `README.md`
 

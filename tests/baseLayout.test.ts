@@ -35,4 +35,13 @@ describe('BaseLayout container testing', () => {
     expect(result).toContain('--color-primary: #2563eb');
     expect(result).toContain('--font-sans:');
   });
+
+  it('does not include destructive universal resets that break Tailwind utility cascade', async () => {
+    const container = await AstroContainer.create();
+    const result = await container.renderToString(BaseLayout);
+
+    // Ensure universal reset * { margin: 0; padding: 0; } is removed so Tailwind p-*, m-* classes work
+    expect(result).not.toContain('padding: 0;\n  }');
+    expect(result).not.toContain('border: none;\n    background: none;');
+  });
 });
