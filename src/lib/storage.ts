@@ -128,3 +128,23 @@ export function clearStorage(): void {
   removeActiveCounterId();
   removeUser();
 }
+
+export const storage = {
+  getToken,
+  setToken,
+  removeToken,
+  getTenantSlug,
+  setTenantSlug,
+  removeTenantSlug,
+  getDeviceKey,
+  setDeviceKey,
+  removeDeviceKey,
+  getActiveCounterId,
+  setActiveCounterId,
+  removeActiveCounterId,
+  getUser,
+  setUser,
+  removeUser,
+  clearStorage,
+};
+

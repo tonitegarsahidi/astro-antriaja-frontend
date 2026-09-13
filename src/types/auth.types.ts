@@ -8,6 +8,11 @@ export interface TenantResponse {
   display_key: string;
   transfer_ticket_mode: string;
   daily_reset_time: string;
+  status?: 'active' | 'suspended' | 'trial' | 'canceled';
+  phone?: string;
+  address?: string;
+  timezone?: string;
+  logo_url?: string;
   created_at: string;
 }
 
@@ -17,6 +22,8 @@ export interface UserResponse {
   email: string;
   full_name: string;
   role: UserRole;
+  is_active?: boolean;
+  last_login_at?: string;
   created_at: string;
 }
 
@@ -26,6 +33,9 @@ export interface RegisterTenantRequest {
   admin_email: string;
   admin_password: string;
   admin_name: string;
+  phone?: string;
+  address?: string;
+  timezone?: string;
   vip_pin?: string;
   daily_reset_time?: string;
 }

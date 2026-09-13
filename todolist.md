@@ -242,8 +242,33 @@ src/
   - [x] `settings.astro` (Pengaturan profil instansi, aturan antrian harian & PIN VIP, serta rotasi cryptographic device keys kiosk & display TV)
 - [x] Integrasi Navigasi Sidebar di `src/layouts/AdminLayout.astro`:
   - [x] Penambahan menu "Petugas Staf" (`/admin/users`) dan "Pengaturan" (`/admin/settings`)
-  - [x] Update union type `activePage?: 'dashboard' | 'services' | 'counters' | 'display' | 'users' | 'settings'`
-- [x] Automated testing: 32 test suites / 171 automated tests PASS 100% dan verifikasi `npm run check` 0 errors, `npm run build` sukses.
+  - [x] Automated testing: 32 test suites / 171 automated tests PASS 100% dan verifikasi `npm run check` 0 errors, `npm run build` sukses.
+
+---
+
+### Fase 11: Registrasi Mandiri Tenant & Onboarding Setup Wizard (Modul B2)
+- [x] Kontrak Tipe Data TypeScript di `src/types/auth.types.ts`:
+  - [x] Penambahan atribut SaaS profil instansi (`status`, `phone`, `address`, `timezone`, `logo_url`) pada `TenantResponse`
+  - [x] Penambahan `is_active` dan `last_login_at` pada `UserResponse`
+  - [x] Penambahan `phone`, `address`, `timezone` pada `RegisterTenantRequest`
+- [x] Service layer di `src/services/authService.ts`:
+  - [x] Implementasi fungsi `registerTenant(data: RegisterTenantRequest): Promise<ApiResponse<RegisterTenantResponse>>`
+- [x] Ekspor Utilitas Storage di `src/lib/storage.ts`:
+  - [x] Ekspor objek modular `storage` untuk kemudahan akses method storage
+- [x] Halaman Registrasi Baru di `src/pages/register.astro`:
+  - [x] Form pendaftaran mandiri interaktif dengan 2 seksi (Profil Instansi & Kredensial Administrator)
+  - [x] Real-time slug auto-formatter dari nama instansi beserta live preview URL Kiosk
+  - [x] Penanganan konflik slug duplikat (`SLUG_ALREADY_EXISTS`) dan email duplikat ramah pengguna
+  - [x] Penyimpanan token dan navigasi otomatis ke wizard onboarding
+- [x] Halaman Onboarding Setup Wizard di `src/pages/onboarding.astro`:
+  - [x] Panduan 3 langkah setup instansi baru pasca-registrasi
+  - [x] Kartu kredensial Kiosk Mandiri dan Layar Display TV dengan tombol Salin URL instan
+  - [x] Tombol uji buka Kiosk Mandiri dan Display TV di browser baru
+  - [x] Tombol navigasi langsung ke Dashboard Admin
+- [x] Integrasi CTA Landing Page di `src/pages/index.astro`:
+  - [x] Tombol CTA "Daftar Gratis" di navbar atas dan "🚀 Daftar Gratis Sekarang" di hero section
+- [x] Automated testing: 33 test suites / 177 automated tests PASS 100% dan verifikasi `npm run check` 0 errors, `npm run build` sukses (16 static routes).
+
 
 
 

@@ -1,0 +1,246 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Setup Wizard Instansi - AntriAja" description="Panduan setup awal perangkat kiosk dan display TV AntriAja">
+  <div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div id="onboarding-container" class="max-w-4xl mx-auto space-y-8">
+      <!-- Congratulatory Header -->
+      <div class="text-center space-y-3">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
+          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight sm:text-4xl">
+          Selamat Datang di AntriAja! 🎉
+        </h1>
+        <p class="text-slate-600 max-w-xl mx-auto text-sm sm:text-base">
+          Instansi <span id="onboarding-tenant-name" class="font-bold text-slate-900">...</span> telah berhasil terdaftar dan siap digunakan secara instan.
+        </p>
+      </div>
+
+      <!-- 3-Step Overview Banner -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-start gap-3">
+          <span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">✓</span>
+          <div>
+            <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wide">1. Akun &amp; Master Data</h2>
+            <p class="text-xs text-slate-500 mt-0.5">2 layanan default &amp; 1 loket telah dikonfigurasi otomatis.</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-blue-200 shadow-sm flex items-start gap-3 bg-blue-50/40">
+          <span class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+          <div>
+            <h2 class="text-xs font-bold text-blue-950 uppercase tracking-wide">2. Hubungkan Perangkat</h2>
+            <p class="text-xs text-blue-700 mt-0.5">Pasang Kiosk di tablet/HP dan Display di Smart TV browser.</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-start gap-3">
+          <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+          <div>
+            <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wide">3. Mulai Layani</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Petugas memanggil tiket dari konsol staf di loket.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hardware Setup Cards (BYOD) -->
+      <div class="space-y-6">
+        <!-- Card 1: Kiosk Mandiri -->
+        <div id="card-kiosk-url" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-lg font-bold text-slate-900">1. Kiosk Mandiri Layar Sentuh Pengunjung</h2>
+                <p class="text-xs text-slate-500">Buka link ini di Tablet, iPad, atau HP yang diletakkan di pintu masuk.</p>
+              </div>
+            </div>
+            <a
+              id="btn-launch-kiosk"
+              href="#"
+              target="_blank"
+              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm transition-colors cursor-pointer"
+            >
+              <span>Uji Buka Kiosk</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+
+          <div class="mt-6 space-y-3">
+            <label class="block text-xs font-semibold text-slate-700">URL Kiosk Siap Pakai (Sudah Termasuk Device Key Otomatis):</label>
+            <div class="flex items-center gap-2">
+              <input
+                type="text"
+                id="input-kiosk-full-url"
+                readonly
+                value="Memuat URL..."
+                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-slate-50 font-mono text-xs text-slate-800 focus:outline-none"
+              />
+              <button
+                type="button"
+                id="btn-copy-kiosk-url"
+                class="px-4 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors shrink-0 cursor-pointer flex items-center gap-1.5"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span id="copy-kiosk-text">Salin URL</span>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-500">Perangkat kiosk tidak membutuhkan install aplikasi khusus, cukup buka URL di browser dan tekan *Add to Home Screen*.</p>
+          </div>
+        </div>
+
+        <!-- Card 2: Layar Display TV -->
+        <div id="card-display-url" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-lg font-bold text-slate-900">2. Layar Display TV Ruang Tunggu</h2>
+                <p class="text-xs text-slate-500">Buka link ini di Smart TV / Android TV / monitor ruang tunggu.</p>
+              </div>
+            </div>
+            <a
+              id="btn-launch-display"
+              href="#"
+              target="_blank"
+              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs shadow-sm transition-colors cursor-pointer"
+            >
+              <span>Uji Buka Display</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+
+          <div class="mt-6 space-y-3">
+            <label class="block text-xs font-semibold text-slate-700">URL Display TV Siap Pakai (Sudah Termasuk Device Key Otomatis):</label>
+            <div class="flex items-center gap-2">
+              <input
+                type="text"
+                id="input-display-full-url"
+                readonly
+                value="Memuat URL..."
+                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-slate-50 font-mono text-xs text-slate-800 focus:outline-none"
+              />
+              <button
+                type="button"
+                id="btn-copy-display-url"
+                class="px-4 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors shrink-0 cursor-pointer flex items-center gap-1.5"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span id="copy-display-text">Salin URL</span>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-500">Layar Display TV dilengkapi dengan pemanggil suara synthesized bahasa Indonesia otomatis dan running text pengumuman.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action: Masuk ke Admin Dashboard -->
+      <div class="p-6 bg-blue-600 rounded-2xl text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg shadow-blue-500/20">
+        <div>
+          <h2 class="text-lg font-bold">Semua Perangkat Sudah Siap?</h2>
+          <p class="text-xs text-blue-100 mt-0.5">Buka Panel Admin untuk menambah staf loket baru, mengatur layanan, atau melihat statistik live.</p>
+        </div>
+        <a
+          id="btn-goto-admin"
+          href="/admin"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white text-blue-600 font-bold text-sm hover:bg-blue-50 transition-colors shadow-sm shrink-0 cursor-pointer"
+        >
+          <span>Masuk ke Panel Admin &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { getMe } from '../services/authService';
+
+  const tenantNameEl = document.getElementById('onboarding-tenant-name');
+  const kioskInput = document.getElementById('input-kiosk-full-url') as HTMLInputElement | null;
+  const displayInput = document.getElementById('input-display-full-url') as HTMLInputElement | null;
+  const copyKioskBtn = document.getElementById('btn-copy-kiosk-url');
+  const copyDisplayBtn = document.getElementById('btn-copy-display-url');
+  const copyKioskText = document.getElementById('copy-kiosk-text');
+  const copyDisplayText = document.getElementById('copy-display-text');
+  const launchKioskBtn = document.getElementById('btn-launch-kiosk') as HTMLAnchorElement | null;
+  const launchDisplayBtn = document.getElementById('btn-launch-display') as HTMLAnchorElement | null;
+
+  async function loadOnboarding() {
+    let tenantData: any = null;
+
+    // Coba baca dari sessionStorage
+    const raw = sessionStorage.getItem('antriaja_onboarding_data');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        tenantData = parsed.tenant;
+      } catch (_) {}
+    }
+
+    // Jika tidak ada di sessionStorage, coba panggil getMe
+    if (!tenantData) {
+      try {
+        const meResp = await getMe();
+        if (meResp.success && meResp.data) {
+          tenantData = meResp.data.tenant;
+        }
+      } catch (_) {}
+    }
+
+    if (tenantData) {
+      if (tenantNameEl) tenantNameEl.textContent = tenantData.name;
+
+      const origin = window.location.origin;
+      const kioskUrl = `${origin}/kiosk?slug=${tenantData.slug}&kiosk_key=${tenantData.kiosk_key}`;
+      const displayUrl = `${origin}/display?slug=${tenantData.slug}&device_key=${tenantData.display_key}`;
+
+      if (kioskInput) kioskInput.value = kioskUrl;
+      if (displayInput) displayInput.value = displayUrl;
+
+      if (launchKioskBtn) launchKioskBtn.href = kioskUrl;
+      if (launchDisplayBtn) launchDisplayBtn.href = displayUrl;
+    }
+  }
+
+  copyKioskBtn?.addEventListener('click', () => {
+    if (kioskInput && kioskInput.value) {
+      navigator.clipboard.writeText(kioskInput.value);
+      if (copyKioskText) {
+        copyKioskText.textContent = 'Tersalin!';
+        setTimeout(() => { copyKioskText.textContent = 'Salin URL'; }, 2000);
+      }
+    }
+  });
+
+  copyDisplayBtn?.addEventListener('click', () => {
+    if (displayInput && displayInput.value) {
+      navigator.clipboard.writeText(displayInput.value);
+      if (copyDisplayText) {
+        copyDisplayText.textContent = 'Tersalin!';
+        setTimeout(() => { copyDisplayText.textContent = 'Salin URL'; }, 2000);
+      }
+    }
+  });
+
+  loadOnboarding();
+</script>

@@ -1,6 +1,21 @@
 import { httpClient } from '../lib/httpClient';
 import type { ApiResponse } from '../types/api.types';
-import type { LoginRequest, LoginResponse, MeResponse } from '../types/auth.types';
+import type {
+  LoginRequest,
+  LoginResponse,
+  MeResponse,
+  RegisterTenantRequest,
+  RegisterTenantResponse,
+} from '../types/auth.types';
+
+/**
+ * Mendaftarkan instansi tenant baru beserta user admin pertama.
+ */
+export async function registerTenant(
+  data: RegisterTenantRequest
+): Promise<ApiResponse<RegisterTenantResponse>> {
+  return httpClient.post<RegisterTenantResponse>('/auth/register-tenant', data);
+}
 
 /**
  * Melakukan login staf/admin instansi menggunakan email, password, dan tenant slug.

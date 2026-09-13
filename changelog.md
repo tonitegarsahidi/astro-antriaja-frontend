@@ -8,6 +8,14 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
 ## [Unreleased] - 2026-09-12
 
 ### Ditambahkan
+- **Fase 11: Registrasi Mandiri Tenant & Onboarding Setup Wizard (Modul B2 SaaS):**
+  - Pembaruan kontrak tipe data TypeScript di `src/types/auth.types.ts` (`TenantResponse`, `UserResponse`, `RegisterTenantRequest`) dengan dukungan atribut profil instansi multi-tenant SaaS.
+  - Implementasi fungsi klien `registerTenant` pada `src/services/authService.ts`.
+  - Ekspor objek `storage` pada `src/lib/storage.ts` untuk akses method modular type-safe storage browser.
+  - Pembuatan halaman registrasi mandiri publik `src/pages/register.astro` dengan fitur pemformatan slug otomatis realtime dari nama instansi, preview live URL Kiosk, validasi format klien, dan penanganan respon error konflik slug/email.
+  - Pembuatan halaman wizard setup `src/pages/onboarding.astro` dengan 3-langkah panduan instan, kartu URL Kiosk dan Display TV dengan tombol Salin URL satu-klik, tombol uji langsung di browser, serta navigasi ke dashboard admin.
+  - Pembaruan landing page `src/pages/index.astro` dengan tombol CTA pendaftaran gratis di header dan hero section.
+  - Penambahan automated test suite komprehensif di `tests/registerAndOnboarding.test.ts` (33 test suites, 177 tests PASS 100%, TypeScript check 0 errors, static build 16 halaman sukses).
 - **Fase 10: Pengaturan Tenant & Manajemen Staf Petugas (Modul A3 SaaS):**
   - Implementasi kontrak tipe data TypeScript di `src/types/tenant.types.ts` (`TenantProfileResponse`, `UpdateTenantProfileRequest`, `RotateDeviceKeyRequest`, `RotateDeviceKeyResponse`) dan `src/types/user.types.ts` (`StaffResponse`, `CreateStaffRequest`, `UpdateStaffRequest`, `StaffListResponse`).
   - Implementasi layer komunikasi API di `src/services/tenantService.ts` (`getTenantProfile`, `updateTenantProfile`, `rotateDeviceKey`) dan `src/services/userService.ts` (`listStaff`, `getStaff`, `createStaff`, `updateStaff`, `deactivateStaff`).
