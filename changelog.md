@@ -8,6 +8,14 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
 ## [Unreleased] - 2026-09-12
 
 ### Ditambahkan
+- **Fase 10: Pengaturan Tenant & Manajemen Staf Petugas (Modul A3 SaaS):**
+  - Implementasi kontrak tipe data TypeScript di `src/types/tenant.types.ts` (`TenantProfileResponse`, `UpdateTenantProfileRequest`, `RotateDeviceKeyRequest`, `RotateDeviceKeyResponse`) dan `src/types/user.types.ts` (`StaffResponse`, `CreateStaffRequest`, `UpdateStaffRequest`, `StaffListResponse`).
+  - Implementasi layer komunikasi API di `src/services/tenantService.ts` (`getTenantProfile`, `updateTenantProfile`, `rotateDeviceKey`) dan `src/services/userService.ts` (`listStaff`, `getStaff`, `createStaff`, `updateStaff`, `deactivateStaff`).
+  - Pembuatan komponen modal `src/components/admin/StaffFormModal.astro` untuk modal form penambahan dan pengeditan staf petugas loket dengan kontrol role, username, dan password.
+  - Pembuatan halaman administrasi `src/pages/admin/users.astro` dengan fitur ringkasan metrik staf, pencarian/filter role/status, data table staf, serta modal konfirmasi penonaktifan akun staf.
+  - Pembuatan halaman administrasi `src/pages/admin/settings.astro` untuk konfigurasi profil instansi, aturan jam reset antrian harian & PIN VIP, serta manajemen kartu rotasi device key untuk Kiosk dan Display TV dengan konfirmasi rotasi aman.
+  - Integrasi navigasi sidebar baru pada `src/layouts/AdminLayout.astro` dengan penambahan tautan `/admin/users` ("Petugas Staf") dan `/admin/settings` ("Pengaturan").
+  - Penambahan automated test suite di `tests/tenantSettingsAndUsers.test.ts` dan pembaruan `tests/adminPages.test.ts` (32 test suites, 171 tests PASS 100%, TypeScript check 0 errors, static build 14 halaman sukses).
 - Inisialisasi kompas pelacakan proyek [todolist.md](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/todolist.md) yang mencakup 7 fase pengerjaan terukur (Fondasi Arsitektur, Mobile Web Pengunjung, Kiosk Mandiri, Display TV, Konsol Staf, Panel Admin, PWA Hardening).
 - **Fase 8: Landing Page & Portal Navigasi Utama (`/`):**
   - Redesain rute `/` ([`src/pages/index.astro`](src/pages/index.astro)) menjadi Landing Page profesional berbasis Tailwind CSS v4 dengan arsitektur modular.

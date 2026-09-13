@@ -226,5 +226,25 @@ src/
 - [x] Fitur Toggle Dark/Light Mode dengan persistensi tema di `localStorage` dan styling adaptif.
 - [x] Automated testing: 31 test suites / 167 tests PASS 100% dan verifikasi `npm run check` 0 errors.
 
+---
+
+### Fase 10: Pengaturan Tenant & Manajemen Staf Petugas (Modul A3)
+- [x] Kontrak Tipe Data TypeScript di `src/types/`:
+  - [x] `tenant.types.ts` (`TenantProfileResponse`, `UpdateTenantProfileRequest`, `RotateDeviceKeyRequest`, `RotateDeviceKeyResponse`)
+  - [x] `user.types.ts` (`StaffResponse`, `CreateStaffRequest`, `UpdateStaffRequest`, `StaffListResponse`)
+- [x] Service layer di `src/services/`:
+  - [x] `tenantService.ts` (`getTenantProfile`, `updateTenantProfile`, `rotateDeviceKey`)
+  - [x] `userService.ts` (`listStaff`, `getStaff`, `createStaff`, `updateStaff`, `deactivateStaff`)
+- [x] Komponen UI & Modal di `src/components/admin/`:
+  - [x] `StaffFormModal.astro` (Modal form tambah/edit staf dengan role badge dan validasi kredensial)
+- [x] Halaman Administrasi Baru di `src/pages/admin/`:
+  - [x] `users.astro` (Manajemen staf petugas: filter role/status, statistik staf, aksi tambah/edit/nonaktifkan)
+  - [x] `settings.astro` (Pengaturan profil instansi, aturan antrian harian & PIN VIP, serta rotasi cryptographic device keys kiosk & display TV)
+- [x] Integrasi Navigasi Sidebar di `src/layouts/AdminLayout.astro`:
+  - [x] Penambahan menu "Petugas Staf" (`/admin/users`) dan "Pengaturan" (`/admin/settings`)
+  - [x] Update union type `activePage?: 'dashboard' | 'services' | 'counters' | 'display' | 'users' | 'settings'`
+- [x] Automated testing: 32 test suites / 171 automated tests PASS 100% dan verifikasi `npm run check` 0 errors, `npm run build` sukses.
+
+
 
 

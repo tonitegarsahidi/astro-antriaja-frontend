@@ -1,0 +1,480 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import StaffFormModal from '../../components/admin/StaffFormModal.astro';
+---
+
+<AdminLayout title="Manajemen Staf - AntriAja" activePage="users">
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900 tracking-tight">
+          Manajemen Petugas Staf
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">
+          Kelola akun petugas loket, atur hak akses operasional, dan pantau status aktif
+        </p>
+      </div>
+
+      <div>
+        <button
+          id="btn-add-staff"
+          type="button"
+          class="inline-flex items-center px-4 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer space-x-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+          <span>Tambah Petugas Baru</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <div>
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Total Petugas</span>
+          <span id="stat-total-staff" class="text-xl font-black text-slate-900 leading-tight">0</span>
+        </div>
+      </div>
+
+      <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Petugas Aktif</span>
+          <span id="stat-active-staff" class="text-xl font-black text-emerald-600 leading-tight">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert / Toast Banner -->
+    <div id="users-page-alert" class="hidden p-4 rounded-xl text-xs font-semibold"></div>
+
+    <!-- Table Container -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+      <!-- Search & Filter Controls -->
+      <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="relative w-full sm:w-72">
+          <input
+            id="input-search-staff"
+            type="text"
+            placeholder="Cari nama atau email..."
+            class="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+          />
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div class="flex items-center space-x-2 w-full sm:w-auto">
+          <label for="select-filter-status" class="text-xs text-slate-500 font-medium">Status:</label>
+          <select
+            id="select-filter-status"
+            class="px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-medium text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">Semua Status</option>
+            <option value="active">Hanya Aktif</option>
+            <option value="inactive">Nonaktif</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="users-table-container" class="overflow-x-auto min-h-[260px]">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <th class="py-3.5 px-4">Nama Petugas</th>
+              <th class="py-3.5 px-4">Email Login</th>
+              <th class="py-3.5 px-4">Role</th>
+              <th class="py-3.5 px-4">Status</th>
+              <th class="py-3.5 px-4">Login Terakhir</th>
+              <th class="py-3.5 px-4 text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody" class="divide-y divide-slate-100 text-xs text-slate-700">
+            <tr>
+              <td colspan="6" class="py-12 text-center text-slate-400 italic">
+                Memuat daftar petugas staf...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Form Tambah/Edit Staf -->
+  <StaffFormModal />
+
+  <!-- Modal Konfirmasi Deaktivasi -->
+  <div
+    id="modal-deactivate-confirm"
+    class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden p-6 space-y-4">
+      <div class="flex items-center space-x-3 text-amber-600">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center font-bold shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Nonaktifkan Akun Petugas?</h3>
+          <p class="text-xs text-slate-500">Tindakan ini akan mencabut akses operasional</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Anda yakin ingin menonaktifkan petugas <span id="deactivate-staff-name" class="font-bold text-slate-900"></span>?
+        Jika petugas sedang menjaga loket, loket tersebut akan otomatis dilepaskan kembali ke status kosong.
+      </p>
+
+      <input type="hidden" id="deactivate-staff-id-hidden" value="" />
+
+      <div class="flex items-center justify-end space-x-3 pt-2">
+        <button
+          id="btn-cancel-deactivate"
+          type="button"
+          class="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg cursor-pointer transition-colors"
+        >
+          Batal
+        </button>
+        <button
+          id="btn-confirm-deactivate"
+          type="button"
+          class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg cursor-pointer transition-colors shadow-xs"
+        >
+          Ya, Nonaktifkan
+        </button>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import {
+    listStaff,
+    createStaff,
+    updateStaff,
+    deactivateStaff,
+  } from '../../services/userService';
+  import type { StaffResponse } from '../../types/user.types';
+  import { getUser } from '../../lib/storage';
+
+  let currentStaffList: StaffResponse[] = [];
+  const currentUser = getUser();
+
+  // Elements
+  const tbody = document.getElementById('users-tbody');
+  const alertBox = document.getElementById('users-page-alert');
+  const statTotal = document.getElementById('stat-total-staff');
+  const statActive = document.getElementById('stat-active-staff');
+  const searchInput = document.getElementById('input-search-staff') as HTMLInputElement | null;
+  const filterSelect = document.getElementById('select-filter-status') as HTMLSelectElement | null;
+
+  // Staff Form Modal Elements
+  const modal = document.getElementById('staff-form-modal');
+  const modalTitle = document.getElementById('modal-staff-title');
+  const modalError = document.getElementById('staff-modal-error');
+  const form = document.getElementById('staff-form') as HTMLFormElement | null;
+  const staffIdHidden = document.getElementById('staff-id-hidden') as HTMLInputElement | null;
+  const inputName = document.getElementById('input-staff-name') as HTMLInputElement | null;
+  const inputEmail = document.getElementById('input-staff-email') as HTMLInputElement | null;
+  const inputPassword = document.getElementById('input-staff-password') as HTMLInputElement | null;
+  const toggleActive = document.getElementById('toggle-staff-active') as HTMLInputElement | null;
+  const passwordRequiredStar = document.getElementById('staff-password-required-star');
+  const passwordHint = document.getElementById('staff-password-hint');
+
+  const btnAdd = document.getElementById('btn-add-staff');
+  const btnCancel = document.getElementById('btn-staff-cancel');
+  const btnClose = document.getElementById('btn-close-staff-modal');
+
+  // Deactivate Modal Elements
+  const deactModal = document.getElementById('modal-deactivate-confirm');
+  const deactNameSpan = document.getElementById('deactivate-staff-name');
+  const deactIdHidden = document.getElementById('deactivate-staff-id-hidden') as HTMLInputElement | null;
+  const btnCancelDeact = document.getElementById('btn-cancel-deactivate');
+  const btnConfirmDeact = document.getElementById('btn-confirm-deactivate');
+
+  function showAlert(message: string, type: 'success' | 'error' = 'success') {
+    if (!alertBox) return;
+    alertBox.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'bg-rose-50', 'text-rose-700', 'border-rose-200');
+    if (type === 'success') {
+      alertBox.classList.add('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-200');
+    } else {
+      alertBox.classList.add('bg-rose-50', 'text-rose-700', 'border', 'border-rose-200');
+    }
+    alertBox.textContent = message;
+    setTimeout(() => alertBox.classList.add('hidden'), 5000);
+  }
+
+  function renderTable(staffs: StaffResponse[]) {
+    if (!tbody) return;
+
+    if (staffs.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="py-12 text-center text-slate-400">
+            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-2 text-slate-400">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            Belum ada petugas staf yang terdaftar
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = staffs
+      .map((staff) => {
+        const isSelf = currentUser && currentUser.id === staff.id;
+        const lastLogin = staff.last_login_at
+          ? new Date(staff.last_login_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+          : '<span class="text-slate-400 italic">Belum pernah login</span>';
+
+        const statusBadge = staff.is_active
+          ? '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Aktif</span>'
+          : '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Nonaktif</span>';
+
+        return `
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="py-3 px-4">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs shrink-0">
+                  ${staff.full_name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <span class="font-bold text-slate-900 block">${staff.full_name}</span>
+                  ${isSelf ? '<span class="text-[9px] font-extrabold text-blue-600 uppercase tracking-wider block">Akun Anda</span>' : ''}
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-4 font-mono text-slate-600 text-[11px]">${staff.email}</td>
+            <td class="py-3 px-4">
+              <span class="capitalize text-slate-600 font-medium">${staff.role === 'admin' ? 'Administrator' : 'Staf Loket'}</span>
+            </td>
+            <td class="py-3 px-4">${statusBadge}</td>
+            <td class="py-3 px-4 text-slate-500 text-[11px]">${lastLogin}</td>
+            <td class="py-3 px-4 text-right">
+              <div class="inline-flex items-center space-x-1.5">
+                <button
+                  type="button"
+                  data-action="edit"
+                  data-id="${staff.id}"
+                  class="px-2.5 py-1 text-[11px] font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                >
+                  Edit
+                </button>
+                ${
+                  !isSelf
+                    ? `
+                  <button
+                    type="button"
+                    data-action="deactivate"
+                    data-id="${staff.id}"
+                    data-name="${staff.full_name}"
+                    data-active="${staff.is_active}"
+                    class="px-2.5 py-1 text-[11px] font-bold ${
+                      staff.is_active
+                        ? 'text-rose-600 hover:bg-rose-50'
+                        : 'text-emerald-600 hover:bg-emerald-50'
+                    } rounded-lg transition-colors cursor-pointer"
+                  >
+                    ${staff.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                  </button>
+                `
+                    : ''
+                }
+              </div>
+            </td>
+          </tr>
+        `;
+      })
+      .join('');
+  }
+
+  function filterStaffs() {
+    const q = searchInput?.value.toLowerCase().trim() || '';
+    const status = filterSelect?.value || 'all';
+
+    const filtered = currentStaffList.filter((s) => {
+      const matchQuery = s.full_name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q);
+      const matchStatus =
+        status === 'all' ||
+        (status === 'active' && s.is_active) ||
+        (status === 'inactive' && !s.is_active);
+      return matchQuery && matchStatus;
+    });
+
+    renderTable(filtered);
+  }
+
+  async function loadStaffList() {
+    try {
+      const res = await listStaff(1, 50);
+      if (res.success && res.data) {
+        currentStaffList = res.data.items || [];
+        if (statTotal) statTotal.textContent = String(res.data.pagination?.total_items || currentStaffList.length);
+        const activeCount = currentStaffList.filter((s) => s.is_active).length;
+        if (statActive) statActive.textContent = String(activeCount);
+        filterStaffs();
+      }
+    } catch (err: any) {
+      showAlert(err.message || 'Gagal memuat data staf', 'error');
+    }
+  }
+
+  // Open Modal Create
+  btnAdd?.addEventListener('click', () => {
+    if (form) form.reset();
+    if (staffIdHidden) staffIdHidden.value = '';
+    if (modalTitle) modalTitle.textContent = 'Tambah Staf Baru';
+    if (inputEmail) inputEmail.removeAttribute('disabled');
+    if (inputPassword) inputPassword.setAttribute('required', 'true');
+    if (passwordRequiredStar) passwordRequiredStar.classList.remove('hidden');
+    if (passwordHint) passwordHint.textContent = 'Gunakan minimal 8 karakter untuk keamanan akun.';
+    if (toggleActive) toggleActive.checked = true;
+    modalError?.classList.add('hidden');
+    modal?.classList.remove('hidden');
+  });
+
+  // Close Modal Form
+  function closeStaffModal() {
+    modal?.classList.add('hidden');
+    if (form) form.reset();
+  }
+  btnCancel?.addEventListener('click', closeStaffModal);
+  btnClose?.addEventListener('click', closeStaffModal);
+
+  // Submit Modal Form
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    modalError?.classList.add('hidden');
+
+    const id = staffIdHidden?.value;
+    const name = inputName?.value.trim() || '';
+    const email = inputEmail?.value.trim() || '';
+    const password = inputPassword?.value || '';
+    const isActive = toggleActive?.checked ?? true;
+
+    try {
+      if (!id) {
+        // Create
+        const res = await createStaff({
+          email,
+          password,
+          full_name: name,
+        });
+        if (!res.success) throw new Error(res.error?.message || 'Gagal membuat akun staf');
+        showAlert(`Petugas "${name}" berhasil didaftarkan!`);
+      } else {
+        // Update
+        const payload: any = {
+          full_name: name,
+          is_active: isActive,
+        };
+        if (password.trim() !== '') {
+          payload.password = password;
+        }
+        const res = await updateStaff(id, payload);
+        if (!res.success) throw new Error(res.error?.message || 'Gagal memperbarui staf');
+        showAlert(`Data petugas "${name}" berhasil diperbarui!`);
+      }
+      closeStaffModal();
+      await loadStaffList();
+    } catch (err: any) {
+      if (modalError) {
+        modalError.textContent = err.message || 'Terjadi kesalahan sistem';
+        modalError.classList.remove('hidden');
+      }
+    }
+  });
+
+  // Table Actions delegation
+  tbody?.addEventListener('click', async (e) => {
+    const target = (e.target as HTMLElement).closest('button');
+    if (!target) return;
+
+    const action = target.getAttribute('data-action');
+    const id = target.getAttribute('data-id');
+    if (!action || !id) return;
+
+    const staff = currentStaffList.find((s) => s.id === id);
+    if (!staff) return;
+
+    if (action === 'edit') {
+      if (staffIdHidden) staffIdHidden.value = staff.id;
+      if (modalTitle) modalTitle.textContent = `Edit Petugas: ${staff.full_name}`;
+      if (inputName) inputName.value = staff.full_name;
+      if (inputEmail) {
+        inputEmail.value = staff.email;
+        inputEmail.setAttribute('disabled', 'true');
+      }
+      if (inputPassword) {
+        inputPassword.value = '';
+        inputPassword.removeAttribute('required');
+      }
+      if (passwordRequiredStar) passwordRequiredStar.classList.add('hidden');
+      if (passwordHint) passwordHint.textContent = 'Kosongkan jika tidak ingin mengubah kata sandi.';
+      if (toggleActive) toggleActive.checked = staff.is_active;
+
+      modalError?.classList.add('hidden');
+      modal?.classList.remove('hidden');
+    } else if (action === 'deactivate') {
+      if (staff.is_active) {
+        // Open confirmation modal to deactivate
+        if (deactNameSpan) deactNameSpan.textContent = staff.full_name;
+        if (deactIdHidden) deactIdHidden.value = staff.id;
+        deactModal?.classList.remove('hidden');
+      } else {
+        // Direct reactivation
+        try {
+          const res = await updateStaff(staff.id, { is_active: true });
+          if (!res.success) throw new Error(res.error?.message || 'Gagal mengaktifkan staf');
+          showAlert(`Petugas "${staff.full_name}" berhasil diaktifkan kembali!`);
+          await loadStaffList();
+        } catch (err: any) {
+          showAlert(err.message || 'Gagal mengaktifkan staf', 'error');
+        }
+      }
+    }
+  });
+
+  // Confirm Deactivate
+  btnCancelDeact?.addEventListener('click', () => deactModal?.classList.add('hidden'));
+  btnConfirmDeact?.addEventListener('click', async () => {
+    const id = deactIdHidden?.value;
+    if (!id) return;
+    try {
+      const res = await deactivateStaff(id);
+      if (!res.success) throw new Error(res.error?.message || 'Gagal menonaktifkan staf');
+      deactModal?.classList.add('hidden');
+      showAlert('Akun staf berhasil dinonaktifkan.');
+      await loadStaffList();
+    } catch (err: any) {
+      deactModal?.classList.add('hidden');
+      showAlert(err.message || 'Gagal menonaktifkan staf', 'error');
+    }
+  });
+
+  // Search & Filter listeners
+  searchInput?.addEventListener('input', filterStaffs);
+  filterSelect?.addEventListener('change', filterStaffs);
+
+  // Initialize
+  loadStaffList();
+</script>

@@ -1,0 +1,564 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Pengaturan Instansi - AntriAja" activePage="settings">
+  <div class="space-y-6 max-w-5xl pb-12">
+    <!-- Header -->
+    <div>
+      <h2 class="text-xl font-bold text-slate-900 tracking-tight">
+        Pengaturan Instansi & Antrian
+      </h2>
+      <p class="text-xs text-slate-500 mt-1">
+        Kelola profil organisasi, parameter operasional antrian, dan otorisasi perangkat publik
+      </p>
+    </div>
+
+    <!-- Alert / Toast Banner -->
+    <div id="settings-page-alert" class="hidden p-4 rounded-xl text-xs font-semibold"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left 2 Cols: Profile & Queue Rules -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- 1. Profil Instansi Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+          <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900">Profil Instansi & Identitas Kantor</h3>
+                <p class="text-[11px] text-slate-500">Nama cabang, kontak, dan penyesuaian zona waktu</p>
+              </div>
+            </div>
+          </div>
+
+          <form id="profile-form" class="p-6 space-y-4">
+            <div>
+              <label for="input-tenant-name" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                Nama Kantor / Cabang <span class="text-rose-500">*</span>
+              </label>
+              <input
+                id="input-tenant-name"
+                name="name"
+                type="text"
+                required
+                placeholder="Contoh: Bank BCA KCP Sudirman"
+                class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="input-tenant-phone" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                  Nomor Telepon Kantor
+                </label>
+                <input
+                  id="input-tenant-phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="Contoh: (021) 555-0123"
+                  class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label for="select-tenant-timezone" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                  Zona Waktu Operasional
+                </label>
+                <select
+                  id="select-tenant-timezone"
+                  name="timezone"
+                  class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  <option value="Asia/Jakarta">WIB (Asia/Jakarta - UTC+7)</option>
+                  <option value="Asia/Makassar">WITA (Asia/Makassar - UTC+8)</option>
+                  <option value="Asia/Jayapura">WIT (Asia/Jayapura - UTC+9)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label for="input-tenant-address" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                Alamat Kantor
+              </label>
+              <textarea
+                id="input-tenant-address"
+                name="address"
+                rows="2"
+                placeholder="Alamat lengkap instansi/cabang..."
+                class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="input-tenant-logo-url" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                URL Logo Instansi (Opsional)
+              </label>
+              <input
+                id="input-tenant-logo-url"
+                name="logo_url"
+                type="url"
+                placeholder="https://domain.com/logo.png"
+                class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div class="pt-2 flex justify-end">
+              <button
+                id="btn-save-profile"
+                type="submit"
+                class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                Simpan Profil Instansi
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 2. Aturan Antrian & VIP Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+          <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900">Aturan Siklus Antrian & VIP</h3>
+                <p class="text-[11px] text-slate-500">Jadwal reset harian otomatis dan proteksi PIN VIP</p>
+              </div>
+            </div>
+          </div>
+
+          <form id="queue-settings-form" class="p-6 space-y-4">
+            <div>
+              <label for="input-daily-reset-time" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                Jam Reset Antrian Harian <span class="text-rose-500">*</span>
+              </label>
+              <input
+                id="input-daily-reset-time"
+                name="daily_reset_time"
+                type="time"
+                step="1"
+                required
+                value="00:00:00"
+                class="w-full sm:w-48 px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+              />
+              <p class="text-[11px] text-slate-400 mt-1">
+                Pada jam ini, seluruh tiket sisa hari sebelumnya akan ditandai kedaluwarsa dan nomor urut kembali ke 001.
+              </p>
+            </div>
+
+            <!-- Mode Transfer Tiket -->
+            <div>
+              <span class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">
+                Mode Penomoran Saat Oper Tiket (Transfer)
+              </span>
+              <div class="space-y-2">
+                <label class="flex items-start space-x-3 p-3 rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer transition-colors">
+                  <input
+                    id="radio-transfer-priority"
+                    type="radio"
+                    name="transfer_ticket_mode"
+                    value="new_number_priority"
+                    class="mt-0.5 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div>
+                    <span class="text-xs font-bold text-slate-800 block">Terbitkan Nomor Baru dengan Prioritas VIP (Rekomendasi)</span>
+                    <span class="text-[11px] text-slate-500 block">Pengunjung mendapat struk nomor baru sesuai layanan tujuan dan diprioritaskan di atas antrian reguler.</span>
+                  </div>
+                </label>
+
+                <label class="flex items-start space-x-3 p-3 rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer transition-colors">
+                  <input
+                    id="radio-transfer-keep"
+                    type="radio"
+                    name="transfer_ticket_mode"
+                    value="keep_original_number"
+                    class="mt-0.5 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div>
+                    <span class="text-xs font-bold text-slate-800 block">Pertahankan Nomor Asal</span>
+                    <span class="text-[11px] text-slate-500 block">Pengunjung tetap memakai nomor tiket awal tanpa mencetak ulang tiket baru.</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Ganti PIN VIP -->
+            <div class="pt-2 border-t border-slate-100">
+              <label for="input-new-vip-pin" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                Ubah PIN Jalur Prioritas / VIP (6 Digit)
+              </label>
+              <input
+                id="input-new-vip-pin"
+                name="new_vip_pin"
+                type="password"
+                maxlength="6"
+                pattern="[0-9]{6}"
+                placeholder="Kosongkan jika tidak ingin mengubah PIN"
+                class="w-full sm:w-64 px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 font-mono tracking-widest"
+              />
+              <p class="text-[11px] text-slate-400 mt-1">
+                PIN ini dimasukkan oleh pengunjung di tablet Kiosk untuk mencetak tiket jalur prioritas.
+              </p>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+              <button
+                id="btn-save-queue-settings"
+                type="submit"
+                class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                Simpan Aturan Antrian
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right 1 Col: Device Keys Management -->
+      <div class="space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs p-6 space-y-6">
+          <div class="flex items-center space-x-2.5 border-b border-slate-100 pb-4">
+            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Device Keys & Otorisasi</h3>
+              <p class="text-[11px] text-slate-500">Kunci akses tablet Kiosk & Smart TV</p>
+            </div>
+          </div>
+
+          <!-- Kiosk Key Card -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800 uppercase tracking-wide">Kiosk Key (Pintu Masuk)</span>
+              <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-blue-100 text-blue-700">TABLET</span>
+            </div>
+            <div class="relative">
+              <input
+                id="input-kiosk-key"
+                type="text"
+                readonly
+                class="w-full px-3 py-1.5 text-xs font-mono bg-white rounded-lg border border-slate-200 text-slate-700 select-all"
+                value="memuat..."
+              />
+            </div>
+            <div class="flex items-center justify-end space-x-2 pt-1">
+              <button
+                id="btn-copy-kiosk-key"
+                type="button"
+                class="px-3 py-1.5 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors"
+              >
+                Salin Kunci
+              </button>
+              <button
+                id="btn-rotate-kiosk-key"
+                type="button"
+                class="px-3 py-1.5 text-[11px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg cursor-pointer transition-colors"
+              >
+                Rotasi Kunci
+              </button>
+            </div>
+          </div>
+
+          <!-- Display Key Card -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800 uppercase tracking-wide">Display Key (Ruang Tunggu)</span>
+              <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-purple-100 text-purple-700">SMART TV</span>
+            </div>
+            <div class="relative">
+              <input
+                id="input-display-key"
+                type="text"
+                readonly
+                class="w-full px-3 py-1.5 text-xs font-mono bg-white rounded-lg border border-slate-200 text-slate-700 select-all"
+                value="memuat..."
+              />
+            </div>
+            <div class="flex items-center justify-end space-x-2 pt-1">
+              <button
+                id="btn-copy-display-key"
+                type="button"
+                class="px-3 py-1.5 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors"
+              >
+                Salin Kunci
+              </button>
+              <button
+                id="btn-rotate-display-key"
+                type="button"
+                class="px-3 py-1.5 text-[11px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg cursor-pointer transition-colors"
+              >
+                Rotasi Kunci
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3 bg-amber-50/80 rounded-xl border border-amber-200/80 text-[11px] text-amber-800 leading-relaxed">
+            <strong>Peringatan Rotasi:</strong> Me-regenerasi kunci akan secara instan memutuskan otorisasi perangkat yang sedang aktif hingga kunci baru dipasangkan ulang.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Konfirmasi Rotasi Kunci -->
+  <div
+    id="modal-rotate-confirm"
+    class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity duration-200"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden p-6 space-y-4">
+      <div class="flex items-center space-x-3 text-rose-600">
+        <div class="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center font-bold shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Rotasi Kunci Perangkat?</h3>
+          <p class="text-xs text-slate-500">Tindakan ini memerlukan pairing ulang perangkat</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Anda akan me-regenerasi kunci <span id="rotate-device-type-label" class="font-bold text-slate-900 uppercase"></span>.
+        Kunci lama akan langsung tidak berlaku. Anda wajib memasukkan kunci baru ini ke perangkat fisik terkait.
+      </p>
+
+      <input type="hidden" id="rotate-device-type-hidden" value="" />
+
+      <div class="flex items-center justify-end space-x-3 pt-2">
+        <button
+          id="btn-cancel-rotate"
+          type="button"
+          class="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg cursor-pointer transition-colors"
+        >
+          Batal
+        </button>
+        <button
+          id="btn-confirm-rotate"
+          type="button"
+          class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg cursor-pointer transition-colors shadow-xs"
+        >
+          Ya, Rotasi Kunci Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import {
+    getTenantProfile,
+    updateTenantProfile,
+    rotateDeviceKey,
+  } from '../../services/tenantService';
+  import type { TenantProfileResponse } from '../../types/tenant.types';
+
+  let currentProfile: TenantProfileResponse | null = null;
+
+  // Elements
+  const alertBox = document.getElementById('settings-page-alert');
+
+  // Profile Form Elements
+  const profileForm = document.getElementById('profile-form') as HTMLFormElement | null;
+  const inputName = document.getElementById('input-tenant-name') as HTMLInputElement | null;
+  const inputPhone = document.getElementById('input-tenant-phone') as HTMLInputElement | null;
+  const inputAddress = document.getElementById('input-tenant-address') as HTMLTextAreaElement | null;
+  const selectTimezone = document.getElementById('select-tenant-timezone') as HTMLSelectElement | null;
+  const inputLogoUrl = document.getElementById('input-tenant-logo-url') as HTMLInputElement | null;
+
+  // Queue Settings Form Elements
+  const queueForm = document.getElementById('queue-settings-form') as HTMLFormElement | null;
+  const inputResetTime = document.getElementById('input-daily-reset-time') as HTMLInputElement | null;
+  const radioPriority = document.getElementById('radio-transfer-priority') as HTMLInputElement | null;
+  const radioKeep = document.getElementById('radio-transfer-keep') as HTMLInputElement | null;
+  const inputNewPin = document.getElementById('input-new-vip-pin') as HTMLInputElement | null;
+
+  // Device Keys Elements
+  const inputKioskKey = document.getElementById('input-kiosk-key') as HTMLInputElement | null;
+  const btnCopyKiosk = document.getElementById('btn-copy-kiosk-key');
+  const btnRotateKiosk = document.getElementById('btn-rotate-kiosk-key');
+
+  const inputDisplayKey = document.getElementById('input-display-key') as HTMLInputElement | null;
+  const btnCopyDisplay = document.getElementById('btn-copy-display-key');
+  const btnRotateDisplay = document.getElementById('btn-rotate-display-key');
+
+  // Modal Rotate Elements
+  const rotateModal = document.getElementById('modal-rotate-confirm');
+  const rotateLabel = document.getElementById('rotate-device-type-label');
+  const rotateTypeHidden = document.getElementById('rotate-device-type-hidden') as HTMLInputElement | null;
+  const btnCancelRotate = document.getElementById('btn-cancel-rotate');
+  const btnConfirmRotate = document.getElementById('btn-confirm-rotate');
+
+  function showAlert(message: string, type: 'success' | 'error' = 'success') {
+    if (!alertBox) return;
+    alertBox.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'bg-rose-50', 'text-rose-700', 'border-rose-200');
+    if (type === 'success') {
+      alertBox.classList.add('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-200');
+    } else {
+      alertBox.classList.add('bg-rose-50', 'text-rose-700', 'border', 'border-rose-200');
+    }
+    alertBox.textContent = message;
+    setTimeout(() => alertBox.classList.add('hidden'), 5000);
+  }
+
+  async function loadProfile() {
+    try {
+      const res = await getTenantProfile();
+      if (res.success && res.data) {
+        currentProfile = res.data;
+
+        // Populate Profile Form
+        if (inputName) inputName.value = currentProfile.name || '';
+        if (inputPhone) inputPhone.value = currentProfile.phone || '';
+        if (inputAddress) inputAddress.value = currentProfile.address || '';
+        if (selectTimezone) selectTimezone.value = currentProfile.timezone || 'Asia/Jakarta';
+        if (inputLogoUrl) inputLogoUrl.value = currentProfile.logo_url || '';
+
+        // Populate Queue Settings
+        if (inputResetTime) inputResetTime.value = currentProfile.daily_reset_time || '00:00:00';
+        if (currentProfile.transfer_ticket_mode === 'keep_original_number') {
+          if (radioKeep) radioKeep.checked = true;
+        } else {
+          if (radioPriority) radioPriority.checked = true;
+        }
+
+        // Populate Device Keys
+        if (inputKioskKey) inputKioskKey.value = currentProfile.kiosk_key || '';
+        if (inputDisplayKey) inputDisplayKey.value = currentProfile.display_key || '';
+      }
+    } catch (err: any) {
+      showAlert(err.message || 'Gagal memuat profil instansi', 'error');
+    }
+  }
+
+  // Save Profile Form
+  profileForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = inputName?.value.trim() || '';
+    const phone = inputPhone?.value.trim() || '';
+    const address = inputAddress?.value.trim() || '';
+    const timezone = selectTimezone?.value || 'Asia/Jakarta';
+    const logoUrl = inputLogoUrl?.value.trim() || '';
+
+    try {
+      const res = await updateTenantProfile({
+        name,
+        phone: phone || null,
+        address: address || null,
+        timezone,
+        logo_url: logoUrl || null,
+      });
+      if (!res.success) throw new Error(res.error?.message || 'Gagal memperbarui profil');
+      showAlert('Profil instansi berhasil disimpan!');
+    } catch (err: any) {
+      showAlert(err.message || 'Gagal memperbarui profil', 'error');
+    }
+  });
+
+  // Save Queue Settings Form
+  queueForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const resetTime = inputResetTime?.value || '00:00:00';
+    const transferMode = radioKeep?.checked ? 'keep_original_number' : 'new_number_priority';
+    const pin = inputNewPin?.value.trim() || '';
+
+    const payload: any = {
+      daily_reset_time: resetTime,
+      transfer_ticket_mode: transferMode,
+    };
+
+    if (pin) {
+      if (!/^[0-9]{6}$/.test(pin)) {
+        showAlert('PIN VIP harus tepat 6 digit angka numerik', 'error');
+        return;
+      }
+      payload.new_vip_pin = pin;
+    }
+
+    try {
+      const res = await updateTenantProfile(payload);
+      if (!res.success) throw new Error(res.error?.message || 'Gagal memperbarui aturan antrian');
+      if (inputNewPin) inputNewPin.value = '';
+      showAlert('Aturan operasional antrian berhasil disimpan!');
+    } catch (err: any) {
+      showAlert(err.message || 'Gagal memperbarui aturan antrian', 'error');
+    }
+  });
+
+  // Copy Key Helper
+  function copyToClipboard(text: string, button: HTMLElement | null) {
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(text).then(() => {
+      if (button) {
+        const originalText = button.textContent;
+        button.textContent = 'Tersalin! ✓';
+        button.classList.add('text-emerald-600');
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.classList.remove('text-emerald-600');
+        }, 2000);
+      }
+    });
+  }
+
+  btnCopyKiosk?.addEventListener('click', () => {
+    if (inputKioskKey) copyToClipboard(inputKioskKey.value, btnCopyKiosk);
+  });
+
+  btnCopyDisplay?.addEventListener('click', () => {
+    if (inputDisplayKey) copyToClipboard(inputDisplayKey.value, btnCopyDisplay);
+  });
+
+  // Rotate Modals
+  btnRotateKiosk?.addEventListener('click', () => {
+    if (rotateTypeHidden) rotateTypeHidden.value = 'kiosk';
+    if (rotateLabel) rotateLabel.textContent = 'Kiosk Key (Tablet)';
+    rotateModal?.classList.remove('hidden');
+  });
+
+  btnRotateDisplay?.addEventListener('click', () => {
+    if (rotateTypeHidden) rotateTypeHidden.value = 'display';
+    if (rotateLabel) rotateLabel.textContent = 'Display Key (Smart TV)';
+    rotateModal?.classList.remove('hidden');
+  });
+
+  btnCancelRotate?.addEventListener('click', () => rotateModal?.classList.add('hidden'));
+
+  btnConfirmRotate?.addEventListener('click', async () => {
+    const type = rotateTypeHidden?.value as 'kiosk' | 'display';
+    if (!type) return;
+
+    try {
+      const res = await rotateDeviceKey({ device_type: type });
+      if (!res.success || !res.data) throw new Error(res.error?.message || 'Gagal merotasi kunci');
+      rotateModal?.classList.add('hidden');
+
+      if (type === 'kiosk' && inputKioskKey) {
+        inputKioskKey.value = res.data.new_key;
+      } else if (type === 'display' && inputDisplayKey) {
+        inputDisplayKey.value = res.data.new_key;
+      }
+
+      showAlert(`Kunci ${type.toUpperCase()} berhasil dirotasi secara kriptografis!`);
+    } catch (err: any) {
+      rotateModal?.classList.add('hidden');
+      showAlert(err.message || 'Gagal merotasi kunci', 'error');
+    }
+  });
+
+  // Initialize
+  loadProfile();
+</script>
