@@ -1,0 +1,281 @@
+---
+interface Props {
+  className?: string;
+}
+
+const { className = '' } = Astro.props;
+---
+
+<div class={`device-settings-container ${className}`} id="device-settings-container">
+  <!-- Small Gear Icon Button -->
+  <button
+    type="button"
+    class="btn-setting-icon"
+    id="btn-device-settings"
+    aria-label="Pengaturan Perangkat"
+    title="Pengaturan Perangkat"
+  >
+    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+      ></path>
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+    </svg>
+  </button>
+
+  <!-- Settings Popover Menu (Upward Popup) -->
+  <div class="settings-popover hidden" id="device-settings-menu" role="menu">
+    <div class="popover-header">
+      <span class="popover-title">Pengaturan Perangkat</span>
+    </div>
+
+    <div class="popover-items">
+      <!-- 1. Toggle Fullscreen -->
+      <button type="button" class="menu-item" id="btn-menu-fullscreen" role="menuitem">
+        <svg class="w-4 h-4 item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+        </svg>
+        <span id="label-menu-fullscreen">Layar Penuh</span>
+      </button>
+
+      <!-- 2. Toggle Theme (Dark / Light) -->
+      <button type="button" class="menu-item" id="btn-menu-theme" role="menuitem">
+        <svg class="w-4 h-4 item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+        <span id="label-menu-theme">Mode Gelap / Terang</span>
+      </button>
+
+      <div class="menu-divider"></div>
+
+      <!-- 3. Logout / Reset Device Configuration -->
+      <button type="button" class="menu-item item-danger" id="btn-menu-logout" role="menuitem">
+        <svg class="w-4 h-4 item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        <span>Keluar / Ganti Perangkat</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setupDeviceSettings() {
+    const btnSettings = document.getElementById('btn-device-settings');
+    const menu = document.getElementById('device-settings-menu');
+    const btnFullscreen = document.getElementById('btn-menu-fullscreen');
+    const labelFullscreen = document.getElementById('label-menu-fullscreen');
+    const btnTheme = document.getElementById('btn-menu-theme');
+    const btnLogout = document.getElementById('btn-menu-logout');
+
+    if (!btnSettings || !menu) return;
+
+    // 1. Toggle Popover
+    btnSettings.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.classList.toggle('hidden');
+    });
+
+    // Close on click outside
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target as Node) && e.target !== btnSettings) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        menu.classList.add('hidden');
+      }
+    });
+
+    // 2. Fullscreen Toggle
+    function updateFullscreenLabel() {
+      if (labelFullscreen) {
+        labelFullscreen.textContent = document.fullscreenElement ? 'Keluar Layar Penuh' : 'Layar Penuh';
+      }
+    }
+
+    btnFullscreen?.addEventListener('click', async () => {
+      menu.classList.add('hidden');
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
+      } catch (err) {
+        console.warn('Fullscreen request failed:', err);
+      }
+      updateFullscreenLabel();
+    });
+
+    document.addEventListener('fullscreenchange', updateFullscreenLabel);
+
+    // 3. Theme Toggle (Dark / Light)
+    // Cek preferensi awal di localStorage
+    const savedTheme = localStorage.getItem('antriaja_theme');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('theme-dark');
+      document.body.classList.remove('theme-light');
+    } else if (savedTheme === 'light') {
+      document.body.classList.add('theme-light');
+      document.body.classList.remove('theme-dark');
+    }
+
+    btnTheme?.addEventListener('click', () => {
+      menu.classList.add('hidden');
+      const isCurrentlyDark = document.body.classList.contains('theme-dark') ||
+        (document.body.classList.contains('display-body') && !document.body.classList.contains('theme-light'));
+
+      if (isCurrentlyDark) {
+        // Switch to Light
+        document.body.classList.remove('theme-dark');
+        document.body.classList.add('theme-light');
+        localStorage.setItem('antriaja_theme', 'light');
+      } else {
+        // Switch to Dark
+        document.body.classList.remove('theme-light');
+        document.body.classList.add('theme-dark');
+        localStorage.setItem('antriaja_theme', 'dark');
+      }
+    });
+
+    // 4. Logout / Reset Device
+    btnLogout?.addEventListener('click', () => {
+      menu.classList.add('hidden');
+      if (confirm('Apakah Anda yakin ingin keluar dan mengganti konfigurasi perangkat ini?')) {
+        window.dispatchEvent(new CustomEvent('antriaja:logout'));
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupDeviceSettings);
+  } else {
+    setupDeviceSettings();
+  }
+</script>
+
+<style>
+  .device-settings-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+  }
+
+  .btn-setting-icon {
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background: rgba(30, 41, 59, 0.85);
+    color: #94a3b8;
+    border: 1px solid rgba(71, 85, 105, 0.4);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-setting-icon:hover {
+    background: #334155;
+    color: #f8fafc;
+    border-color: #64748b;
+  }
+
+  .settings-popover {
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    left: 0;
+    width: 220px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    backdrop-filter: blur(8px);
+  }
+
+  .settings-popover.hidden {
+    display: none !important;
+  }
+
+  .popover-header {
+    padding: 0.4rem 0.6rem 0.4rem;
+    border-bottom: 1px solid #1e293b;
+    margin-bottom: 0.35rem;
+  }
+
+  .popover-title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+  }
+
+  .popover-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    width: 100%;
+  }
+
+  .menu-item:hover {
+    background: #1e293b;
+    color: #ffffff;
+  }
+
+  .menu-item .item-icon {
+    color: #94a3b8;
+    flex-shrink: 0;
+  }
+
+  .menu-item:hover .item-icon {
+    color: #38bdf8;
+  }
+
+  .menu-divider {
+    height: 1px;
+    background: #1e293b;
+    margin: 0.25rem 0;
+  }
+
+  .menu-item.item-danger {
+    color: #f87171;
+  }
+
+  .menu-item.item-danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+  }
+
+  .menu-item.item-danger .item-icon {
+    color: #f87171;
+  }
+</style>

@@ -139,7 +139,7 @@ describe('Display TV UI Components', () => {
   });
 
   describe('RunningText.astro', () => {
-    it('renders marquee running text element with provided announcement text', async () => {
+    it('renders marquee running text element with provided announcement text and setting menu', async () => {
       const container = await AstroContainer.create();
       const result = await container.renderToString(RunningText, {
         props: {
@@ -149,6 +149,8 @@ describe('Display TV UI Components', () => {
 
       expect(result).toContain('Harap menjaga ketertiban di ruang tunggu.');
       expect(result).toContain('running-text-content');
+      expect(result).toContain('id="btn-device-settings"');
+      expect(result).toContain('PENGUMUMAN');
     });
   });
 
@@ -163,12 +165,14 @@ describe('Display TV UI Components', () => {
   });
 
   describe('DisplaySetupModal.astro', () => {
-    it('renders setup modal for configuring display device key and tenant slug', async () => {
+    it('renders setup modal for configuring display device key with mandatory required field', async () => {
       const container = await AstroContainer.create();
       const result = await container.renderToString(DisplaySetupModal);
 
       expect(result).toContain('id="display-setup-modal"');
       expect(result).toContain('id="setup-display-key"');
+      expect(result).toContain('WAJIB');
+      expect(result).toMatch(/id="setup-display-key"[^>]*required/);
       expect(result).toContain('id="btn-save-display-setup"');
     });
   });

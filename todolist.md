@@ -214,4 +214,17 @@ src/
 - [x] Footer metadata arsitektur sistem (Astro v7, Tailwind CSS v4, PWA, Golang Fiber, PostgreSQL).
 - [x] Unit & container testing komprehensif pada [`tests/index.test.ts`](tests/index.test.ts) (5 tests PASS 100%, total 163 tests PASS).
 
+---
+
+### Fase 9: Pengetatan Setup Device, Device Key Admin, & Menu Pengaturan Kiosk/Display
+- [x] Eliminasi fallback hardcoded demo pada Kiosk (`/kiosk`) dan penegakan alur input `slug` & `kiosk_key` via `KioskSetupModal`.
+- [x] Pengetatan `device_key` wajib pada Layar Display TV (`/display`) dan `DisplaySetupModal` (`required` & label `WAJIB`).
+- [x] Implementasi card manajemen Display Device Key pada Panel Admin (`/admin/display`) dengan input, copy to clipboard, simpan ke browser, dan parameter URL otomatis.
+- [x] Implementasi komponen `DeviceSettingsMenu.astro` (icon button gear di sudut kiri bawah sebelah teks Pengumuman).
+- [x] Fitur Logout / Reset Device Configuration (pembersihan storage & buka kembali modal pairing).
+- [x] Fitur Toggle Fullscreen (masuk/keluar layar penuh via Fullscreen API).
+- [x] Fitur Toggle Dark/Light Mode dengan persistensi tema di `localStorage` dan styling adaptif.
+- [x] Automated testing: 31 test suites / 167 tests PASS 100% dan verifikasi `npm run check` 0 errors.
+
+
 

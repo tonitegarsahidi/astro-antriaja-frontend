@@ -83,7 +83,7 @@ describe('Admin Pages & Layouts', () => {
   });
 
   describe('admin/display.astro', () => {
-    it('renders TV display settings form with running text, media type, and preview card', async () => {
+    it('renders TV display settings form with running text, media type, preview card, and device key section', async () => {
       const container = await AstroContainer.create();
       const result = await container.renderToString(AdminDisplayPage);
 
@@ -94,6 +94,12 @@ describe('Admin Pages & Layouts', () => {
       expect(result).toContain('id="toggle-voice-enabled"');
       expect(result).toContain('id="btn-save-display-settings"');
       expect(result).toContain('id="display-preview-card"');
+
+      // Display Device Key Management Section
+      expect(result).toContain('Display Device Key');
+      expect(result).toContain('id="input-display-device-key"');
+      expect(result).toContain('id="btn-copy-device-key"');
+      expect(result).toContain('id="btn-save-device-key"');
     });
   });
 });

@@ -50,7 +50,9 @@ const { title = 'Kiosk Antrian', tenantName = 'AntriAja' } = Astro.props;
       </main>
 
       <footer class="kiosk-footer">
-        <p>Sentuh salah satu tombol kategori layanan di atas untuk mengambil tiket antrian.</p>
+        <slot name="footer">
+          <p>Sentuh salah satu tombol kategori layanan di atas untuk mengambil tiket antrian.</p>
+        </slot>
       </footer>
     </div>
   </body>
@@ -89,6 +91,15 @@ const { title = 'Kiosk Antrian', tenantName = 'AntriAja' } = Astro.props;
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  body.kiosk-mode.theme-dark {
+    --color-surface: #0f172a;
+    --color-bg: #070a12;
+    --color-text: #f8fafc;
+    --color-text-muted: #94a3b8;
+    --color-border: #1e293b;
   }
 
   .kiosk-frame {

@@ -23,12 +23,25 @@ describe('Display TV Page (/display)', () => {
     expect(result).toContain('id="running-text-marquee"');
   });
 
-  it('renders audio unlock splash overlay and device key setup modal', async () => {
+  it('renders bottom-left settings icon button with logout, fullscreen, and theme toggles', async () => {
+    const container = await AstroContainer.create();
+    const result = await container.renderToString(DisplayIndexPage);
+
+    expect(result).toContain('id="btn-device-settings"');
+    expect(result).toContain('id="device-settings-menu"');
+    expect(result).toContain('id="btn-menu-logout"');
+    expect(result).toContain('id="btn-menu-fullscreen"');
+    expect(result).toContain('id="btn-menu-theme"');
+  });
+
+  it('renders audio unlock splash overlay and mandatory device key setup modal', async () => {
     const container = await AstroContainer.create();
     const result = await container.renderToString(DisplayIndexPage);
 
     expect(result).toContain('id="audio-unlock-overlay"');
     expect(result).toContain('id="display-setup-modal"');
+    expect(result).toContain('id="setup-display-key"');
+    expect(result).toMatch(/required/i);
   });
 
   it('includes client orchestration script for SSE connection and audio playback', async () => {

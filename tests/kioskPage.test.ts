@@ -21,6 +21,18 @@ describe('Kiosk Touchscreen Page (pages/kiosk/index.astro)', () => {
     expect(result).toContain('id="kiosk-error"');
     expect(result).toContain('id="btn-open-vip-modal"');
     expect(result).toContain('id="kiosk-clock"');
+    expect(result).toContain('id="kiosk-setup-modal"');
+  });
+
+  it('renders bottom-left settings icon button with logout, fullscreen, and theme toggles', async () => {
+    const container = await AstroContainer.create();
+    const result = await container.renderToString(KioskPage);
+
+    expect(result).toContain('id="btn-device-settings"');
+    expect(result).toContain('id="device-settings-menu"');
+    expect(result).toContain('id="btn-menu-logout"');
+    expect(result).toContain('id="btn-menu-fullscreen"');
+    expect(result).toContain('id="btn-menu-theme"');
   });
 
   it('includes interactive client module script for touch events and SSE sync', async () => {

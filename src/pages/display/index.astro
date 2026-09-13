@@ -94,8 +94,12 @@ import DisplaySetupModal from '../../components/display/DisplaySetupModal.astro'
     currentSlug = config.slug;
     currentDeviceKey = config.deviceKey;
 
-    if (!currentSlug) {
+    if (!currentSlug || !currentDeviceKey) {
       const setupModal = document.getElementById('display-setup-modal');
+      const inputSlug = document.getElementById('setup-tenant-slug') as HTMLInputElement;
+      const inputKey = document.getElementById('setup-display-key') as HTMLInputElement;
+      if (inputSlug && currentSlug) inputSlug.value = currentSlug;
+      if (inputKey && currentDeviceKey) inputKey.value = currentDeviceKey;
       if (setupModal) setupModal.classList.remove('hidden');
       return;
     }
@@ -401,18 +405,17 @@ import DisplaySetupModal from '../../components/display/DisplaySetupModal.astro'
       const slugVal = inputSlug?.value.trim();
       const keyVal = inputKey?.value.trim();
 
-      if (!slugVal) {
-        alert('Mohon masukkan slug instansi');
+      if (!slugVal || !keyVal) {
+        alert('Slug instansi dan Display Device Key wajib diisi!');
         return;
       }
 
       localStorage.setItem('antriaja_active_tenant_slug', slugVal);
-      if (keyVal) {
-        localStorage.setItem(`antriaja_display_key_${slugVal}`, keyVal);
-      }
+      localStorage.setItem(`antriaja_display_key_${slugVal}`, keyVal);
+      localStorage.setItem('antriaja_display_key', keyVal);
 
       if (setupModal) setupModal.classList.add('hidden');
-      window.location.search = `?slug=${encodeURIComponent(slugVal)}${keyVal ? `&device_key=${encodeURIComponent(keyVal)}` : ''}`;
+      window.location.search = `?slug=${encodeURIComponent(slugVal)}&device_key=${encodeURIComponent(keyVal)}`;
     });
   }
 
@@ -421,6 +424,22 @@ import DisplaySetupModal from '../../components/display/DisplaySetupModal.astro'
       setupModal.classList.add('hidden');
     });
   }
+
+  // Handle Logout / Reset Device dari DeviceSettingsMenu
+  window.addEventListener('antriaja:logout', () => {
+    if (currentSlug) {
+      localStorage.removeItem(`antriaja_display_key_${currentSlug}`);
+    }
+    localStorage.removeItem('antriaja_display_key');
+    localStorage.removeItem('antriaja_active_tenant_slug');
+    currentDeviceKey = '';
+    sseClient.disconnect();
+    if (setupModal) {
+      if (inputSlug) inputSlug.value = '';
+      if (inputKey) inputKey.value = '';
+      setupModal.classList.remove('hidden');
+    }
+  });
 
   // Keyboard shortcut Ctrl + Shift + S untuk buka menu konfigurasi
   window.addEventListener('keydown', (e) => {

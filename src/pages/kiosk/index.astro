@@ -4,6 +4,7 @@ import VIPModal from '../../components/kiosk/VIPModal.astro';
 import TicketModal from '../../components/kiosk/TicketModal.astro';
 import ThermalReceipt from '../../components/kiosk/ThermalReceipt.astro';
 import KioskSetupModal from '../../components/kiosk/KioskSetupModal.astro';
+import DeviceSettingsMenu from '../../components/ui/DeviceSettingsMenu.astro';
 ---
 
 <KioskLayout title="Kiosk Mandiri" tenantName="AntriAja">
@@ -55,6 +56,17 @@ import KioskSetupModal from '../../components/kiosk/KioskSetupModal.astro';
     <!-- Template Thermal Receipt Print -->
     <ThermalReceipt />
   </div>
+
+  <!-- Bottom Footer Bar dengan Setting Icon di sebelah kiri teks Pengumuman -->
+  <div slot="footer" class="kiosk-footer-bar">
+    <div class="kiosk-footer-left">
+      <DeviceSettingsMenu />
+      <div class="kiosk-announcement-pill">
+        <span class="announcement-tag">PENGUMUMAN</span>
+        <span class="announcement-text">Sentuh salah satu tombol kategori layanan di atas untuk mengambil tiket antrian.</span>
+      </div>
+    </div>
+  </div>
 </KioskLayout>
 
 <script>
@@ -68,8 +80,10 @@ import KioskSetupModal from '../../components/kiosk/KioskSetupModal.astro';
   import {
     getTenantSlug,
     setTenantSlug,
+    removeTenantSlug,
     getDeviceKey,
     setDeviceKey,
+    removeDeviceKey,
   } from '../../lib/storage';
   import { formatIndonesianDate } from '../../lib/formatters';
   import type { KioskServiceSummaryResponse, TicketResponse } from '../../types/queue.types';
@@ -354,8 +368,20 @@ import KioskSetupModal from '../../components/kiosk/KioskSetupModal.astro';
 
   async function initKiosk(): Promise<void> {
     const params = new URLSearchParams(window.location.search);
-    const slugParam = params.get('slug') || getTenantSlug() || 'demo-bank';
-    const keyParam = params.get('key') || getDeviceKey('kiosk') || 'kiosk-demo-key-123';
+    const slugParam = params.get('slug') || getTenantSlug();
+    const keyParam = params.get('key') || getDeviceKey('kiosk');
+
+    if (!slugParam || !keyParam) {
+      loadingEl?.classList.add('is-hidden');
+      cardsContainer?.classList.add('is-hidden');
+      errorEl?.classList.add('is-hidden');
+      if (inputSlug && slugParam) inputSlug.value = slugParam;
+      if (inputKey && keyParam) inputKey.value = keyParam;
+      setupModal?.classList.remove('is-hidden');
+      setupModal?.classList.add('is-open');
+      setSignalStatus(false);
+      return;
+    }
 
     currentSlug = slugParam;
     currentKey = keyParam;
@@ -453,6 +479,24 @@ import KioskSetupModal from '../../components/kiosk/KioskSetupModal.astro';
       setupModal?.classList.add('is-hidden');
       initKiosk();
     }
+  });
+
+  // Handle Logout / Reset Device dari DeviceSettingsMenu
+  window.addEventListener('antriaja:logout', () => {
+    removeTenantSlug();
+    removeDeviceKey('kiosk');
+    currentSlug = '';
+    currentKey = '';
+    sseClient.disconnect();
+    if (cardsContainer) cardsContainer.innerHTML = '';
+    loadingEl?.classList.add('is-hidden');
+    cardsContainer?.classList.add('is-hidden');
+    errorEl?.classList.add('is-hidden');
+    if (inputSlug) inputSlug.value = '';
+    if (inputKey) inputKey.value = '';
+    setupModal?.classList.remove('is-hidden');
+    setupModal?.classList.add('is-open');
+    setSignalStatus(false);
   });
 
   initKiosk();
@@ -592,5 +636,48 @@ import KioskSetupModal from '../../components/kiosk/KioskSetupModal.astro';
     to {
       transform: rotate(360deg);
     }
+  }
+
+  .kiosk-footer-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 20;
+  }
+
+  .kiosk-footer-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .kiosk-announcement-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .announcement-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full);
+    background: #eff6ff;
+    color: var(--color-primary);
+    border: 1px solid #bfdbfe;
+  }
+
+  .announcement-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
   }
 </style>

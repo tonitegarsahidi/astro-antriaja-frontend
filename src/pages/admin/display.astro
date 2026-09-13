@@ -167,6 +167,58 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             </p>
           </div>
         </div>
+
+        <!-- Display Device Key Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center space-x-1.5">
+              <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+              <span>Display Device Key</span>
+            </h3>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              Otorisasi TV
+            </span>
+          </div>
+
+          <p class="text-xs text-slate-500">
+            Kunci otentikasi wajib untuk menghubungkan perangkat Smart TV ke sistem antrian instansi Anda.
+          </p>
+
+          <div class="space-y-2">
+            <label for="input-display-device-key" class="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">
+              Device Key Layar TV:
+            </label>
+            <div class="flex items-center gap-2">
+              <input
+                id="input-display-device-key"
+                type="text"
+                placeholder="Memuat display key..."
+                class="flex-1 px-3 py-2 text-xs font-mono rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50"
+              />
+              <button
+                id="btn-copy-device-key"
+                type="button"
+                title="Salin ke clipboard"
+                class="px-3 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+              >
+                <span>Salin</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+            <span class="text-[11px] text-slate-400">Simpan ke browser lokal ini:</span>
+            <button
+              id="btn-save-device-key"
+              type="button"
+              class="px-3.5 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+            >
+              Simpan di Browser
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -177,7 +229,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     getDisplaySettings,
     updateDisplaySettings,
   } from '../../services/displayService';
-  import { getTenantSlug } from '../../lib/storage';
+  import { getMe } from '../../services/authService';
+  import { getTenantSlug, getDeviceKey, setDeviceKey } from '../../lib/storage';
   import type { MediaType } from '../../types/display.types';
 
   const form = document.getElementById('display-settings-form') as HTMLFormElement | null;
@@ -187,6 +240,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   const voiceToggle = document.getElementById('toggle-voice-enabled') as HTMLInputElement | null;
   const submitBtn = document.getElementById('btn-save-display-settings') as HTMLButtonElement | null;
   const errorEl = document.getElementById('display-form-error');
+
+  const deviceKeyInput = document.getElementById('input-display-device-key') as HTMLInputElement | null;
+  const btnCopyKey = document.getElementById('btn-copy-device-key');
+  const btnSaveKey = document.getElementById('btn-save-device-key');
 
   const previewRunningText = document.getElementById('preview-running-text');
   const previewMedia = document.getElementById('preview-media-container');
@@ -225,11 +282,27 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       console.error('Gagal memuat display settings:', err);
     }
 
-    // Set TV link query slug
+    // Load Display Device Key from getMe() or localStorage
+    let activeKey = getDeviceKey('display') || '';
+    try {
+      const meRes = await getMe();
+      if (meRes.success && meRes.data?.tenant?.display_key) {
+        activeKey = meRes.data.tenant.display_key;
+        setDeviceKey('display', activeKey);
+      }
+    } catch (e) {
+      console.warn('Gagal memuat profil tenant:', e);
+    }
+
+    if (deviceKeyInput) {
+      deviceKeyInput.value = activeKey;
+    }
+
+    // Set TV link query slug & device_key
     const tvLink = document.getElementById('link-open-tv') as HTMLAnchorElement | null;
     const slug = getTenantSlug();
     if (tvLink && slug) {
-      tvLink.href = `/display?slug=${encodeURIComponent(slug)}`;
+      tvLink.href = `/display?slug=${encodeURIComponent(slug)}${activeKey ? `&device_key=${encodeURIComponent(activeKey)}` : ''}`;
     }
   }
 
@@ -254,6 +327,34 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     if (runningTextInput) runningTextInput.addEventListener('input', updateLivePreview);
     if (mediaTypeSelect) mediaTypeSelect.addEventListener('change', updateLivePreview);
     if (mediaUrlInput) mediaUrlInput.addEventListener('input', updateLivePreview);
+
+    btnCopyKey?.addEventListener('click', async () => {
+      if (!deviceKeyInput) return;
+      const keyVal = deviceKeyInput.value.trim();
+      if (!keyVal) return;
+      try {
+        await navigator.clipboard.writeText(keyVal);
+        showAlert('Display Device Key berhasil disalin ke clipboard', 'success');
+      } catch {
+        showAlert('Gagal menyalin ke clipboard', 'error');
+      }
+    });
+
+    btnSaveKey?.addEventListener('click', () => {
+      if (!deviceKeyInput) return;
+      const keyVal = deviceKeyInput.value.trim();
+      if (!keyVal) {
+        showAlert('Device key tidak boleh kosong', 'error');
+        return;
+      }
+      setDeviceKey('display', keyVal);
+      const slug = getTenantSlug();
+      const tvLink = document.getElementById('link-open-tv') as HTMLAnchorElement | null;
+      if (tvLink && slug) {
+        tvLink.href = `/display?slug=${encodeURIComponent(slug)}&device_key=${encodeURIComponent(keyVal)}`;
+      }
+      showAlert('Display Device Key berhasil disimpan ke storage browser', 'success');
+    });
 
     if (form) {
       form.addEventListener('submit', async (e) => {

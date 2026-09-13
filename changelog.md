@@ -18,6 +18,15 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
   - Section alur operasional 4-langkah (*Ambil Tiket di Kiosk $\rightarrow$ Tunggu & Pantau $\rightarrow$ Panggilan Loket $\rightarrow$ Selesai Dilayani*).
   - Footer dengan informasi metadata arsitektur stack teknologi (Astro v7, Tailwind CSS v4, PWA, Golang Fiber, PostgreSQL).
   - Pembaruan unit testing di [`tests/index.test.ts`](tests/index.test.ts) dengan 5 skenario uji komprehensif (100% PASS, total 163 automated tests PASS).
+- **Fase 9: Pengetatan Setup Device, Device Key Admin, & Menu Pengaturan Kiosk/Display:**
+  - Menghapus fallback demo otomatis (`demo-bank` & `kiosk-demo-key-123`) pada Kiosk (`/kiosk`) sehingga user wajib mengisi pairing via `KioskSetupModal` terlebih dahulu.
+  - Mengetatkan validasi `device_key` wajib pada Layar Display TV (`/display`) dan `DisplaySetupModal` (`required` dan label `WAJIB`).
+  - Menambahkan card Display Device Key pada Panel Admin (`/admin/display`) dengan fitur salin ke clipboard, simpan ke storage browser, dan launcher TV Display otomatis dengan query `?slug=...&device_key=...`.
+  - Pembuatan komponen reusable `DeviceSettingsMenu.astro` berupa tombol gear kecil di sudut kiri bawah di sebelah teks Pengumuman yang membuka popover 3 opsi:
+    - *Keluar / Ganti Perangkat*: membersihkan storage kredensial perangkat, memutus koneksi SSE, dan membuka kembali modal pairing.
+    - *Layar Penuh*: toggle mode fullscreen browser via Fullscreen API.
+    - *Mode Gelap / Terang*: toggle tema tampilan dengan persistensi di `localStorage` dan styling adaptif.
+  - Penambahan unit test baru `tests/deviceSettingsMenu.test.ts` dan pembaruan test suite `tests/kioskPage.test.ts`, `tests/displayPage.test.ts`, `tests/displayComponents.test.ts`, `tests/adminPages.test.ts` (31 test suites, 167 automated tests PASS 100%).
 - Penyusunan master arsitektur direktori frontend modular (`types/`, `lib/`, `services/`, `layouts/`, `components/`, `pages/`).
 - **Fase 1: Fondasi Arsitektur, Kontrak Tipe Data, & HTTP/SSE Client:**
   - Pembuatan kontrak tipe data TypeScript lengkap di `src/types/` (`api`, `auth`, `master`, `queue`, `display`, `sse`) yang selaras 100% dengan backend.
