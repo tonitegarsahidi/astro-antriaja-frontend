@@ -169,3 +169,24 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
     - Penambahan automated test di `tests/baseLayout.test.ts` untuk memastikan tidak ada aturan unlayered yang merusak cascade layer Tailwind di masa mendatang.
     - Verifikasi 160/160 tests PASS (100%), `npm run check` 0 errors, dan static build sukses.
 
+- **2026-09-13: Fase D - Modul D2 (Analytics Dashboard & Reporting UI)**
+  - **Kontrak Tipe Data Analitik (`src/types/analytics.types.ts`):**
+    - Definisi antarmuka DTO analitik: `DailyTrendItem`, `AnalyticsSummaryResponse`, `PeakHourItem`, `ServiceAnalyticsItem`, dan `StaffAnalyticsItem`.
+  - **Service Layer Analitik (`src/services/analyticsService.ts`):**
+    - Implementasi `getAnalyticsSummary`, `getPeakHours`, `getServiceMetrics`, `getStaffPerformance` dengan otentikasi Bearer JWT admin.
+    - Implementasi `exportAnalyticsCSV` untuk mengunduh stream berkas CSV dari endpoint backend.
+  - **Navigasi Admin Sidebar (`src/layouts/AdminLayout.astro`):**
+    - Penambahan `activePage` 'analytics' dan link menu "Analitik & Laporan" (`/admin/analytics`).
+  - **Halaman Dashboard Analitik (`src/pages/admin/analytics.astro`):**
+    - Pemfilteran rentang tanggal (preset: Hari Ini, 7 Hari Terakhir, 30 Hari Terakhir, dan custom date picker).
+    - 6 kartu metrik utama: Total Tiket, Selesai, Kadaluwarsa, Avg Tunggu, Avg Layan, Tingkat Sukses.
+    - Grafik batang distribusi jam sibuk 24-jam zero-dependency (SVG/CSS murni dengan hover tooltip).
+    - Tabel performa kategori layanan dan tabel kecepatan/produktivitas staf loket.
+    - Tombol 1-klik ekspor CSV dengan penanganan download otomatis via Blob URL.
+  - **Verifikasi Kualitas Menyeluruh:**
+    - Penambahan unit test `tests/analyticsUI.test.ts` (7 skenario pengujian).
+    - Seluruh 35 test suites / 199 unit tests lulus 100% (`npm test`).
+    - Validasi tipe data Astro dan TypeScript strict mode (`npm run check`) 0 errors.
+    - Validasi static build (`npm run build`) sukses menghasilkan 20 halaman static HTML.
+
+

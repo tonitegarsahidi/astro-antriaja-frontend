@@ -297,6 +297,30 @@ src/
   - [x] `tenants.astro`: Konsol supervisi tenant lengkap dengan live search, filter status, tabel instansi, paginasi, modal tambah tenant, modal penangguhan/aktivasi, dan modal rotasi kunci perangkat darurat (Kiosk/Display).
 - [x] Automated testing: 34 test suites / 192 automated tests PASS 100% dan verifikasi `npm run check` 0 errors, `npm run build` sukses (19 static routes).
 
+---
+
+### Fase 13: Dashboard Analitik & Pelaporan Cabang (Modul D2)
+- [x] Kontrak Tipe Data TypeScript di `src/types/analytics.types.ts`:
+  - [x] `DailyTrendItem`, `AnalyticsSummaryResponse`, `PeakHourItem`, `ServiceAnalyticsItem`, `StaffAnalyticsItem`.
+- [x] Service Layer di `src/services/analyticsService.ts`:
+  - [x] `getAnalyticsSummary(startDate, endDate)`: Mengambil ringkasan metrik antrian dan tren harian.
+  - [x] `getPeakHours(date)`: Mengambil distribusi jam sibuk 24-jam.
+  - [x] `getServiceMetrics(startDate, endDate)`: Mengambil performa per kategori layanan.
+  - [x] `getStaffPerformance(startDate, endDate)`: Mengambil produktivitas staf petugas.
+  - [x] `exportAnalyticsCSV(startDate, endDate)`: Mengunduh berkas CSV laporan operasional.
+- [x] Integrasi Navigasi Sidebar di `src/layouts/AdminLayout.astro`:
+  - [x] Penambahan tipe `activePage` 'analytics'.
+  - [x] Penambahan menu "Analitik & Laporan" (`/admin/analytics`) dengan ikon grafik bar.
+- [x] Halaman Dashboard Analitik di `src/pages/admin/analytics.astro`:
+  - [x] Filter rentang tanggal dengan preset cepat (Hari Ini, 7 Hari Terakhir, 30 Hari Terakhir) dan pemilih tanggal manual.
+  - [x] 6 Kartu Metrik Utama: Total Tiket, Tiket Selesai, Kadaluwarsa, Rata-rata Waktu Tunggu, Rata-rata Waktu Layan, Tingkat Penyelesaian (%).
+  - [x] Grafik Batang Distribusi Jam Sibuk 24 Jam (Zero-dependency SVG/CSS dengan tooltip).
+  - [x] Tabel Performa Kategori Layanan (Total, Selesai, Waktu Tunggu, Waktu Layan, Tingkat Sukses).
+  - [x] Tabel Produktivitas & Kecepatan Kerja Staf Petugas.
+  - [x] Tombol 1-klik unduh berkas CSV laporan operasional.
+- [x] Automated testing: 35 test suites / 199 automated tests PASS 100% dan verifikasi `npm run check` 0 errors, `npm run build` sukses (20 static routes).
+
+
 
 
 
