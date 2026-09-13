@@ -320,6 +320,32 @@ src/
   - [x] Tombol 1-klik unduh berkas CSV laporan operasional.
 - [x] Automated testing: 35 test suites / 199 automated tests PASS 100% dan verifikasi `npm run check` 0 errors, `npm run build` sukses (20 static routes).
 
+---
+
+### Fase 14: Billing & Subscription UI (Modul E2)
+- [x] Kontrak Tipe Data TypeScript di `src/types/subscription.types.ts`:
+  - [x] `PlanResponse` (id, code, name, description, price_monthly, max_counters, max_services, max_staff, max_daily_tickets, features)
+  - [x] `UsageStats` (counters_count, max_counters, services_count, max_services, staff_count, max_staff, today_tickets, max_daily_tickets)
+  - [x] `SubscriptionDetailResponse` (id, tenant_id, status, current_period_start, current_period_end, plan, usage)
+  - [x] `UpgradePlanRequest` (plan_code)
+  - [x] `InvoiceResponse` (id, tenant_id, invoice_number, amount, status, paid_at, due_date, created_at)
+- [x] Service Layer di `src/services/subscriptionService.ts`:
+  - [x] `getPlans()`: Mengambil katalog seluruh paket langganan (`GET /plans`).
+  - [x] `getCurrentSubscription()`: Mengambil detail paket aktif dan ringkasan kuota terpakai (`GET /subscriptions/current`).
+  - [x] `upgradePlan(req)`: Mengajukan pergantian/upgrade paket (`POST /subscriptions/upgrade`).
+  - [x] `getInvoices()`: Mengambil riwayat invoice langganan (`GET /subscriptions/invoices`).
+- [x] Integrasi Navigasi Sidebar di `src/layouts/AdminLayout.astro`:
+  - [x] Penambahan tipe `activePage` 'billing'.
+  - [x] Penambahan menu "Paket & Langganan" (`/admin/billing`) dengan ikon kartu kredit/pembayaran.
+- [x] Halaman Dashboard Paket & Langganan di `src/pages/admin/billing.astro`:
+  - [x] Banner status paket aktif (Free / Starter / Pro / Enterprise), status langganan, dan periode aktif.
+  - [x] 4 Meteran Progres Kuota Operasional (Meja Loket, Kategori Layanan, Petugas Staf, Tiket Hari Ini) dengan penanganan unlimited & indikator warna dinamis.
+  - [x] Kartu Komparasi Paket (Pricing Cards 4-kolom) dengan label kuota, list fitur, badge terpopuler, dan tombol pilih/upgrade.
+  - [x] Modal Konfirmasi Upgrade Paket dengan rincian biaya, penyesuaian kuota langsung, dan validasi loading.
+  - [x] Tabel Riwayat Invoice & Tagihan dengan format mata uang IDR dan status pembayaran badge (Lunas, Menunggu, Dibatalkan).
+- [x] Automated testing: 36 test suites / 205 automated tests PASS 100% dan verifikasi `npm run check` 0 errors, `npm run build` sukses (21 static routes).
+
+
 
 
 

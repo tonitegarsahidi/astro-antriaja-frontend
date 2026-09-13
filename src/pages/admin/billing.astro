@@ -1,0 +1,657 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Paket & Langganan - AntriAja" activePage="billing">
+  <div class="space-y-6 max-w-6xl pb-12">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900 tracking-tight">
+          Paket & Manajemen Langganan
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">
+          Kelola paket langganan SaaS, pantau pemakaian batas kuota operasional, dan riwayat invoice tagihan
+        </p>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button
+          id="btn-refresh-billing"
+          type="button"
+          class="inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Segarkan Data</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert / Toast Banner -->
+    <div id="billing-alert" class="hidden p-4 rounded-xl text-xs font-semibold transition-all"></div>
+
+    <!-- 1. Active Plan Overview & Quota Meters Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div class="p-6 border-b border-slate-100 bg-linear-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center space-x-2.5">
+            <span class="text-xs font-medium text-slate-300">Paket Langganan Saat Ini:</span>
+            <span id="current-plan-name" class="text-lg font-black tracking-tight text-amber-400">Memuat...</span>
+            <span id="current-plan-status" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Active
+            </span>
+          </div>
+          <p id="current-period-info" class="text-xs text-slate-400">Periode berjalan aktif</p>
+        </div>
+
+        <div class="text-right">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Biaya Langganan</div>
+          <div id="current-plan-price" class="text-2xl font-black text-white">Rp 0 <span class="text-xs font-normal text-slate-400">/ bulan</span></div>
+        </div>
+      </div>
+
+      <!-- Quota Usage Meters Grid -->
+      <div class="p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            Penggunaan Kuota Operasional Instansi
+          </h3>
+          <span class="text-[11px] text-slate-500">Batas kapasitas yang berlaku pada paket Anda</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+          <!-- Meter 1: Loket -->
+          <div id="meter-counters" class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-700">
+              <span class="flex items-center space-x-1.5">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span>Meja Loket</span>
+              </span>
+              <span id="meter-counters-text" class="font-bold text-slate-900">0 / 0</span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div id="meter-counters-bar" class="h-full bg-blue-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p id="meter-counters-desc" class="text-[10px] text-slate-500">Kapasitas loket fisik pelayanan</p>
+          </div>
+
+          <!-- Meter 2: Layanan -->
+          <div id="meter-services" class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-700">
+              <span class="flex items-center space-x-1.5">
+                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span>Kategori Layanan</span>
+              </span>
+              <span id="meter-services-text" class="font-bold text-slate-900">0 / 0</span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div id="meter-services-bar" class="h-full bg-indigo-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p id="meter-services-desc" class="text-[10px] text-slate-500">Jumlah jenis antrian aktif</p>
+          </div>
+
+          <!-- Meter 3: Petugas Staf -->
+          <div id="meter-staff" class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-700">
+              <span class="flex items-center space-x-1.5">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span>Petugas Staf</span>
+              </span>
+              <span id="meter-staff-text" class="font-bold text-slate-900">0 / 0</span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div id="meter-staff-bar" class="h-full bg-emerald-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p id="meter-staff-desc" class="text-[10px] text-slate-500">Akun operator dan staf loket</p>
+          </div>
+
+          <!-- Meter 4: Tiket Hari Ini -->
+          <div id="meter-daily-tickets" class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-700">
+              <span class="flex items-center space-x-1.5">
+                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                </svg>
+                <span>Tiket Hari Ini</span>
+              </span>
+              <span id="meter-daily-tickets-text" class="font-bold text-slate-900">0 / 0</span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div id="meter-daily-tickets-bar" class="h-full bg-amber-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p id="meter-daily-tickets-desc" class="text-[10px] text-slate-500">Reset otomatis setiap hari</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Plans Comparison Section -->
+    <div class="space-y-4">
+      <div>
+        <h3 class="text-base font-bold text-slate-900 tracking-tight">
+          Pilihan Paket & Upgrade Fitur
+        </h3>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Tingkatkan kapasitas operasional dan aktifkan fitur lanjutan sesuai skala bisnis Anda
+        </p>
+      </div>
+
+      <div id="plan-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Skeleton loading or dynamically populated -->
+        <div class="p-6 rounded-2xl border border-slate-200 bg-white animate-pulse space-y-4">
+          <div class="h-4 bg-slate-200 rounded-md w-1/2"></div>
+          <div class="h-8 bg-slate-200 rounded-md w-3/4"></div>
+          <div class="space-y-2">
+            <div class="h-3 bg-slate-200 rounded-md"></div>
+            <div class="h-3 bg-slate-200 rounded-md"></div>
+            <div class="h-3 bg-slate-200 rounded-md"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Invoices History Table -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Riwayat Tagihan & Invoice</h3>
+            <p class="text-[11px] text-slate-500">Semua riwayat transaksi dan tagihan langganan SaaS instansi Anda</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <th class="py-3.5 px-6">Nomor Invoice</th>
+              <th class="py-3.5 px-6">Tanggal Diterbitkan</th>
+              <th class="py-3.5 px-6">Total Tagihan</th>
+              <th class="py-3.5 px-6">Status Pembayaran</th>
+              <th class="py-3.5 px-6">Jatuh Tempo / Lunas</th>
+            </tr>
+          </thead>
+          <tbody id="table-invoices-body" class="divide-y divide-slate-100 text-xs text-slate-700">
+            <tr>
+              <td colspan="5" class="py-8 text-center text-slate-400">
+                Memuat riwayat invoice...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upgrade Confirmation Modal -->
+  <div id="modal-upgrade-plan" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
+      <div class="p-6 text-center space-y-4">
+        <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 mx-auto flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Konfirmasi Upgrade Paket</h3>
+          <p class="text-xs text-slate-500 mt-1">
+            Anda akan beralih ke paket langganan berikut:
+          </p>
+        </div>
+
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-left space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500">Paket Pilihan:</span>
+            <span id="upgrade-target-plan-name" class="text-sm font-bold text-slate-900">-</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500">Biaya Bulanan:</span>
+            <span id="upgrade-target-plan-price" class="text-sm font-black text-blue-600">-</span>
+          </div>
+          <div class="pt-2 border-t border-slate-200 text-[11px] text-slate-600" id="upgrade-target-plan-desc">
+            Kuota baru akan langsung aktif setelah upgrade dikonfirmasi.
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3 pt-2">
+          <button
+            id="btn-cancel-upgrade"
+            type="button"
+            class="flex-1 px-4 py-2.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+          >
+            Batal
+          </button>
+          <button
+            id="btn-confirm-upgrade"
+            type="button"
+            class="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+          >
+            Konfirmasi Upgrade
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  import {
+    getPlans,
+    getCurrentSubscription,
+    upgradePlan,
+    getInvoices,
+  } from '../../services/subscriptionService';
+  import type {
+    PlanResponse,
+    SubscriptionDetailResponse,
+    InvoiceResponse,
+  } from '../../types/subscription.types';
+
+  // State
+  let currentSub: SubscriptionDetailResponse | null = null;
+  let allPlans: PlanResponse[] = [];
+  let selectedPlanCode: string | null = null;
+
+  // DOM Elements
+  const alertBox = document.getElementById('billing-alert');
+  const btnRefresh = document.getElementById('btn-refresh-billing');
+
+  // Overview Elements
+  const planNameEl = document.getElementById('current-plan-name');
+  const planStatusEl = document.getElementById('current-plan-status');
+  const planPriceEl = document.getElementById('current-plan-price');
+  const periodInfoEl = document.getElementById('current-period-info');
+
+  // Meter Elements
+  const meterCountersBar = document.getElementById('meter-counters-bar');
+  const meterCountersText = document.getElementById('meter-counters-text');
+
+  const meterServicesBar = document.getElementById('meter-services-bar');
+  const meterServicesText = document.getElementById('meter-services-text');
+
+  const meterStaffBar = document.getElementById('meter-staff-bar');
+  const meterStaffText = document.getElementById('meter-staff-text');
+
+  const meterDailyTicketsBar = document.getElementById('meter-daily-tickets-bar');
+  const meterDailyTicketsText = document.getElementById('meter-daily-tickets-text');
+
+  // Plan Cards Container
+  const planCardsContainer = document.getElementById('plan-cards-container');
+
+  // Modal Elements
+  const modalUpgrade = document.getElementById('modal-upgrade-plan');
+  const targetPlanNameEl = document.getElementById('upgrade-target-plan-name');
+  const targetPlanPriceEl = document.getElementById('upgrade-target-plan-price');
+  const targetPlanDescEl = document.getElementById('upgrade-target-plan-desc');
+  const btnCancelUpgrade = document.getElementById('btn-cancel-upgrade');
+  const btnConfirmUpgrade = document.getElementById('btn-confirm-upgrade');
+
+  // Invoices Table Body
+  const tableInvoicesBody = document.getElementById('table-invoices-body');
+
+  function showAlert(message: string, type: 'success' | 'error' = 'success') {
+    if (!alertBox) return;
+    alertBox.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'bg-rose-50', 'text-rose-700', 'border-rose-200');
+    if (type === 'success') {
+      alertBox.classList.add('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-200');
+    } else {
+      alertBox.classList.add('bg-rose-50', 'text-rose-700', 'border', 'border-rose-200');
+    }
+    alertBox.textContent = message;
+    setTimeout(() => alertBox.classList.add('hidden'), 5000);
+  }
+
+  function formatIDR(amount: number): string {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  }
+
+  function formatDate(dateStr: string | null): string {
+    if (!dateStr) return '-';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch {
+      return dateStr;
+    }
+  }
+
+  function updateMeter(
+    barEl: HTMLElement | null,
+    textEl: HTMLElement | null,
+    current: number,
+    max: number
+  ) {
+    if (!barEl || !textEl) return;
+    if (max <= 0) {
+      barEl.style.width = '100%';
+      barEl.className = 'h-full bg-emerald-500 rounded-full transition-all duration-500';
+      textEl.textContent = `${current} / Unlimited`;
+      return;
+    }
+
+    const pct = Math.min(100, Math.round((current / max) * 100));
+    barEl.style.width = `${pct}%`;
+    textEl.textContent = `${current} / ${max} (${pct}%)`;
+
+    // Dynamic color indicator
+    barEl.className = 'h-full rounded-full transition-all duration-500';
+    if (pct >= 90) {
+      barEl.classList.add('bg-rose-500');
+    } else if (pct >= 75) {
+      barEl.classList.add('bg-amber-500');
+    } else {
+      barEl.classList.add('bg-blue-600');
+    }
+  }
+
+  function renderSubscriptionOverview() {
+    if (!currentSub) return;
+
+    if (planNameEl) planNameEl.textContent = currentSub.plan.name;
+    if (planPriceEl) {
+      planPriceEl.innerHTML = `${formatIDR(currentSub.plan.price_monthly)} <span class="text-xs font-normal text-slate-400">/ bulan</span>`;
+    }
+
+    if (planStatusEl) {
+      planStatusEl.textContent = currentSub.status.toUpperCase();
+      if (currentSub.status === 'active') {
+        planStatusEl.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+      } else if (currentSub.status === 'trial') {
+        planStatusEl.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30';
+      } else {
+        planStatusEl.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30';
+      }
+    }
+
+    if (periodInfoEl) {
+      const start = formatDate(currentSub.current_period_start);
+      const end = currentSub.current_period_end ? formatDate(currentSub.current_period_end) : 'Tanpa batas waktu';
+      periodInfoEl.textContent = `Periode: ${start} - ${end}`;
+    }
+
+    // Update Quota Meters
+    const usage = currentSub.usage;
+    updateMeter(meterCountersBar, meterCountersText, usage.counters_count, usage.max_counters);
+    updateMeter(meterServicesBar, meterServicesText, usage.services_count, usage.max_services);
+    updateMeter(meterStaffBar, meterStaffText, usage.staff_count, usage.max_staff);
+    updateMeter(meterDailyTicketsBar, meterDailyTicketsText, usage.today_tickets, usage.max_daily_tickets);
+  }
+
+  function renderPlanCards() {
+    if (!planCardsContainer) return;
+    if (allPlans.length === 0) {
+      planCardsContainer.innerHTML = `
+        <div class="col-span-full py-8 text-center text-xs text-slate-400">
+          Tidak ada paket langganan yang tersedia saat ini.
+        </div>
+      `;
+      return;
+    }
+
+    const currentCode = currentSub?.plan.code;
+
+    planCardsContainer.innerHTML = allPlans.map((p) => {
+      const isCurrent = p.code === currentCode;
+      const isPopular = p.code === 'pro';
+
+      const countersLabel = p.max_counters > 0 ? `${p.max_counters} Loket` : 'Unlimited Loket';
+      const servicesLabel = p.max_services > 0 ? `${p.max_services} Kategori Layanan` : 'Unlimited Layanan';
+      const staffLabel = p.max_staff > 0 ? `${p.max_staff} Petugas Staf` : 'Unlimited Staf';
+      const ticketsLabel = p.max_daily_tickets > 0 ? `${p.max_daily_tickets.toLocaleString('id-ID')} Tiket / Hari` : 'Unlimited Tiket / Hari';
+
+      return `
+        <div class="relative bg-white rounded-2xl border transition-all flex flex-col justify-between ${
+          isCurrent
+            ? 'border-blue-500 shadow-md ring-2 ring-blue-500/20'
+            : isPopular
+            ? 'border-indigo-300 shadow-sm'
+            : 'border-slate-200 shadow-2xs hover:border-slate-300'
+        }">
+          ${
+            isPopular
+              ? `<div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-linear-to-r from-indigo-600 to-blue-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-xs">Paling Populer</div>`
+              : ''
+          }
+          
+          <div class="p-6 space-y-4">
+            <div>
+              <h4 class="text-base font-bold text-slate-900">${p.name}</h4>
+              <p class="text-[11px] text-slate-500 mt-1 line-clamp-2">${p.description}</p>
+            </div>
+
+            <div class="py-2 border-y border-slate-100">
+              <span class="text-2xl font-black text-slate-900">${formatIDR(p.price_monthly)}</span>
+              <span class="text-xs text-slate-500 font-medium">/ bulan</span>
+            </div>
+
+            <!-- Quotas overview -->
+            <div class="space-y-2 text-xs text-slate-700">
+              <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="font-semibold">${countersLabel}</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="font-semibold">${servicesLabel}</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="font-semibold">${staffLabel}</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="font-semibold">${ticketsLabel}</span>
+              </div>
+            </div>
+
+            <!-- Features list -->
+            ${
+              p.features && p.features.length > 0
+                ? `
+                <div class="pt-2 border-t border-slate-100 space-y-1.5 text-[11px] text-slate-600">
+                  ${p.features
+                    .slice(0, 4)
+                    .map(
+                      (f) => `
+                    <div class="flex items-center space-x-1.5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></span>
+                      <span class="truncate">${f}</span>
+                    </div>
+                  `
+                    )
+                    .join('')}
+                </div>
+              `
+                : ''
+            }
+          </div>
+
+          <div class="p-6 pt-0">
+            ${
+              isCurrent
+                ? `
+                <button
+                  type="button"
+                  disabled
+                  class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 cursor-not-allowed text-center"
+                >
+                  Paket Saat Ini
+                </button>
+              `
+                : `
+                <button
+                  type="button"
+                  data-plan-code="${p.code}"
+                  class="btn-select-plan w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white ${
+                    isPopular ? 'bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20' : 'bg-slate-900 hover:bg-slate-800'
+                  } transition-all cursor-pointer text-center"
+                >
+                  Pilih / Upgrade Paket
+                </button>
+              `
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach click listener to upgrade buttons
+    document.querySelectorAll('.btn-select-plan').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const code = btn.getAttribute('data-plan-code');
+        if (code) openUpgradeModal(code);
+      });
+    });
+  }
+
+  function renderInvoicesTable(invoices: InvoiceResponse[]) {
+    if (!tableInvoicesBody) return;
+    if (invoices.length === 0) {
+      tableInvoicesBody.innerHTML = `
+        <tr>
+          <td colspan="5" class="py-8 text-center text-slate-400">
+            Belum ada riwayat tagihan invoice untuk instansi Anda.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tableInvoicesBody.innerHTML = invoices.map((inv) => {
+      let statusBadge = '';
+      if (inv.status === 'paid') {
+        statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700">Lunas</span>';
+      } else if (inv.status === 'pending') {
+        statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">Menunggu</span>';
+      } else {
+        statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600">Dibatalkan</span>';
+      }
+
+      return `
+        <tr class="hover:bg-slate-50/70 transition-colors">
+          <td class="py-3.5 px-6 font-mono font-bold text-slate-900">${inv.invoice_number}</td>
+          <td class="py-3.5 px-6 text-slate-600">${formatDate(inv.created_at)}</td>
+          <td class="py-3.5 px-6 font-bold text-slate-900">${formatIDR(inv.amount)}</td>
+          <td class="py-3.5 px-6">${statusBadge}</td>
+          <td class="py-3.5 px-6 text-slate-500">
+            ${inv.paid_at ? `Lunas pada ${formatDate(inv.paid_at)}` : inv.due_date ? `Jatuh tempo: ${formatDate(inv.due_date)}` : '-'}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function openUpgradeModal(code: string) {
+    const targetPlan = allPlans.find((p) => p.code === code);
+    if (!targetPlan) return;
+
+    selectedPlanCode = code;
+    if (targetPlanNameEl) targetPlanNameEl.textContent = targetPlan.name;
+    if (targetPlanPriceEl) targetPlanPriceEl.textContent = `${formatIDR(targetPlan.price_monthly)} / bulan`;
+    if (targetPlanDescEl) targetPlanDescEl.textContent = targetPlan.description;
+
+    modalUpgrade?.classList.remove('hidden');
+  }
+
+  function closeUpgradeModal() {
+    selectedPlanCode = null;
+    modalUpgrade?.classList.add('hidden');
+  }
+
+  async function loadBillingData() {
+    try {
+      const [subRes, plansRes, invRes] = await Promise.all([
+        getCurrentSubscription(),
+        getPlans(),
+        getInvoices(),
+      ]);
+
+      if (subRes.success && subRes.data) {
+        currentSub = subRes.data;
+        renderSubscriptionOverview();
+      }
+
+      if (plansRes.success && plansRes.data) {
+        allPlans = plansRes.data;
+        renderPlanCards();
+      }
+
+      if (invRes.success && invRes.data) {
+        renderInvoicesTable(invRes.data);
+      }
+    } catch (err: any) {
+      showAlert(err.message || 'Gagal memuat data paket & langganan', 'error');
+    }
+  }
+
+  async function handleConfirmUpgrade() {
+    if (!selectedPlanCode || !btnConfirmUpgrade) return;
+
+    const originalText = btnConfirmUpgrade.textContent;
+    btnConfirmUpgrade.textContent = 'Memproses...';
+    (btnConfirmUpgrade as HTMLButtonElement).disabled = true;
+
+    try {
+      const res = await upgradePlan({ plan_code: selectedPlanCode });
+      if (!res.success || !res.data) {
+        throw new Error(res.error?.message || 'Gagal melakukan upgrade paket');
+      }
+
+      closeUpgradeModal();
+      showAlert(`Selamat! Paket berhasil diperbarui ke ${res.data.plan.name}. Kuota baru langsung aktif.`);
+      await loadBillingData();
+    } catch (err: any) {
+      showAlert(err.message || 'Gagal melakukan upgrade paket', 'error');
+    } finally {
+      btnConfirmUpgrade.textContent = originalText;
+      (btnConfirmUpgrade as HTMLButtonElement).disabled = false;
+    }
+  }
+
+  // Event Listeners
+  btnRefresh?.addEventListener('click', () => loadBillingData());
+  btnCancelUpgrade?.addEventListener('click', () => closeUpgradeModal());
+  btnConfirmUpgrade?.addEventListener('click', () => handleConfirmUpgrade());
+
+  // Close modal on escape
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modalUpgrade?.classList.contains('hidden')) {
+      closeUpgradeModal();
+    }
+  });
+
+  // Initialize
+  loadBillingData();
+</script>

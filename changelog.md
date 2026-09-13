@@ -168,7 +168,6 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
     - Mengembalikan fungsi padding (`p-4`, `p-6`, `px-4`), margin (`m-4`, `space-y-6`), rounded corners (`rounded-2xl`), shadow (`shadow-sm`, `shadow-md`), serta warna dan border tombol di seluruh halaman `/admin`, `/staff`, dan login.
     - Penambahan automated test di `tests/baseLayout.test.ts` untuk memastikan tidak ada aturan unlayered yang merusak cascade layer Tailwind di masa mendatang.
     - Verifikasi 160/160 tests PASS (100%), `npm run check` 0 errors, dan static build sukses.
-
 - **2026-09-13: Fase D - Modul D2 (Analytics Dashboard & Reporting UI)**
   - **Kontrak Tipe Data Analitik (`src/types/analytics.types.ts`):**
     - Definisi antarmuka DTO analitik: `DailyTrendItem`, `AnalyticsSummaryResponse`, `PeakHourItem`, `ServiceAnalyticsItem`, dan `StaffAnalyticsItem`.
@@ -188,5 +187,25 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
     - Seluruh 35 test suites / 199 unit tests lulus 100% (`npm test`).
     - Validasi tipe data Astro dan TypeScript strict mode (`npm run check`) 0 errors.
     - Validasi static build (`npm run build`) sukses menghasilkan 20 halaman static HTML.
+
+- **2026-09-13: Fase E - Modul E2 (Billing & Subscription UI)**
+  - **Kontrak Tipe Data Subscription (`src/types/subscription.types.ts`):**
+    - Definisi antarmuka DTO: `PlanResponse`, `UsageStats`, `SubscriptionDetailResponse`, `UpgradePlanRequest`, dan `InvoiceResponse`.
+  - **Service Layer Subscription (`src/services/subscriptionService.ts`):**
+    - Implementasi `getPlans`, `getCurrentSubscription`, `upgradePlan`, dan `getInvoices` dengan otentikasi Bearer JWT admin.
+  - **Navigasi Admin Sidebar (`src/layouts/AdminLayout.astro`):**
+    - Penambahan `activePage` 'billing' dan item menu "Paket & Langganan" (`/admin/billing`).
+  - **Halaman Dashboard Billing & Subscription (`src/pages/admin/billing.astro`):**
+    - Kartu ringkasan paket aktif (nama paket, status langganan, nominal bulanan, periode berjalan).
+    - 4 Meteran Progres Kuota Pemakaian (Meja Loket, Kategori Layanan, Petugas Staf, Tiket Hari Ini) dengan penanganan unlimited & indikator warna dinamis.
+    - Katalog komparasi paket (Pricing Cards 4-kolom) dengan kuota, fitur unggulan, badge terpopuler, dan tombol upgrade.
+    - Modal konfirmasi upgrade paket interaktif dengan rincian biaya dan validasi loading.
+    - Tabel riwayat tagihan & invoice dengan pemformatan mata uang IDR dan status badge pembayaran.
+  - **Verifikasi Kualitas Menyeluruh:**
+    - Penambahan automated test `tests/billingUI.test.ts` (6 skenario pengujian API, navigasi, dan rendering halaman).
+    - Seluruh 36 test suites / 205 automated tests lulus 100% (`npm test`).
+    - Validasi tipe data Astro dan TypeScript strict mode (`npm run check`) 0 errors.
+    - Validasi static build (`npm run build`) sukses menghasilkan 21 halaman static HTML.
+
 
 
