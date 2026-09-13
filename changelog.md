@@ -9,6 +9,15 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
 
 ### Ditambahkan
 - Inisialisasi kompas pelacakan proyek [todolist.md](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/todolist.md) yang mencakup 7 fase pengerjaan terukur (Fondasi Arsitektur, Mobile Web Pengunjung, Kiosk Mandiri, Display TV, Konsol Staf, Panel Admin, PWA Hardening).
+- **Fase 8: Landing Page & Portal Navigasi Utama (`/`):**
+  - Redesain rute `/` ([`src/pages/index.astro`](src/pages/index.astro)) menjadi Landing Page profesional berbasis Tailwind CSS v4 dengan arsitektur modular.
+  - Navbar atas responsif lengkap dengan identitas logo, tautan anchor, serta tombol login cepat Staf (`/staff/login`) dan Admin (`/admin/login`).
+  - Hero section informatif dengan value proposition sistem antrian mandiri berbasis cloud dan CTA utama ke Kiosk Mandiri (`/kiosk`) dan Display TV (`/display`).
+  - Bagian sorotan keunggulan utama (Paperless via QR, Zero Hardware Lock-in BYOD, Sinkronisasi Realtime SSE).
+  - Katalog 5 modul sistem terintegrasi (Kiosk Mandiri, Display TV, Tiket Mobile Pengunjung, Konsol Petugas Loket, Panel Administrasi Cabang) dengan penjelasan cara kerja, target perangkat, tag fitur kunci, dan tautan langsung.
+  - Section alur operasional 4-langkah (*Ambil Tiket di Kiosk $\rightarrow$ Tunggu & Pantau $\rightarrow$ Panggilan Loket $\rightarrow$ Selesai Dilayani*).
+  - Footer dengan informasi metadata arsitektur stack teknologi (Astro v7, Tailwind CSS v4, PWA, Golang Fiber, PostgreSQL).
+  - Pembaruan unit testing di [`tests/index.test.ts`](tests/index.test.ts) dengan 5 skenario uji komprehensif (100% PASS, total 163 automated tests PASS).
 - Penyusunan master arsitektur direktori frontend modular (`types/`, `lib/`, `services/`, `layouts/`, `components/`, `pages/`).
 - **Fase 1: Fondasi Arsitektur, Kontrak Tipe Data, & HTTP/SSE Client:**
   - Pembuatan kontrak tipe data TypeScript lengkap di `src/types/` (`api`, `auth`, `master`, `queue`, `display`, `sse`) yang selaras 100% dengan backend.

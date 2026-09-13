@@ -203,3 +203,15 @@ src/
 - [x] Eliminasi unlayered universal reset pada BaseLayout yang menimpa CSS Cascade Layers Tailwind v4 (pemulihan padding, margin, border, dan modern clean styling pada /staff, /admin, dan login)
 - [x] Dokumentasi penggunaan frontend lengkap pada `README.md`
 
+---
+
+### Fase 8: Landing Page & Portal Navigasi Utama (`/`)
+- [x] Redesain rute `/` ([`src/pages/index.astro`](src/pages/index.astro)) menjadi Landing Page komprehensif, modern, dan informatif.
+- [x] Top navigation bar sticky dengan brand identity, badge SaaS, dan tombol pintas login Staf & Admin.
+- [x] Hero section dengan headline value proposition, ringkasan BYOD tanpa hardware lock-in, dan tombol CTA utama ke Kiosk & Display.
+- [x] Katalog 5 modul fungsionalitas sistem lengkap dengan deskripsi mendalam, target perangkat, tag fitur kunci, dan tautan langsung (`/kiosk`, `/display`, `/ticket`, `/staff`, `/admin`).
+- [x] Section alur operasional 4-langkah (Ambil Tiket $\rightarrow$ Pantau $\rightarrow$ Panggilan Loket $\rightarrow$ Selesai).
+- [x] Footer metadata arsitektur sistem (Astro v7, Tailwind CSS v4, PWA, Golang Fiber, PostgreSQL).
+- [x] Unit & container testing komprehensif pada [`tests/index.test.ts`](tests/index.test.ts) (5 tests PASS 100%, total 163 tests PASS).
+
+
