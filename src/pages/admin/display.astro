@@ -507,6 +507,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       if (nativeMale) {
         hintEl.textContent = `✓ Suara pria asli: "${nativeMale.name}"`;
         hintEl.className = 'text-[9px] text-emerald-600 font-medium mt-1 block';
+      } else if (matching[0].name.toLowerCase().includes('google')) {
+        hintEl.textContent = `⚠️ Google Chrome mengunci pitch suara "Google Bahasa Indonesia" (suara tetap wanita). Buka di Microsoft Edge jika ingin suara pria asli (Microsoft Ardi).`;
+        hintEl.className = 'text-[9px] text-amber-600 font-medium mt-1 block';
       } else {
         hintEl.textContent = `ℹ️ Modulasi baritone pria aktif (basis: ${matching[0].name})`;
         hintEl.className = 'text-[9px] text-blue-600 font-medium mt-1 block';
