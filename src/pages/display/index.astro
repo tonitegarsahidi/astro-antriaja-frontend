@@ -147,6 +147,15 @@ import DisplaySetupModal from '../../components/display/DisplaySetupModal.astro'
     isVoiceEnabled = settings.voice_enabled;
     globalAudioEngine.setMuted(!isVoiceEnabled);
 
+    // Audio Engine Configuration (Chime sound, Language, Gender, Pitch, Speed)
+    globalAudioEngine.configureAudio({
+      bellSound: settings.bell_sound || 'ding_dong',
+      voiceLang: settings.voice_lang || 'id-ID',
+      voiceGender: settings.voice_gender || 'female',
+      voicePitch: typeof settings.voice_pitch === 'number' ? settings.voice_pitch : 1.0,
+      voiceRate: typeof settings.voice_rate === 'number' ? settings.voice_rate : 0.9,
+    });
+
     // Running text
     const marqueeEl = document.getElementById('running-text-content');
     if (marqueeEl && settings.running_text) {

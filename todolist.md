@@ -364,9 +364,11 @@ src/
   - [x] Integrasi Display Device Key ke dalam formulir pengaturan utama tepat di bawah seksi panggilan suara/TTS.
   - [x] Mempertahankan kompatibilitas ID elemen (`#input-display-device-key`, `#btn-copy-device-key`, `#btn-save-device-key`).
   - [x] Pembersihan kolom samping kanan menjadi informasi operasional TV yang lebih rapi.
-- [ ] Advanced Audio & TTS Engine (Langkah 2):
-  - [ ] Sintesis bel lonceng Web Audio API multi-pilihan (6 variasi nada bel + 1 hening).
-  - [ ] Opsi konfigurasi bahasa ucapan (`id-ID`, `en-US`), gender suara (`female`, `male`), pitch slider (0.5 - 1.5), dan tempo slider (0.7 - 1.3).
-  - [ ] Tombol pratinjau audio interaktif "Uji Suara Panggilan".
-  - [ ] Sinkronisasi realtime ke TV Display via SSE event `DISPLAY_SETTINGS_UPDATED`.
+- [x] Advanced Audio & TTS Engine (Langkah 2):
+  - [x] Sintesis bel lonceng Web Audio API multi-pilihan (6 variasi nada bel: `ding_dong`, `tri_tone`, `airport`, `single_ting`, `soft_pulse`, `marimba` + 1 hening: `none`).
+  - [x] Opsi konfigurasi bahasa ucapan (`id-ID`, `en-US`), gender suara (`female`, `male`), pitch slider (0.5 - 1.5), dan tempo slider (0.7 - 1.3).
+  - [x] Tombol pratinjau audio interaktif "Uji Suara Panggilan" dengan visual loading dan unlock AudioContext.
+  - [x] Sinkronisasi realtime ke TV Display (`/display`) via SSE event `DISPLAY_SETTINGS_UPDATED`.
+  - [x] Automated testing: 36 test suites / 209 tests PASS 100%, `npm run check` 0 errors, `npm run build` sukses (21 static routes).
+
 

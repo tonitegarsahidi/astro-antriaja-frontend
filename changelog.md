@@ -8,12 +8,16 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
 ## [Unreleased] - 2026-09-13
 
 ### Ditambahkan
-- **Fase 16: Redesain Navigasi Admin Sidebar & Reorganisasi Display Key:**
+- **Fase 16: Redesain Navigasi Admin Sidebar, Reorganisasi Display Key, & Advanced Audio/TTS Engine:**
   - Redesain navigasi sidebar `src/layouts/AdminLayout.astro` dengan pembagian kategori hirarkis terstruktur: "Navigasi Utama", "Operasional Antrian", dan "Pengaturan & Sistem".
   - Penambahan drawer slide-over mobile dengan overlay backdrop gelap (`#admin-sidebar-backdrop`) untuk ergonomi layar tablet dan smartphone.
   - Penambahan kartu profil pengguna administrator dan tombol "Keluar / Logout" yang jelas dan menonjol (`#btn-admin-logout`) di bagian bawah sidebar.
   - Reorganisasi tampilan halaman `src/pages/admin/display.astro`: pemindahan kartu Display Device Key dari kolom samping kanan menjadi terintegrasi langsung ke dalam formulir pengaturan utama di bawah seksi panggilan suara/TTS.
-  - Pembaruan automated test suite `tests/adminPages.test.ts` (36 test suites, 205 tests PASS 100%, check 0 errors).
+  - Implementasi Web Audio Chime multi-opsi pada `src/lib/audioPlayer.ts`: 6 nada bell synthesizer harmonis (`ding_dong`, `tri_tone`, `airport`, `single_ting`, `soft_pulse`, `marimba`) + opsi hening (`none`).
+  - Penambahan opsi bahasa TTS multi-lingual (`id-ID`, `en-US`), preferensi karakter suara (`female`, `male`), kontrol pitch dinamis (0.5–1.5), dan kecepatan/tempo (0.7–1.3).
+  - Penambahan tombol interaktif "Uji Suara Panggilan" (`#btn-test-audio`) pada `/admin/display` dengan feedback visual loading.
+  - Sinkronisasi realtime ke Layar TV (`src/pages/display/index.astro`) saat menerima event SSE `DISPLAY_SETTINGS_UPDATED`.
+  - Pembaruan automated test suite `tests/audioPlayer.test.ts`, `tests/adminPages.test.ts`, `tests/displayService.test.ts`, dan `tests/adminDisplayService.test.ts` (36 test suites, 209 tests PASS 100%, check 0 errors, build 21 pages).
 
 - **Fase 12: Platform Super-Admin CMS Dashboard (Modul C3 SaaS):**
   - Pembuatan kontrak tipe data TypeScript di `src/types/platform.types.ts` (`PlatformAdmin`, `PlatformLoginRequest`, `PlatformLoginResponse`, `PlatformMetricsResponse`, `PlatformTenantListItem`, `PlatformTenantListResponse`, `PlatformTenantDetailResponse`, `CreatePlatformTenantRequest`, `RotatePlatformDeviceKeyRequest`, dll).

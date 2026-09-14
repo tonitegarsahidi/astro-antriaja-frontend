@@ -85,24 +85,142 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             </div>
           </div>
 
-          <!-- Voice Enabled Toggle -->
-          <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-            <div>
-              <span class="text-xs font-bold text-slate-800">Panggilan Suara Audio (TTS)</span>
-              <p class="text-[11px] text-slate-500">
-                Memutar notifikasi suara bell chime dan pembacaan nomor antrian pada speaker TV
-              </p>
+          <!-- Voice & Audio Configuration Section -->
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold text-slate-800">Panggilan Suara Audio (TTS)</span>
+                <p class="text-[11px] text-slate-500">
+                  Memutar notifikasi suara bell chime dan pembacaan nomor antrian pada speaker TV
+                </p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  id="toggle-voice-enabled"
+                  name="voice_enabled"
+                  type="checkbox"
+                  checked
+                  class="sr-only peer"
+                />
+                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input
-                id="toggle-voice-enabled"
-                name="voice_enabled"
-                type="checkbox"
-                checked
-                class="sr-only peer"
-              />
-              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
+
+            <!-- Detail Pengaturan Audio & Bel Chime -->
+            <div id="audio-settings-details" class="pt-3 border-t border-slate-200/80 space-y-3.5">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label for="select-bell-sound" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                    Bunyi Bell (Chime)
+                  </label>
+                  <select
+                    id="select-bell-sound"
+                    name="bell_sound"
+                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                  >
+                    <option value="ding_dong">Klasik (Ding-Dong 2-Nada)</option>
+                    <option value="tri_tone">Modern (Tri-Tone 3-Nada)</option>
+                    <option value="airport">Bandara / Intercom (4-Nada Melodis)</option>
+                    <option value="single_ting">Lonceng Tunggal (Elevator Ding)</option>
+                    <option value="soft_pulse">Klinik / RS (Soft Sine)</option>
+                    <option value="marimba">Bank / Pelayanan (Marimba Chime)</option>
+                    <option value="none">Tanpa Bel (Hanya Suara)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="select-voice-lang" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                    Bahasa Panggilan
+                  </label>
+                  <select
+                    id="select-voice-lang"
+                    name="voice_lang"
+                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                  >
+                    <option value="id-ID">Bahasa Indonesia (id-ID)</option>
+                    <option value="en-US">English (en-US)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="select-voice-gender" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                    Karakter Suara (TTS)
+                  </label>
+                  <select
+                    id="select-voice-gender"
+                    name="voice_gender"
+                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-medium"
+                  >
+                    <option value="female">Perempuan (Wanita)</option>
+                    <option value="male">Laki-laki (Pria)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+                  <div class="flex items-center justify-between mb-1">
+                    <label for="input-voice-pitch" class="text-[11px] font-bold text-slate-700">
+                      Nada Suara (Pitch)
+                    </label>
+                    <span id="val-voice-pitch" class="text-[11px] font-mono font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">1.00x</span>
+                  </div>
+                  <input
+                    id="input-voice-pitch"
+                    name="voice_pitch"
+                    type="range"
+                    min="0.5"
+                    max="1.5"
+                    step="0.05"
+                    value="1.0"
+                    class="w-full accent-blue-600 cursor-pointer"
+                  />
+                  <div class="flex justify-between text-[9px] text-slate-400 mt-0.5 font-medium">
+                    <span>Rendah (0.5x)</span>
+                    <span>Standar (1.0x)</span>
+                    <span>Tinggi (1.5x)</span>
+                  </div>
+                </div>
+
+                <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+                  <div class="flex items-center justify-between mb-1">
+                    <label for="input-voice-rate" class="text-[11px] font-bold text-slate-700">
+                      Kecepatan / Tempo
+                    </label>
+                    <span id="val-voice-rate" class="text-[11px] font-mono font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">0.90x</span>
+                  </div>
+                  <input
+                    id="input-voice-rate"
+                    name="voice_rate"
+                    type="range"
+                    min="0.7"
+                    max="1.3"
+                    step="0.05"
+                    value="0.9"
+                    class="w-full accent-blue-600 cursor-pointer"
+                  />
+                  <div class="flex justify-between text-[9px] text-slate-400 mt-0.5 font-medium">
+                    <span>Lambat (0.7x)</span>
+                    <span>Standar (0.9x)</span>
+                    <span>Cepat (1.3x)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-[11px] text-slate-500">Pratinjau langsung audio speaker sebelum disimpan:</span>
+                <button
+                  id="btn-test-audio"
+                  type="button"
+                  class="px-3.5 py-1.5 text-xs font-bold text-blue-700 bg-blue-100/70 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  </svg>
+                  <span>Uji Suara Panggilan</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Display Device Key Section (Terintegrasi di bawah TTS) -->
@@ -235,7 +353,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   } from '../../services/displayService';
   import { getMe } from '../../services/authService';
   import { getTenantSlug, getDeviceKey, setDeviceKey } from '../../lib/storage';
-  import type { MediaType } from '../../types/display.types';
+  import type { MediaType, BellSoundType, VoiceLanguage, VoiceGender } from '../../types/display.types';
+  import { globalAudioEngine, buildSpeechText } from '../../lib/audioPlayer';
 
   const form = document.getElementById('display-settings-form') as HTMLFormElement | null;
   const runningTextInput = document.getElementById('input-running-text') as HTMLTextAreaElement | null;
@@ -244,6 +363,16 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   const voiceToggle = document.getElementById('toggle-voice-enabled') as HTMLInputElement | null;
   const submitBtn = document.getElementById('btn-save-display-settings') as HTMLButtonElement | null;
   const errorEl = document.getElementById('display-form-error');
+
+  const bellSoundSelect = document.getElementById('select-bell-sound') as HTMLSelectElement | null;
+  const voiceLangSelect = document.getElementById('select-voice-lang') as HTMLSelectElement | null;
+  const voiceGenderSelect = document.getElementById('select-voice-gender') as HTMLSelectElement | null;
+  const voicePitchInput = document.getElementById('input-voice-pitch') as HTMLInputElement | null;
+  const voiceRateInput = document.getElementById('input-voice-rate') as HTMLInputElement | null;
+  const valPitchText = document.getElementById('val-voice-pitch');
+  const valRateText = document.getElementById('val-voice-rate');
+  const btnTestAudio = document.getElementById('btn-test-audio');
+  const audioDetails = document.getElementById('audio-settings-details');
 
   const deviceKeyInput = document.getElementById('input-display-device-key') as HTMLInputElement | null;
   const btnCopyKey = document.getElementById('btn-copy-device-key');
@@ -280,6 +409,27 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         if (mediaTypeSelect) mediaTypeSelect.value = d.media_type || 'none';
         if (mediaUrlInput) mediaUrlInput.value = d.media_url || '';
         if (voiceToggle) voiceToggle.checked = d.voice_enabled ?? true;
+
+        if (bellSoundSelect && d.bell_sound) bellSoundSelect.value = d.bell_sound;
+        if (voiceLangSelect && d.voice_lang) voiceLangSelect.value = d.voice_lang;
+        if (voiceGenderSelect && d.voice_gender) voiceGenderSelect.value = d.voice_gender;
+        if (voicePitchInput && d.voice_pitch) {
+          voicePitchInput.value = d.voice_pitch.toString();
+          if (valPitchText) valPitchText.textContent = `${Number(d.voice_pitch).toFixed(2)}x`;
+        }
+        if (voiceRateInput && d.voice_rate) {
+          voiceRateInput.value = d.voice_rate.toString();
+          if (valRateText) valRateText.textContent = `${Number(d.voice_rate).toFixed(2)}x`;
+        }
+
+        if (audioDetails && voiceToggle) {
+          if (voiceToggle.checked) {
+            audioDetails.classList.remove('opacity-40', 'pointer-events-none');
+          } else {
+            audioDetails.classList.add('opacity-40', 'pointer-events-none');
+          }
+        }
+
         updateLivePreview();
       }
     } catch (err) {
@@ -332,6 +482,68 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     if (mediaTypeSelect) mediaTypeSelect.addEventListener('change', updateLivePreview);
     if (mediaUrlInput) mediaUrlInput.addEventListener('input', updateLivePreview);
 
+    voicePitchInput?.addEventListener('input', () => {
+      if (valPitchText && voicePitchInput) {
+        valPitchText.textContent = `${parseFloat(voicePitchInput.value).toFixed(2)}x`;
+      }
+    });
+
+    voiceRateInput?.addEventListener('input', () => {
+      if (valRateText && voiceRateInput) {
+        valRateText.textContent = `${parseFloat(voiceRateInput.value).toFixed(2)}x`;
+      }
+    });
+
+    voiceToggle?.addEventListener('change', () => {
+      if (audioDetails && voiceToggle) {
+        if (voiceToggle.checked) {
+          audioDetails.classList.remove('opacity-40', 'pointer-events-none');
+        } else {
+          audioDetails.classList.add('opacity-40', 'pointer-events-none');
+        }
+      }
+    });
+
+    btnTestAudio?.addEventListener('click', async () => {
+      if (!btnTestAudio) return;
+      const testBell = (bellSoundSelect?.value || 'ding_dong') as BellSoundType;
+      const testLang = (voiceLangSelect?.value || 'id-ID') as VoiceLanguage;
+      const testGender = (voiceGenderSelect?.value || 'female') as VoiceGender;
+      const testPitch = parseFloat(voicePitchInput?.value || '1.0');
+      const testRate = parseFloat(voiceRateInput?.value || '0.9');
+
+      const origHtml = btnTestAudio.innerHTML;
+      btnTestAudio.setAttribute('disabled', 'true');
+      btnTestAudio.innerHTML = `
+        <svg class="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <span>Memutar Suara...</span>
+      `;
+
+      try {
+        globalAudioEngine.configureAudio({
+          bellSound: testBell,
+          voiceLang: testLang,
+          voiceGender: testGender,
+          voicePitch: testPitch,
+          voiceRate: testRate,
+        });
+
+        await globalAudioEngine.unlock();
+        await globalAudioEngine.playChime(testBell);
+        const sampleInstruction = { prefix: 'A', number: 12, counter_number: 1 };
+        const phrase = buildSpeechText(sampleInstruction, testLang);
+        await globalAudioEngine.speakText(phrase);
+      } catch (err) {
+        console.warn('Uji suara error:', err);
+      } finally {
+        btnTestAudio.removeAttribute('disabled');
+        btnTestAudio.innerHTML = origHtml;
+      }
+    });
+
     btnCopyKey?.addEventListener('click', async () => {
       if (!deviceKeyInput) return;
       const keyVal = deviceKeyInput.value.trim();
@@ -375,6 +587,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             media_type: mediaTypeSelect.value as MediaType,
             media_url: mediaUrlInput.value.trim() || null,
             voice_enabled: voiceToggle.checked,
+            bell_sound: (bellSoundSelect?.value || 'ding_dong') as BellSoundType,
+            voice_lang: (voiceLangSelect?.value || 'id-ID') as VoiceLanguage,
+            voice_gender: (voiceGenderSelect?.value || 'female') as VoiceGender,
+            voice_pitch: parseFloat(voicePitchInput?.value || '1.0'),
+            voice_rate: parseFloat(voiceRateInput?.value || '0.9'),
           });
 
           if (res.success) {

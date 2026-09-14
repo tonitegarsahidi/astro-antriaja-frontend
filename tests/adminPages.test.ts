@@ -107,6 +107,29 @@ describe('Admin Pages & Layouts', () => {
       expect(result).toContain('id="input-display-device-key"');
       expect(result).toContain('id="btn-copy-device-key"');
       expect(result).toContain('id="btn-save-device-key"');
+
+      // Audio & Bell Chime Settings
+      expect(result).toContain('id="select-bell-sound"');
+      expect(result).toContain('value="ding_dong"');
+      expect(result).toContain('value="tri_tone"');
+      expect(result).toContain('value="airport"');
+      expect(result).toContain('value="single_ting"');
+      expect(result).toContain('value="soft_pulse"');
+      expect(result).toContain('value="marimba"');
+      expect(result).toContain('value="none"');
+
+      expect(result).toContain('id="select-voice-lang"');
+      expect(result).toContain('value="id-ID"');
+      expect(result).toContain('value="en-US"');
+
+      expect(result).toContain('id="select-voice-gender"');
+      expect(result).toContain('value="female"');
+      expect(result).toContain('value="male"');
+
+      expect(result).toContain('id="input-voice-pitch"');
+      expect(result).toContain('id="input-voice-rate"');
+      expect(result).toContain('id="btn-test-audio"');
+      expect(result).toContain('Uji Suara Panggilan');
     });
   });
 });

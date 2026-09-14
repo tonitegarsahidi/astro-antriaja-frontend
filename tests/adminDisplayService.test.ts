@@ -26,6 +26,11 @@ describe('displayService admin operations', () => {
     media_url: 'https://example.com/promo.mp4',
     media_type: 'video',
     voice_enabled: true,
+    bell_sound: 'ding_dong',
+    voice_lang: 'id-ID',
+    voice_gender: 'female',
+    voice_pitch: 1.0,
+    voice_rate: 0.9,
     updated_at: '2026-09-12T08:00:00Z',
   };
 

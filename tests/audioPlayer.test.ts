@@ -167,5 +167,71 @@ describe('audioPlayer library', () => {
       engine.clearQueue();
       expect(engine.getQueueLength()).toBe(0);
     });
+
+    it('manages audio configuration with defaults and partial updates', () => {
+      const initialConfig = engine.getAudioConfig();
+      expect(initialConfig).toEqual({
+        bellSound: 'ding_dong',
+        voiceLang: 'id-ID',
+        voiceGender: 'female',
+        voicePitch: 1.0,
+        voiceRate: 0.9,
+      });
+
+      engine.configureAudio({
+        bellSound: 'airport',
+        voiceLang: 'en-US',
+        voiceGender: 'male',
+        voicePitch: 1.2,
+        voiceRate: 1.05,
+      });
+
+      expect(engine.getAudioConfig()).toEqual({
+        bellSound: 'airport',
+        voiceLang: 'en-US',
+        voiceGender: 'male',
+        voicePitch: 1.2,
+        voiceRate: 1.05,
+      });
+    });
+
+    it('supports all 7 bell sound types including none', async () => {
+      const sounds = [
+        'ding_dong',
+        'tri_tone',
+        'airport',
+        'single_ting',
+        'soft_pulse',
+        'marimba',
+        'none',
+      ] as const;
+
+      for (const sound of sounds) {
+        await expect(engine.playChime(sound)).resolves.not.toThrow();
+      }
+    });
+  });
+
+  describe('buildSpeechText multi-language support', () => {
+    const instruction: AudioInstruction = {
+      prefix: 'A',
+      number: 14,
+      counter_number: 2,
+    };
+
+    it('builds natural Indonesian announcement when voiceLang is id-ID', async () => {
+      const { buildSpeechText } = await import('../src/lib/audioPlayer');
+      const text = buildSpeechText(instruction, 'id-ID');
+      expect(text).toContain('Nomor antrian A');
+      expect(text).toContain('empat belas');
+      expect(text).toContain('menuju ke loket dua');
+    });
+
+    it('builds natural English announcement when voiceLang is en-US', async () => {
+      const { buildSpeechText } = await import('../src/lib/audioPlayer');
+      const text = buildSpeechText(instruction, 'en-US');
+      expect(text).toContain('Queue number A 14');
+      expect(text).toContain('please proceed to counter 2');
+    });
   });
 });
