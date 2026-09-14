@@ -352,3 +352,21 @@ src/
 - [x] Sinkronisasi dokumentasi antarmuka dan rute PWA (21 static routes) dengan spesifikasi backend.
 - [x] Verifikasi regresi kualitas frontend: `npm run check` (0 error, 0 warning) dan `npm test` (36 test suites / 205 automated tests PASS 100%).
 - [x] Sinkronisasi riwayat `todolist.md` dan `changelog.md` lintas repositori.
+
+---
+
+### Fase 16: Redesain Navigasi Admin Sidebar, Reorganisasi Display Key, & Advanced Audio/TTS Engine
+- [x] Redesain Navigasi Admin Sidebar (`AdminLayout.astro`):
+  - [x] Pengelompokan menu bernavigasi hierarkis: "Navigasi Utama", "Operasional Antrian", dan "Pengaturan & Sistem".
+  - [x] Drawer mobile slide-over dengan backdrop overlay gelap (`#admin-sidebar-backdrop`).
+  - [x] Kartu profil user administrator terpadu dan tombol logout eksplisit yang menonjol (`#btn-admin-logout`).
+- [x] Reorganisasi Pengaturan Display (`src/pages/admin/display.astro`):
+  - [x] Integrasi Display Device Key ke dalam formulir pengaturan utama tepat di bawah seksi panggilan suara/TTS.
+  - [x] Mempertahankan kompatibilitas ID elemen (`#input-display-device-key`, `#btn-copy-device-key`, `#btn-save-device-key`).
+  - [x] Pembersihan kolom samping kanan menjadi informasi operasional TV yang lebih rapi.
+- [ ] Advanced Audio & TTS Engine (Langkah 2):
+  - [ ] Sintesis bel lonceng Web Audio API multi-pilihan (6 variasi nada bel + 1 hening).
+  - [ ] Opsi konfigurasi bahasa ucapan (`id-ID`, `en-US`), gender suara (`female`, `male`), pitch slider (0.5 - 1.5), dan tempo slider (0.7 - 1.3).
+  - [ ] Tombol pratinjau audio interaktif "Uji Suara Panggilan".
+  - [ ] Sinkronisasi realtime ke TV Display via SSE event `DISPLAY_SETTINGS_UPDATED`.
+

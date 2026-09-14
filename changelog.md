@@ -8,6 +8,13 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
 ## [Unreleased] - 2026-09-13
 
 ### Ditambahkan
+- **Fase 16: Redesain Navigasi Admin Sidebar & Reorganisasi Display Key:**
+  - Redesain navigasi sidebar `src/layouts/AdminLayout.astro` dengan pembagian kategori hirarkis terstruktur: "Navigasi Utama", "Operasional Antrian", dan "Pengaturan & Sistem".
+  - Penambahan drawer slide-over mobile dengan overlay backdrop gelap (`#admin-sidebar-backdrop`) untuk ergonomi layar tablet dan smartphone.
+  - Penambahan kartu profil pengguna administrator dan tombol "Keluar / Logout" yang jelas dan menonjol (`#btn-admin-logout`) di bagian bawah sidebar.
+  - Reorganisasi tampilan halaman `src/pages/admin/display.astro`: pemindahan kartu Display Device Key dari kolom samping kanan menjadi terintegrasi langsung ke dalam formulir pengaturan utama di bawah seksi panggilan suara/TTS.
+  - Pembaruan automated test suite `tests/adminPages.test.ts` (36 test suites, 205 tests PASS 100%, check 0 errors).
+
 - **Fase 12: Platform Super-Admin CMS Dashboard (Modul C3 SaaS):**
   - Pembuatan kontrak tipe data TypeScript di `src/types/platform.types.ts` (`PlatformAdmin`, `PlatformLoginRequest`, `PlatformLoginResponse`, `PlatformMetricsResponse`, `PlatformTenantListItem`, `PlatformTenantListResponse`, `PlatformTenantDetailResponse`, `CreatePlatformTenantRequest`, `RotatePlatformDeviceKeyRequest`, dll).
   - Isolasi token platform pada `src/lib/storage.ts` (`getPlatformToken`, `setPlatformToken`, `removePlatformToken`) menggunakan key `antriaja_platform_token` untuk mencegah tabrakan sesi dengan akun admin tenant cabang (`antriaja_token`) pada browser yang sama.

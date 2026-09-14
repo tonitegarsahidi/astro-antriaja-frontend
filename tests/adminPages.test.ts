@@ -27,8 +27,13 @@ describe('Admin Pages & Layouts', () => {
       expect(result).toContain('href="/admin/users"');
       expect(result).toContain('href="/admin/settings"');
       expect(result).toContain('id="btn-toggle-mobile-sidebar"');
+      expect(result).toContain('id="admin-sidebar-backdrop"');
       expect(result).toContain('id="btn-trigger-reset-modal"');
       expect(result).toContain('id="btn-admin-logout"');
+      expect(result).toContain('Keluar / Logout');
+      expect(result).toContain('Navigasi Utama');
+      expect(result).toContain('Operasional Antrian');
+      expect(result).toContain('Pengaturan &amp; Sistem');
     });
   });
 

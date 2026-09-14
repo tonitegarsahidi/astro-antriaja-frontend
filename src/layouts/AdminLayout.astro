@@ -14,62 +14,80 @@ const {
   activePage = 'dashboard',
 } = Astro.props;
 
-const navItems = [
+const navGroups = [
   {
-    id: 'dashboard',
-    label: 'Dashboard',
-    href: '/admin',
-    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />`,
+    title: 'Navigasi Utama',
+    items: [
+      {
+        id: 'dashboard',
+        label: 'Dashboard',
+        href: '/admin',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />`,
+      },
+      {
+        id: 'analytics',
+        label: 'Analitik & Laporan',
+        href: '/admin/analytics',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />`,
+      },
+    ],
   },
   {
-    id: 'analytics',
-    label: 'Analitik & Laporan',
-    href: '/admin/analytics',
-    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />`,
+    title: 'Operasional Antrian',
+    items: [
+      {
+        id: 'services',
+        label: 'Kategori Layanan',
+        href: '/admin/services',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />`,
+      },
+      {
+        id: 'counters',
+        label: 'Meja Loket',
+        href: '/admin/counters',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />`,
+      },
+      {
+        id: 'users',
+        label: 'Petugas Staf',
+        href: '/admin/users',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />`,
+      },
+    ],
   },
   {
-    id: 'services',
-    label: 'Kategori Layanan',
-    href: '/admin/services',
-    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />`,
-  },
-  {
-    id: 'counters',
-    label: 'Meja Loket',
-    href: '/admin/counters',
-    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />`,
-  },
-  {
-    id: 'display',
-    label: 'Display TV',
-    href: '/admin/display',
-    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />`,
-  },
-  {
-    id: 'users',
-    label: 'Petugas Staf',
-    href: '/admin/users',
-    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />`,
-  },
-  {
-    id: 'billing',
-    label: 'Paket & Langganan',
-    href: '/admin/billing',
-    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />`,
-  },
-  {
-    id: 'settings',
-    label: 'Pengaturan',
-    href: '/admin/settings',
-    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`,
+    title: 'Pengaturan & Sistem',
+    items: [
+      {
+        id: 'display',
+        label: 'Display TV',
+        href: '/admin/display',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />`,
+      },
+      {
+        id: 'billing',
+        label: 'Paket & Langganan',
+        href: '/admin/billing',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />`,
+      },
+      {
+        id: 'settings',
+        label: 'Pengaturan Cabang',
+        href: '/admin/settings',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`,
+      },
+    ],
   },
 ];
 ---
 
 <BaseLayout title={title} description={description} hideNav={true}>
   <div class="min-h-screen bg-slate-100 flex flex-col md:flex-row">
+    <!-- Mobile Backdrop Overlay -->
+    <div id="admin-sidebar-backdrop" class="fixed inset-0 bg-slate-950/60 z-40 hidden md:hidden transition-opacity backdrop-blur-xs"></div>
+
     <!-- Mobile Top Navigation Bar -->
-    <div class="md:hidden bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 sticky top-0 z-50 shadow-md">
+    <div class="md:hidden bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 sticky top-0 z-30 shadow-md">
       <div class="flex items-center space-x-2.5">
         <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/30">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -96,9 +114,9 @@ const navItems = [
     </div>
 
     <!-- Sidebar Navigation -->
-    <aside id="admin-sidebar" class="hidden md:flex w-full md:w-64 bg-slate-900 text-white flex-col shrink-0 border-r border-slate-800 transition-all">
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800 transition-transform duration-300 -translate-x-full md:static md:translate-x-0">
       <!-- Brand & Badge -->
-      <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/30">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -111,30 +129,51 @@ const navItems = [
             <span class="inline-block text-[10px] font-extrabold tracking-widest text-amber-400 uppercase">ADMINISTRATOR</span>
           </div>
         </div>
+
+        <!-- Close button on mobile -->
+        <button
+          id="btn-close-mobile-sidebar"
+          type="button"
+          class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          aria-label="Tutup Menu"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
-      <!-- Nav Links -->
-      <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = activePage === item.id;
-          return (
-            <a
-              href={item.href}
-              class={`flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                isActive
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/70'
-              }`}
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" set:html={item.icon} />
-              <span>{item.label}</span>
-            </a>
-          );
-        })}
+      <!-- Nav Links Grouped -->
+      <nav class="flex-1 px-3.5 py-4 space-y-4 overflow-y-auto">
+        {navGroups.map((group) => (
+          <div>
+            <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              {group.title}
+            </span>
+            <div class="space-y-1">
+              {group.items.map((item) => {
+                const isActive = activePage === item.id;
+                return (
+                  <a
+                    href={item.href}
+                    class={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-bold'
+                        : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+                    }`}
+                  >
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" set:html={item.icon} />
+                    <span class="truncate">{item.label}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
-      <!-- Bottom Actions: Emergency Reset & Logout -->
-      <div class="p-4 border-t border-slate-800 space-y-2">
+      <!-- Bottom Actions: Emergency Reset & Prominent Logout -->
+      <div class="p-4 border-t border-slate-800 space-y-2.5">
         <!-- Emergency Reset Trigger -->
         <button
           id="btn-trigger-reset-modal"
@@ -148,21 +187,28 @@ const navItems = [
           <span>Reset Harian</span>
         </button>
 
-        <!-- Admin Info & Logout -->
-        <div class="pt-2 flex items-center justify-between px-1">
-          <div class="flex flex-col">
-            <span id="admin-name-display" class="text-xs font-bold text-slate-300 truncate max-w-[120px]">Admin</span>
-            <span id="admin-tenant-display" class="text-[10px] text-slate-500 truncate max-w-[120px]">Cabang</span>
+        <!-- Admin Info & Prominent Logout -->
+        <div class="pt-2 border-t border-slate-800 flex flex-col gap-2">
+          <div class="flex items-center space-x-2.5 px-1 min-w-0">
+            <div class="w-8 h-8 rounded-full bg-blue-600/30 border border-blue-500/40 text-blue-400 flex items-center justify-center font-black text-xs shrink-0">
+              <span id="admin-avatar-initial">A</span>
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span id="admin-name-display" class="text-xs font-bold text-slate-200 truncate">Admin</span>
+              <span id="admin-tenant-display" class="text-[10px] text-slate-400 truncate">Cabang</span>
+            </div>
           </div>
+
           <button
             id="btn-admin-logout"
             type="button"
-            class="text-slate-400 hover:text-rose-400 p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-rose-600 bg-slate-800/80 border border-slate-700/80 transition-all cursor-pointer group"
             title="Keluar dari Panel Admin"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5 text-rose-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
+            <span>Keluar / Logout</span>
           </button>
         </div>
       </div>
@@ -232,16 +278,48 @@ const navItems = [
     // Set User & Tenant Display
     const nameEl = document.getElementById('admin-name-display');
     const tenantEl = document.getElementById('admin-tenant-display');
-    if (user && nameEl) nameEl.textContent = user.full_name || user.email;
+    const avatarEl = document.getElementById('admin-avatar-initial');
+    if (user) {
+      if (nameEl) nameEl.textContent = user.full_name || user.email;
+      if (avatarEl) {
+        const initial = (user.full_name || user.email || 'A').trim().charAt(0).toUpperCase();
+        avatarEl.textContent = initial;
+      }
+    }
     if (tenantEl) tenantEl.textContent = getTenantSlug() || 'Cabang';
 
-    // Mobile Sidebar Toggle
+    // Mobile Sidebar Toggle & Slide-Over
     const toggleMobileBtn = document.getElementById('btn-toggle-mobile-sidebar');
+    const closeMobileBtn = document.getElementById('btn-close-mobile-sidebar');
     const adminSidebar = document.getElementById('admin-sidebar');
-    if (toggleMobileBtn && adminSidebar) {
+    const sidebarBackdrop = document.getElementById('admin-sidebar-backdrop');
+
+    function closeSidebar() {
+      if (adminSidebar) adminSidebar.classList.add('-translate-x-full');
+      if (sidebarBackdrop) sidebarBackdrop.classList.add('hidden');
+    }
+
+    function openSidebar() {
+      if (adminSidebar) adminSidebar.classList.remove('-translate-x-full');
+      if (sidebarBackdrop) sidebarBackdrop.classList.remove('hidden');
+    }
+
+    if (toggleMobileBtn) {
       toggleMobileBtn.addEventListener('click', () => {
-        adminSidebar.classList.toggle('hidden');
+        if (adminSidebar?.classList.contains('-translate-x-full')) {
+          openSidebar();
+        } else {
+          closeSidebar();
+        }
       });
+    }
+
+    if (closeMobileBtn) {
+      closeMobileBtn.addEventListener('click', closeSidebar);
+    }
+
+    if (sidebarBackdrop) {
+      sidebarBackdrop.addEventListener('click', closeSidebar);
     }
 
     // 2. Logout Action
