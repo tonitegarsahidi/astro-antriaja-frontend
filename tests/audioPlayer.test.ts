@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   numberToWordsIndonesian,
   buildAudioInstructionWords,
@@ -232,6 +232,108 @@ describe('audioPlayer library', () => {
       const text = buildSpeechText(instruction, 'en-US');
       expect(text).toContain('Queue number A 14');
       expect(text).toContain('please proceed to counter 2');
+    });
+  });
+
+  describe('speakText voice selection and gender pitch modulation', () => {
+    let mockVoices: SpeechSynthesisVoice[];
+    let spokenUtterances: SpeechSynthesisUtterance[];
+    const origSpeechSynthesis = globalThis.speechSynthesis;
+
+    beforeEach(() => {
+      spokenUtterances = [];
+      mockVoices = [
+        {
+          name: 'Google Bahasa Indonesia',
+          lang: 'id-ID',
+          default: true,
+          localService: false,
+          voiceURI: 'Google Bahasa Indonesia',
+        } as SpeechSynthesisVoice,
+      ];
+
+      class MockUtterance {
+        text: string;
+        lang: string = 'id-ID';
+        pitch: number = 1.0;
+        rate: number = 1.0;
+        voice: SpeechSynthesisVoice | null = null;
+        onend: ((e?: unknown) => void) | null = null;
+        onerror: ((e?: unknown) => void) | null = null;
+        constructor(text: string) {
+          this.text = text;
+        }
+      }
+
+      // @ts-expect-error mock utterance
+      globalThis.SpeechSynthesisUtterance = MockUtterance;
+
+      // @ts-expect-error mock speechSynthesis
+      globalThis.speechSynthesis = {
+        cancel: vi.fn(),
+        getVoices: () => mockVoices,
+        speak: (utterance: SpeechSynthesisUtterance) => {
+          spokenUtterances.push(utterance);
+          setTimeout(() => {
+            if (utterance.onend) {
+              utterance.onend(new Event('end') as unknown as SpeechSynthesisEvent);
+            }
+          }, 5);
+        },
+      };
+    });
+
+    afterEach(() => {
+      globalThis.speechSynthesis = origSpeechSynthesis;
+    });
+
+    it('modulates pitch down to baritone (0.75x) when only female voice is available and male is requested', async () => {
+      const engine = new IndonesianAudioEngine();
+      engine.configureAudio({
+        voiceLang: 'id-ID',
+        voiceGender: 'male',
+        voicePitch: 1.0,
+      });
+
+      await engine.speakText('Nomor antrian A 1');
+      expect(spokenUtterances.length).toBe(1);
+      expect(spokenUtterances[0].voice?.name).toBe('Google Bahasa Indonesia');
+      expect(spokenUtterances[0].pitch).toBe(0.75);
+    });
+
+    it('selects native male voice and uses base pitch when a native male voice is present', async () => {
+      mockVoices.push({
+        name: 'Microsoft Ardi Online (Natural) - Indonesian (Indonesia)',
+        lang: 'id-ID',
+        default: false,
+        localService: false,
+        voiceURI: 'Microsoft Ardi',
+      } as SpeechSynthesisVoice);
+
+      const engine = new IndonesianAudioEngine();
+      engine.configureAudio({
+        voiceLang: 'id-ID',
+        voiceGender: 'male',
+        voicePitch: 1.0,
+      });
+
+      await engine.speakText('Nomor antrian A 1');
+      expect(spokenUtterances.length).toBe(1);
+      expect(spokenUtterances[0].voice?.name).toContain('Ardi');
+      expect(spokenUtterances[0].pitch).toBe(1.0);
+    });
+
+    it('retains natural pitch when female voice is requested', async () => {
+      const engine = new IndonesianAudioEngine();
+      engine.configureAudio({
+        voiceLang: 'id-ID',
+        voiceGender: 'female',
+        voicePitch: 1.0,
+      });
+
+      await engine.speakText('Nomor antrian A 1');
+      expect(spokenUtterances.length).toBe(1);
+      expect(spokenUtterances[0].pitch).toBe(1.0);
     });
   });
 });

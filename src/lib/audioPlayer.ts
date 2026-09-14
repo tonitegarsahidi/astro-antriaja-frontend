@@ -322,8 +322,16 @@ export class IndonesianAudioEngine {
         const utterance = new SpeechSynthesisUtterance(text);
         const lang = this.audioConfig.voiceLang || 'id-ID';
         utterance.lang = lang;
-        utterance.rate = this.audioConfig.voiceRate || 0.9;
-        utterance.pitch = this.audioConfig.voicePitch || 1.0;
+
+        const basePitch =
+          typeof this.audioConfig.voicePitch === 'number'
+            ? this.audioConfig.voicePitch
+            : 1.0;
+        const baseRate =
+          typeof this.audioConfig.voiceRate === 'number'
+            ? this.audioConfig.voiceRate
+            : 0.9;
+        const isMaleRequested = this.audioConfig.voiceGender === 'male';
 
         // Cari suara yang cocok dengan preferensi bahasa & gender
         const voices = window.speechSynthesis.getVoices();
@@ -335,29 +343,88 @@ export class IndonesianAudioEngine {
             v.lang.toLowerCase().startsWith(langPrefix)
         );
 
+        let chosenVoice: SpeechSynthesisVoice | null = null;
+        let isNativeGenderMatched = false;
+
         if (matchingVoices.length > 0) {
-          const isFemale = this.audioConfig.voiceGender !== 'male';
-          const genderVoice = matchingVoices.find((v) => {
-            const name = v.name.toLowerCase();
-            if (isFemale) {
-              return (
-                name.includes('female') ||
-                name.includes('wanita') ||
-                name.includes('perempuan') ||
-                name.includes('zira') ||
-                name.includes('gadis')
-              );
-            } else {
-              return (
-                name.includes('male') ||
-                name.includes('pria') ||
-                name.includes('laki') ||
-                name.includes('david') ||
-                name.includes('wira')
-              );
+          const maleKeywords = [
+            'male',
+            'pria',
+            'laki',
+            'ardi',
+            'david',
+            'guy',
+            'mark',
+            'george',
+            'wira',
+            'anto',
+            'budi',
+            'stephen',
+            'daniel',
+            'alun',
+            'stefan',
+            'tom',
+            'james',
+            'john',
+            'ryan',
+            '#male',
+          ];
+          const femaleKeywords = [
+            'female',
+            'wanita',
+            'perempuan',
+            'gadis',
+            'zira',
+            'aria',
+            'jenny',
+            'samantha',
+            'victoria',
+            'karen',
+            'susan',
+            '#female',
+          ];
+
+          if (isMaleRequested) {
+            const maleVoice = matchingVoices.find((v) => {
+              const name = v.name.toLowerCase();
+              return maleKeywords.some((kw) => name.includes(kw));
+            });
+            if (maleVoice) {
+              chosenVoice = maleVoice;
+              isNativeGenderMatched = true;
             }
-          });
-          utterance.voice = genderVoice || matchingVoices[0];
+          } else {
+            const femaleVoice = matchingVoices.find((v) => {
+              const name = v.name.toLowerCase();
+              return femaleKeywords.some((kw) => name.includes(kw));
+            });
+            if (femaleVoice) {
+              chosenVoice = femaleVoice;
+              isNativeGenderMatched = true;
+            }
+          }
+
+          if (!chosenVoice) {
+            chosenVoice = matchingVoices[0];
+          }
+          utterance.voice = chosenVoice;
+        }
+
+        // Modulasi nada (Pitch) & Kecepatan (Rate)
+        if (isMaleRequested) {
+          if (isNativeGenderMatched) {
+            // Suara pria asli sistem: gunakan pitch pengguna langsung
+            utterance.pitch = basePitch;
+            utterance.rate = baseRate;
+          } else {
+            // Browser hanya punya suara wanita/netral: turunkan nada menjadi baritone pria (0.75x)
+            utterance.pitch = Math.max(0.5, Math.min(1.5, basePitch * 0.75));
+            utterance.rate = Math.max(0.7, Math.min(1.3, baseRate * 0.95));
+          }
+        } else {
+          // Suara wanita
+          utterance.pitch = basePitch;
+          utterance.rate = baseRate;
         }
 
         utterance.onend = () => resolve();

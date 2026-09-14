@@ -154,6 +154,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
                     <option value="female">Perempuan (Wanita)</option>
                     <option value="male">Laki-laki (Pria)</option>
                   </select>
+                  <span id="hint-voice-gender" class="text-[9px] text-slate-500 mt-1 block">
+                    Otomatis memilih suara pria sistem atau modulasi baritone
+                  </span>
                 </div>
               </div>
 
@@ -431,6 +434,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         }
 
         updateLivePreview();
+        updateVoiceDetectionHint();
       }
     } catch (err) {
       console.error('Gagal memuat display settings:', err);
@@ -460,6 +464,59 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     }
   }
 
+  function updateVoiceDetectionHint() {
+    const hintEl = document.getElementById('hint-voice-gender');
+    if (!hintEl || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    const voices = window.speechSynthesis.getVoices();
+    const currentLang = (voiceLangSelect?.value || 'id-ID').toLowerCase();
+    const prefix = currentLang.split('-')[0];
+    const matching = voices.filter(
+      (v) => v.lang.toLowerCase().startsWith(currentLang) || v.lang.toLowerCase().startsWith(prefix)
+    );
+
+    const isMale = voiceGenderSelect?.value === 'male';
+    if (matching.length === 0) {
+      hintEl.textContent = isMale
+        ? 'ℹ️ Suara browser belum termuat, modulasi baritone pria aktif'
+        : 'ℹ️ Menggunakan synthesizer bawaan browser';
+      hintEl.className = 'text-[9px] text-slate-500 mt-1 block';
+      return;
+    }
+
+    const maleKeywords = [
+      'male',
+      'pria',
+      'laki',
+      'ardi',
+      'david',
+      'guy',
+      'mark',
+      'george',
+      'wira',
+      'anto',
+      'budi',
+      'stephen',
+      '#male',
+    ];
+    const nativeMale = matching.find((v) =>
+      maleKeywords.some((kw) => v.name.toLowerCase().includes(kw))
+    );
+
+    if (isMale) {
+      if (nativeMale) {
+        hintEl.textContent = `✓ Suara pria asli: "${nativeMale.name}"`;
+        hintEl.className = 'text-[9px] text-emerald-600 font-medium mt-1 block';
+      } else {
+        hintEl.textContent = `ℹ️ Modulasi baritone pria aktif (basis: ${matching[0].name})`;
+        hintEl.className = 'text-[9px] text-blue-600 font-medium mt-1 block';
+      }
+    } else {
+      hintEl.textContent = `✓ Suara wanita: "${matching[0].name}"`;
+      hintEl.className = 'text-[9px] text-slate-500 mt-1 block';
+    }
+  }
+
   function showAlert(msg: string, type: 'success' | 'error') {
     const alertEl = document.getElementById('display-page-alert');
     if (!alertEl) return;
@@ -481,6 +538,12 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     if (runningTextInput) runningTextInput.addEventListener('input', updateLivePreview);
     if (mediaTypeSelect) mediaTypeSelect.addEventListener('change', updateLivePreview);
     if (mediaUrlInput) mediaUrlInput.addEventListener('input', updateLivePreview);
+
+    voiceGenderSelect?.addEventListener('change', updateVoiceDetectionHint);
+    voiceLangSelect?.addEventListener('change', updateVoiceDetectionHint);
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = updateVoiceDetectionHint;
+    }
 
     voicePitchInput?.addEventListener('input', () => {
       if (valPitchText && voicePitchInput) {

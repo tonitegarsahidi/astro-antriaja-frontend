@@ -366,9 +366,11 @@ src/
   - [x] Pembersihan kolom samping kanan menjadi informasi operasional TV yang lebih rapi.
 - [x] Advanced Audio & TTS Engine (Langkah 2):
   - [x] Sintesis bel lonceng Web Audio API multi-pilihan (6 variasi nada bel: `ding_dong`, `tri_tone`, `airport`, `single_ting`, `soft_pulse`, `marimba` + 1 hening: `none`).
-  - [x] Opsi konfigurasi bahasa ucapan (`id-ID`, `en-US`), gender suara (`female`, `male`), pitch slider (0.5 - 1.5), dan tempo slider (0.7 - 1.3).
+  - [x] Opsi konfigurasi bahasa ucapan (`id-ID`, `en-US`), preferensi karakter suara (`female`, `male`), kontrol pitch dinamis (0.5 - 1.5), dan tempo slider (0.7 - 1.3).
   - [x] Tombol pratinjau audio interaktif "Uji Suara Panggilan" dengan visual loading dan unlock AudioContext.
+  - [x] Solusi Karakter Suara Pria (Baritone Pitch Modulation & Native Detection):
+    - [x] Deteksi otomatis native male voice per bahasa (kata kunci nama suara pria: `ardi`, `david`, `guy`, `mark`, `george`, `wira`, `anto`, `budi`, dll).
+    - [x] Fallback modulasi pitch baritone ($0.75\times$ pitch, $0.95\times$ rate) saat browser hanya memiliki suara wanita (misal Google Bahasa Indonesia di Chrome/Linux) sehingga suara terdengar maskulin/baritone secara natural tanpa dependensi eksternal.
+    - [x] Live hint indikator deteksi suara pada form admin (`#hint-voice-gender` di `/admin/display`) yang mendeteksi suara native vs modulasi baritone aktif secara realtime.
   - [x] Sinkronisasi realtime ke TV Display (`/display`) via SSE event `DISPLAY_SETTINGS_UPDATED`.
-  - [x] Automated testing: 36 test suites / 209 tests PASS 100%, `npm run check` 0 errors, `npm run build` sukses (21 static routes).
-
-
+  - [x] Automated testing: 36 test suites / 212 tests PASS 100%, `npm run check` 0 errors, `npm run build` sukses (21 static routes).
