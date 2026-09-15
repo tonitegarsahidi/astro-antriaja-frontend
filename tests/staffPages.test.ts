@@ -6,7 +6,7 @@ import StaffIndexPage from '../src/pages/staff/index.astro';
 
 describe('Staff Pages & Layouts', () => {
   describe('StaffLayout.astro', () => {
-    it('renders header, counter status badge, digital clock, SSE indicator, quick links, and logout button', async () => {
+    it('renders header, counter status badge, digital clock, SSE indicator, and sidebar navigation', async () => {
       const container = await AstroContainer.create();
       const result = await container.renderToString(StaffLayout, {
         props: {
@@ -19,9 +19,8 @@ describe('Staff Pages & Layouts', () => {
       expect(result).toContain('id="staff-counter-badge"');
       expect(result).toContain('id="staff-clock"');
       expect(result).toContain('id="sse-status-badge"');
-      expect(result).toContain('id="btn-release-counter"');
-      expect(result).toContain('id="btn-logout"');
-      expect(result).toContain('href="/display"');
+      expect(result).toContain('id="staff-sidebar"');
+      expect(result).toContain('id="sidebar-btn-logout"');
     });
   });
 

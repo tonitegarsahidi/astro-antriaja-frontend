@@ -1,9 +1,10 @@
 import type { ApiResponse } from '../types/api.types';
-import { getToken } from './storage';
+import { getToken, removeToken, removeUser, removePlatformToken } from './storage';
 
 export interface RequestOptions extends RequestInit {
   deviceKey?: string;
   token?: string;
+  skipAuthRedirect?: boolean;
 }
 
 export class HttpClient {
@@ -14,6 +15,27 @@ export class HttpClient {
       baseUrl ||
       (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_API_BASE_URL) ||
       'http://localhost:8080/api/v1';
+  }
+
+  private handleUnauthorized(options?: RequestOptions): void {
+    if (options?.skipAuthRedirect) return;
+    if (typeof window === 'undefined') return;
+
+    const pathname = window.location.pathname || '';
+    if (pathname.includes('/login')) return;
+
+    if (pathname.startsWith('/admin')) {
+      removeToken();
+      removeUser();
+      window.location.href = '/admin/login';
+    } else if (pathname.startsWith('/staff')) {
+      removeToken();
+      removeUser();
+      window.location.href = '/staff/login';
+    } else if (pathname.startsWith('/platform')) {
+      removePlatformToken();
+      window.location.href = '/platform/login';
+    }
   }
 
   private buildUrl(endpoint: string): string {
@@ -76,10 +98,21 @@ export class HttpClient {
         'data' in json &&
         'error' in json
       ) {
-        return json as ApiResponse<T>;
+        const apiResponse = json as ApiResponse<T>;
+        if (
+          response.status === 401 ||
+          apiResponse.error?.code === 'UNAUTHORIZED' ||
+          apiResponse.error?.code === 'TOKEN_EXPIRED'
+        ) {
+          this.handleUnauthorized(options);
+        }
+        return apiResponse;
       }
 
       if (!response.ok) {
+        if (response.status === 401) {
+          this.handleUnauthorized(options);
+        }
         return {
           success: false,
           data: null,

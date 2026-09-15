@@ -114,7 +114,7 @@ const navGroups = [
     </div>
 
     <!-- Sidebar Navigation -->
-    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800 transition-transform duration-300 -translate-x-full md:static md:translate-x-0">
+    <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800 transition-transform duration-300 -translate-x-full md:static md:translate-x-0 overflow-y-auto">
       <!-- Brand & Badge -->
       <div class="p-5 border-b border-slate-800 flex items-center justify-between">
         <div class="flex items-center space-x-3">
@@ -261,6 +261,7 @@ const navGroups = [
 <script>
   import { getToken, getUser, removeToken, removeUser, getTenantSlug } from '../lib/storage';
   import { resetQueue } from '../services/adminService';
+  import { getMe } from '../services/authService';
 
   function initAdminLayout() {
     // 1. RBAC Check on client-side
@@ -273,6 +274,15 @@ const navGroups = [
         window.location.href = '/admin/login';
         return;
       }
+
+      // Verifikasi sesi aktif secara asinkron ke backend
+      getMe().then((res) => {
+        if (!res.success) {
+          removeToken();
+          removeUser();
+          window.location.href = '/admin/login';
+        }
+      });
     }
 
     // Set User & Tenant Display

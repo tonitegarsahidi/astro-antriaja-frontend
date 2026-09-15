@@ -13,127 +13,270 @@ const {
 ---
 
 <BaseLayout title={title} description={description} hideNav={true}>
-  <!-- Staff Top Navbar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <!-- Left: Logo & Context -->
-      <div class="flex items-center space-x-3">
-        <a href="/" class="flex items-center space-x-2 text-blue-600 font-black text-xl tracking-tight">
-          <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17 20H7C4.79086 20 3 18.2091 3 16V8C3 5.79086 4.79086 4 7 4H17C19.2091 4 21 5.79086 21 8V16C21 18.2091 19.2091 20 17 20Z" stroke="currentColor" stroke-width="2"/>
-            <path d="M7 10L10 13L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>AntriAja</span>
-        </a>
-        <span class="text-slate-300">/</span>
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
-          Konsol Staf
-        </span>
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div
+    id="staff-sidebar-backdrop"
+    class="fixed inset-0 bg-slate-900/60 z-40 hidden md:hidden backdrop-blur-xs transition-opacity duration-300"
+  ></div>
 
-        <!-- Active Counter Badge -->
-        <div id="staff-counter-badge" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 hover:bg-blue-50 hover:border-blue-300 text-slate-700 border border-slate-200 cursor-pointer transition-colors shadow-2xs" title="Klik untuk mengganti loket tugas">
-          <span class="w-2 h-2 rounded-full bg-slate-400 mr-1.5" id="counter-dot"></span>
-          <span id="counter-label">Memuat loket...</span>
-        </div>
+  <!-- Mobile Top Header Bar (md:hidden) -->
+  <header class="md:hidden bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 sticky top-0 z-30 shadow-md">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shadow-xs shadow-blue-500/30">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17 20H7C4.79086 20 3 18.2091 3 16V8C3 5.79086 4.79086 4 7 4H17C19.2091 4 21 5.79086 21 8V16C21 18.2091 19.2091 20 17 20Z" stroke="currentColor" stroke-width="2"/>
+          <path d="M7 10L10 13L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
-
-      <!-- Right: Clock, Status SSE, Profile & Actions -->
-      <div class="flex items-center space-x-2.5 sm:space-x-4">
-        <!-- Live Clock -->
-        <div class="hidden md:flex items-center space-x-1.5 text-xs font-mono font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-          <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span id="staff-clock">--:--:--</span>
-        </div>
-
-        <!-- Realtime SSE Status Indicator -->
-        <div id="sse-status-badge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
-          <span id="sse-status-text">Realtime</span>
-        </div>
-
-        <!-- Quick Link: Display TV -->
-        <a
-          href="/display"
-          target="_blank"
-          class="hidden xl:inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition-colors"
-          title="Buka layar display TV publik"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <span>Display TV</span>
-        </a>
-
-        <!-- Staff User Info -->
-        <div class="hidden lg:flex items-center space-x-2 text-right">
-          <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 font-black text-xs flex items-center justify-center border border-blue-200">
-            P
-          </div>
-          <div class="flex flex-col">
-            <span id="staff-name-display" class="text-xs font-bold text-slate-800">Petugas</span>
-            <span id="staff-tenant-display" class="text-[10px] text-slate-400">Cabang</span>
-          </div>
-        </div>
-
-        <!-- Action: Release Counter -->
-        <button
-          id="btn-release-counter"
-          type="button"
-          class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-amber-700 hover:bg-amber-50 border border-slate-200 hover:border-amber-200 transition-colors cursor-pointer"
-          title="Tinggalkan loket fisik saat selesai shift"
-        >
-          <svg class="w-3.5 h-3.5 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span class="hidden sm:inline">Lepas Loket</span>
-        </button>
-
-        <!-- Action: Logout -->
-        <button
-          id="btn-logout"
-          type="button"
-          class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
-          title="Keluar dari akun staf"
-        >
-          <svg class="w-3.5 h-3.5 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span class="hidden sm:inline">Keluar</span>
-        </button>
+      <div>
+        <span class="text-sm font-black tracking-tight block">AntriAja</span>
+        <span class="text-[9px] font-bold text-blue-400 uppercase tracking-wider block -mt-0.5">KONSOL STAF</span>
       </div>
     </div>
+
+    <button
+      id="btn-toggle-staff-sidebar"
+      type="button"
+      class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+      aria-label="Toggle Menu Staf"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
   </header>
 
-  <!-- Main Workspace -->
-  <main class="flex-1 bg-slate-50">
-    <slot />
-  </main>
+  <div class="min-h-screen flex flex-col md:flex-row bg-slate-100">
+    <!-- Left Sidebar (Permanent on Desktop, Slide-over on Mobile) -->
+    <aside
+      id="staff-sidebar"
+      class="fixed inset-y-0 left-0 z-50 w-64 lg:w-72 bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800 transition-transform duration-300 -translate-x-full md:static md:translate-x-0 overflow-y-auto"
+    >
+      <!-- Sidebar Header & Brand -->
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/30">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 20H7C4.79086 20 3 18.2091 3 16V8C3 5.79086 4.79086 4 7 4H17C19.2091 4 21 5.79086 21 8V16C21 18.2091 19.2091 20 17 20Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M7 10L10 13L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <span class="text-base font-black tracking-tight text-white block">AntriAja</span>
+            <span class="inline-block text-[10px] font-extrabold tracking-widest text-blue-400 uppercase">KONSOL STAF</span>
+          </div>
+        </div>
+
+        <button
+          id="btn-close-staff-sidebar"
+          type="button"
+          class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+          aria-label="Tutup Menu Staf"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Sidebar Body: Widgets & Navigation -->
+      <div class="flex-1 p-4 space-y-4">
+        <!-- 1. Staff Profile Card -->
+        <div class="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/70 flex items-center space-x-3">
+          <div
+            id="sidebar-staff-avatar"
+            class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-xs border border-blue-400/30"
+          >
+            P
+          </div>
+          <div class="min-w-0 flex-1">
+            <div id="sidebar-staff-name" class="text-xs font-bold text-white truncate">Petugas Loket</div>
+            <div id="sidebar-staff-tenant" class="text-[10px] text-slate-400 truncate">Cabang AntriAja</div>
+            <div class="flex items-center space-x-1.5 mt-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Bertugas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Active Counter Card -->
+        <div class="p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Meja Loket Aktif</span>
+            <span id="sidebar-counter-status" class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              Idle
+            </span>
+          </div>
+          <div>
+            <h4 id="sidebar-counter-name" class="text-sm font-black text-white truncate">Memuat loket...</h4>
+            <p id="sidebar-counter-services" class="text-[10px] text-slate-400 truncate mt-0.5">Semua Layanan</p>
+          </div>
+        </div>
+
+        <!-- 3. Shift Personal Stats -->
+        <div class="p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 space-y-2.5">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Statistik Shift Saya</span>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="p-2.5 rounded-lg bg-slate-900/60 border border-slate-700/40 text-center">
+              <span class="text-[9px] text-slate-400 block font-medium">Tiket Selesai</span>
+              <span id="sidebar-served-count" class="text-base font-black font-mono text-emerald-400 block mt-0.5">0</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-900/60 border border-slate-700/40 text-center">
+              <span class="text-[9px] text-slate-400 block font-medium">Rata-rata Layan</span>
+              <span id="sidebar-avg-time" class="text-base font-black font-mono text-blue-400 block mt-0.5">--:--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Operational Shift Actions -->
+        <div class="space-y-2 pt-1">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 block">Aksi Operasional</span>
+
+          <button
+            id="sidebar-btn-change-counter"
+            type="button"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/60 transition-colors cursor-pointer group"
+            title="Pilih meja loket tugas lain"
+          >
+            <div class="flex items-center space-x-2.5">
+              <svg class="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              <span>Ganti Meja Loket</span>
+            </div>
+            <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <button
+            id="sidebar-btn-release-counter"
+            type="button"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-amber-300 hover:text-amber-200 hover:bg-amber-950/40 border border-amber-800/40 transition-colors cursor-pointer group"
+            title="Tinggalkan meja loket fisik saat selesai shift"
+          >
+            <div class="flex items-center space-x-2.5">
+              <svg class="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>Lepas Loket (Shift)</span>
+            </div>
+            <svg class="w-3.5 h-3.5 text-amber-500/60 group-hover:text-amber-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer: Logout -->
+      <div class="p-4 border-t border-slate-800">
+        <button
+          id="sidebar-btn-logout"
+          type="button"
+          class="w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-300 hover:text-white hover:bg-rose-600 bg-slate-800/80 border border-slate-700/80 transition-all cursor-pointer group"
+          title="Keluar dari akun staf"
+        >
+          <svg class="w-3.5 h-3.5 text-rose-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span>Keluar / Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Desktop Top Header -->
+      <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+        <div class="flex items-center space-x-3">
+          <h1 class="text-base font-bold text-slate-800">{title}</h1>
+
+          <!-- Active Counter Header Badge -->
+          <div
+            id="staff-counter-badge"
+            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 hover:bg-blue-50 hover:border-blue-300 text-slate-700 border border-slate-200 cursor-pointer transition-colors shadow-2xs"
+            title="Klik untuk mengganti loket tugas"
+          >
+            <span class="w-2 h-2 rounded-full bg-slate-400 mr-1.5" id="counter-dot"></span>
+            <span id="counter-label">Memuat loket...</span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <!-- Realtime Live Clock -->
+          <div class="hidden sm:flex items-center space-x-1.5 text-xs font-mono font-semibold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span id="staff-clock">--:--:--</span>
+          </div>
+
+          <!-- Realtime SSE Status Indicator -->
+          <div id="sse-status-badge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+            <span id="sse-status-text">Realtime</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Body Slot -->
+      <main class="flex-1 p-4 sm:p-6 overflow-y-auto bg-slate-50">
+        <slot />
+      </main>
+    </div>
+  </div>
 </BaseLayout>
 
 <script>
-  // Live Clock Updater
-  function startClock() {
-    const clockEl = document.getElementById('staff-clock');
-    if (!clockEl) return;
-    function update() {
-      const now = new Date();
-      if (clockEl) {
-        clockEl.textContent = now.toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        });
-      }
+  function initStaffLayout() {
+    // 1. Mobile Sidebar Toggle & Slide-Over
+    const toggleBtn = document.getElementById('btn-toggle-staff-sidebar');
+    const closeBtn = document.getElementById('btn-close-staff-sidebar');
+    const sidebar = document.getElementById('staff-sidebar');
+    const backdrop = document.getElementById('staff-sidebar-backdrop');
+
+    function closeSidebar() {
+      if (sidebar) sidebar.classList.add('-translate-x-full');
+      if (backdrop) backdrop.classList.add('hidden');
     }
-    update();
-    setInterval(update, 1000);
+
+    function openSidebar() {
+      if (sidebar) sidebar.classList.remove('-translate-x-full');
+      if (backdrop) backdrop.classList.remove('hidden');
+    }
+
+    toggleBtn?.addEventListener('click', () => {
+      if (sidebar?.classList.contains('-translate-x-full')) {
+        openSidebar();
+      } else {
+        closeSidebar();
+      }
+    });
+
+    closeBtn?.addEventListener('click', closeSidebar);
+    backdrop?.addEventListener('click', closeSidebar);
+
+    // 2. Live Clock
+    const clockEl = document.getElementById('staff-clock');
+    if (clockEl) {
+      function updateClock() {
+        const now = new Date();
+        if (clockEl) {
+          clockEl.textContent = now.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          });
+        }
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startClock);
+    document.addEventListener('DOMContentLoaded', initStaffLayout);
   } else {
-    startClock();
+    initStaffLayout();
   }
 </script>

@@ -137,6 +137,30 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
   let sseClient: SSEClient | null = null;
   let stopwatchInterval: number | null = null;
   let branchServices: Array<{ id: string; name: string; prefix: string }> = [];
+  let shiftServedCount = 0;
+  let totalServiceSeconds = 0;
+
+  function updateSidebarStats(servedSeconds?: number) {
+    if (servedSeconds !== undefined && servedSeconds > 0) {
+      shiftServedCount++;
+      totalServiceSeconds += servedSeconds;
+    }
+    const servedEl = document.getElementById('sidebar-served-count');
+    const avgEl = document.getElementById('sidebar-avg-time');
+    if (servedEl) {
+      servedEl.textContent = shiftServedCount.toString();
+    }
+    if (avgEl) {
+      if (shiftServedCount === 0) {
+        avgEl.textContent = '--:--';
+      } else {
+        const avg = Math.round(totalServiceSeconds / shiftServedCount);
+        const mins = Math.floor(avg / 60);
+        const secs = avg % 60;
+        avgEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+    }
+  }
 
   // ==================== INITIALIZATION & AUTH ====================
 
@@ -147,16 +171,24 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
       return;
     }
 
-    // Populate user profile info in header
+    // Populate user profile info in header and sidebar
     const user = getUser();
     const staffNameEl = document.getElementById('staff-name-display');
     const staffTenantEl = document.getElementById('staff-tenant-display');
-    if (user && staffNameEl) {
-      staffNameEl.textContent = user.full_name;
+    const sidebarNameEl = document.getElementById('sidebar-staff-name');
+    const sidebarTenantEl = document.getElementById('sidebar-staff-tenant');
+    const sidebarAvatarEl = document.getElementById('sidebar-staff-avatar');
+
+    if (user) {
+      if (staffNameEl) staffNameEl.textContent = user.full_name;
+      if (sidebarNameEl) sidebarNameEl.textContent = user.full_name;
+      if (sidebarAvatarEl) {
+        sidebarAvatarEl.textContent = (user.full_name || 'P').trim().charAt(0).toUpperCase();
+      }
     }
-    if (staffTenantEl) {
-      staffTenantEl.textContent = getTenantSlug() || 'Cabang AntriAja';
-    }
+    const tenantSlug = getTenantSlug() || 'Cabang AntriAja';
+    if (staffTenantEl) staffTenantEl.textContent = tenantSlug;
+    if (sidebarTenantEl) sidebarTenantEl.textContent = tenantSlug;
 
     // Verify session
     const meRes = await getMe();
@@ -242,6 +274,36 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
             .join(', ');
         }
       }
+    }
+
+    // Update Sidebar Counter Card
+    const sbCounterName = document.getElementById('sidebar-counter-name');
+    const sbCounterStatus = document.getElementById('sidebar-counter-status');
+    const sbCounterServices = document.getElementById('sidebar-counter-services');
+
+    if (sbCounterName) {
+      sbCounterName.textContent = state.counter
+        ? (state.counter.name || `Loket ${state.counter.counter_number}`)
+        : 'Belum Memilih Loket';
+    }
+    if (sbCounterStatus && state.counter) {
+      if (state.counter.status === 'serving') {
+        sbCounterStatus.textContent = 'Melayani';
+        sbCounterStatus.className =
+          'inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+      } else if (state.counter.status === 'break') {
+        sbCounterStatus.textContent = 'Istirahat';
+        sbCounterStatus.className =
+          'inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+      } else {
+        sbCounterStatus.textContent = 'Idle / Siap';
+        sbCounterStatus.className =
+          'inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30';
+      }
+    }
+    if (sbCounterServices && state.counter?.services) {
+      sbCounterServices.textContent =
+        state.counter.services.map((s) => s.name).join(', ') || 'Semua Layanan';
     }
 
     // 2. Update Counter Counts
@@ -631,11 +693,20 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
 
     btnComplete?.addEventListener('click', async () => {
       if (!activeCounterId || !activeState?.current_ticket) return;
-      const res = await complete(activeCounterId, activeState.current_ticket.id);
+      const currentTkt = activeState.current_ticket;
+      const res = await complete(activeCounterId, currentTkt.id);
       if (!res.success) {
         showNotification(res.error?.message || 'Gagal menyelesaikan tiket', 'error');
         return;
       }
+      let elapsedSec = 60;
+      if (currentTkt.served_at) {
+        elapsedSec = Math.max(
+          1,
+          Math.round((Date.now() - new Date(currentTkt.served_at).getTime()) / 1000)
+        );
+      }
+      updateSidebarStats(elapsedSec);
       showNotification(`Pelayanan tiket ${res.data?.ticket_number} selesai.`, 'success');
       await loadCounterState(activeCounterId);
     });
@@ -966,21 +1037,30 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
   }
 
   function setupHeaderListeners() {
-    const btnRelease = document.getElementById('btn-release-counter');
     const releaseModal = document.getElementById('staff-release-modal');
     const busyWarning = document.getElementById('release-busy-warning');
 
-    btnRelease?.addEventListener('click', () => {
+    function triggerReleaseModal() {
       if (!releaseModal) return;
       if (busyWarning) {
-        if (activeState?.current_ticket && (activeState.current_ticket.status === 'called' || activeState.current_ticket.status === 'serving')) {
+        if (
+          activeState?.current_ticket &&
+          (activeState.current_ticket.status === 'called' ||
+            activeState.current_ticket.status === 'serving')
+        ) {
           busyWarning.classList.remove('hidden');
         } else {
           busyWarning.classList.add('hidden');
         }
       }
       releaseModal.classList.remove('hidden');
-    });
+    }
+
+    const btnRelease = document.getElementById('btn-release-counter');
+    btnRelease?.addEventListener('click', triggerReleaseModal);
+
+    const sidebarBtnRelease = document.getElementById('sidebar-btn-release-counter');
+    sidebarBtnRelease?.addEventListener('click', triggerReleaseModal);
 
     const btnSelectCounterBanner = document.getElementById('btn-select-counter-banner');
     btnSelectCounterBanner?.addEventListener('click', async () => {
@@ -992,13 +1072,23 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
       await showCounterSelectorModal();
     });
 
-    const btnLogout = document.getElementById('btn-logout');
-    btnLogout?.addEventListener('click', () => {
+    const sidebarBtnChange = document.getElementById('sidebar-btn-change-counter');
+    sidebarBtnChange?.addEventListener('click', async () => {
+      await showCounterSelectorModal();
+    });
+
+    function triggerLogout() {
       if (confirm('Apakah Anda yakin ingin keluar dari Konsol Staf?')) {
         clearStorage();
         window.location.href = '/staff/login';
       }
-    });
+    }
+
+    const btnLogout = document.getElementById('btn-logout');
+    btnLogout?.addEventListener('click', triggerLogout);
+
+    const sidebarBtnLogout = document.getElementById('sidebar-btn-logout');
+    sidebarBtnLogout?.addEventListener('click', triggerLogout);
   }
 
   function setupTabSwitching() {

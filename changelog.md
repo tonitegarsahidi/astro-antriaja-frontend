@@ -5,6 +5,21 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
 
 ---
 
+## [Unreleased] - 2026-09-15
+
+### Ditambahkan
+- **Modul 1: Auto-Logout Global & Session Guard:**
+  - Penambahan interceptor otomatis status 401 Unauthorized (`UNAUTHORIZED`, `TOKEN_EXPIRED`) pada [`src/lib/httpClient.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/lib/httpClient.ts) yang secara cerdas membersihkan token/user di `localStorage` dan mengalihkan pengguna ke rute login yang sesuai (`/admin/login`, `/staff/login`, `/platform/login`) tanpa menampilkan pesan error merah yang menggantung.
+  - Penambahan opsi `skipAuthRedirect?: boolean` pada `RequestOptions` untuk fleksibilitas endpoint yang menangani 401 secara lokal atau testing.
+  - Penambahan verifikasi sesi aktif via `getMe()` secara asinkron pada [`src/layouts/AdminLayout.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/layouts/AdminLayout.astro) saat pertama kali dimuat.
+- **Modul 2: Sidebar Kiri Konsol Staf & Penyelarasan Admin:**
+  - Redesain konsol staf [`src/layouts/StaffLayout.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/layouts/StaffLayout.astro) dengan navigasi sidebar permanen di sisi kiri desktop (`md:w-64 lg:w-72`) dan drawer slide-over mobile responsif dengan tombol hamburger (`#btn-toggle-staff-sidebar`) dan backdrop gelap.
+  - Penambahan kartu profil staf (`#sidebar-staff-name`, `#sidebar-staff-tenant`, avatar), kartu info meja loket aktif (`#sidebar-counter-name`, status loket, layanan yang ditangani), serta widget statistik shift personal staf (`#sidebar-served-count`, `#sidebar-avg-time`).
+  - Pemindahan tombol operasional shift: Ganti Meja Loket (`#sidebar-btn-change-counter`), Lepas Loket Fisik (`#sidebar-btn-release-counter`), dan tombol Keluar / Logout (`#sidebar-btn-logout`) ke dalam sidebar.
+  - Integrasi tracking statistik shift staf reaktif pada [`src/pages/staff/index.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/pages/staff/index.astro) yang secara otomatis mengakumulasi total tiket dilayani dan rata-rata durasi waktu pelayanan saat aksi `complete` ditekan.
+  - Penyelarasan responsif `overflow-y-auto` pada sidebar [`src/layouts/AdminLayout.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/layouts/AdminLayout.astro).
+  - Pembuatan automated unit test baru di [`tests/staffSidebar.test.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/tests/staffSidebar.test.ts) dan pembaruan `tests/staffPages.test.ts` (37 test suites, 218 tests PASS 100%, check 0 errors, build 21 pages).
+
 ## [Unreleased] - 2026-09-13
 
 ### Ditambahkan

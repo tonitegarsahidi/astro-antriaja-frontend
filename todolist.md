@@ -374,3 +374,21 @@ src/
     - [x] Live hint indikator deteksi suara pada form admin (`#hint-voice-gender` di `/admin/display`) yang mendeteksi suara native vs modulasi baritone aktif secara realtime.
   - [x] Sinkronisasi realtime ke TV Display (`/display`) via SSE event `DISPLAY_SETTINGS_UPDATED`.
   - [x] Automated testing: 36 test suites / 212 tests PASS 100%, `npm run check` 0 errors, `npm run build` sukses (21 static routes).
+
+---
+
+### Fase 17: Auto-Logout Sesi Kedaluwarsa & Redesain Sidebar Konsol Staf
+- [x] **Modul 1: Auto-Logout Global & Session Guard:**
+  - [x] Interceptor respon 401 Unauthorized (`UNAUTHORIZED`, `TOKEN_EXPIRED`) di `src/lib/httpClient.ts` yang otomatis menghapus token & data user dan me-redirect ke login sesuai konteks rute (`/admin/login`, `/staff/login`, `/platform/login`).
+  - [x] Flag `skipAuthRedirect?: boolean` pada `RequestOptions` untuk endpoint yang menangani 401 secara lokal.
+  - [x] Pengecekan verifikasi sesi aktif `getMe()` saat inisialisasi awal di `AdminLayout.astro`.
+  - [x] Unit testing: 4 skenario baru di `tests/httpClient.test.ts`.
+- [x] **Modul 2: Sidebar Kiri Konsol Staf & Penyelarasan Admin:**
+  - [x] Redesain `StaffLayout.astro` dengan shell 2-kolom: Sidebar kiri permanen di desktop (`md:w-64 lg:w-72`) dan mobile slide-over drawer dengan tombol toggle hamburger (`#btn-toggle-staff-sidebar`) dan backdrop gelap (`#staff-sidebar-backdrop`).
+  - [x] Kartu profil petugas di sidebar (`#sidebar-staff-name`, `#sidebar-staff-tenant`, avatar).
+  - [x] Kartu info meja loket aktif (`#sidebar-counter-name`, `#sidebar-counter-status`, `#sidebar-counter-services`).
+  - [x] Widget statistik shift personal staf (`#sidebar-served-count`, `#sidebar-avg-time`) terintegrasi di `staff/index.astro`.
+  - [x] Tombol operasional shift di sidebar: Ganti Meja Loket (`#sidebar-btn-change-counter`), Lepas Meja Loket (`#sidebar-btn-release-counter`), dan tombol Keluar / Logout (`#sidebar-btn-logout`).
+  - [x] Penyelarasan responsif `overflow-y-auto` pada sidebar `AdminLayout.astro`.
+  - [x] Automated testing: `tests/staffSidebar.test.ts` baru & pembaruan `tests/staffPages.test.ts` (37 test suites / 218 tests PASS 100%, `npm run check` 0 errors, `npm run build` sukses 21 static routes).
+
