@@ -5,6 +5,7 @@ export interface RequestOptions extends RequestInit {
   deviceKey?: string;
   token?: string;
   skipAuthRedirect?: boolean;
+  timeout?: number;
 }
 
 export class HttpClient {
@@ -46,16 +47,16 @@ export class HttpClient {
     return `${this.baseUrl}${cleanEndpoint}`;
   }
 
-  private buildHeaders(options?: RequestOptions): HeadersInit {
+  private buildHeaders(options?: RequestOptions): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     };
 
-    // Auto-inject JWT Bearer Token
-    const authToken = options?.token || getToken();
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
+    // Auto-inject JWT Bearer token
+    const token = options?.token || getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     // Auto-inject Device Key
@@ -76,10 +77,17 @@ export class HttpClient {
   ): Promise<ApiResponse<T>> {
     const url = this.buildUrl(endpoint);
     const headers = this.buildHeaders(options);
+    const timeout = options.timeout ?? 10000;
+    const signal =
+      options.signal ??
+      (typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+        ? AbortSignal.timeout(timeout)
+        : undefined);
 
     try {
       const response = await fetch(url, {
         ...options,
+        signal,
         headers,
       });
 

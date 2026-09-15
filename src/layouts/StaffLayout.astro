@@ -99,21 +99,74 @@ const {
           </div>
         </div>
 
-        <!-- 2. Active Counter Card -->
-        <div class="p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 space-y-2">
+        <!-- 2. Active Counter Card (Clickable to switch/select counter) -->
+        <div
+          id="sidebar-counter-card"
+          role="button"
+          tabindex="0"
+          class="p-3.5 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 hover:border-blue-500/50 space-y-2 cursor-pointer transition-all group"
+          title="Klik untuk memilih atau mengganti meja loket tugas"
+        >
           <div class="flex items-center justify-between">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Meja Loket Aktif</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-blue-300 transition-colors">Meja Loket Aktif</span>
             <span id="sidebar-counter-status" class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
               Idle
             </span>
           </div>
           <div>
-            <h4 id="sidebar-counter-name" class="text-sm font-black text-white truncate">Memuat loket...</h4>
+            <h4 id="sidebar-counter-name" class="text-sm font-black text-white truncate group-hover:text-blue-200 transition-colors">Memuat loket...</h4>
             <p id="sidebar-counter-services" class="text-[10px] text-slate-400 truncate mt-0.5">Semua Layanan</p>
           </div>
         </div>
 
-        <!-- 3. Shift Personal Stats -->
+        <!-- 3. Staff Navigational Menus -->
+        <div class="space-y-1 pt-1">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 block">Menu Antrian</span>
+
+          <a
+            id="sidebar-nav-console"
+            href="/staff"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold bg-blue-600/20 text-blue-400 border border-blue-500/30 transition-colors cursor-pointer group"
+          >
+            <div class="flex items-center space-x-2.5">
+              <svg class="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span>Konsol Panggilan</span>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+          </a>
+
+          <button
+            id="sidebar-nav-waiting"
+            type="button"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 border border-transparent hover:border-slate-700/60 transition-colors cursor-pointer group"
+          >
+            <div class="flex items-center space-x-2.5">
+              <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <span>Antrian Menunggu</span>
+            </div>
+            <span id="sidebar-nav-waiting-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-900/60 text-blue-300 border border-blue-700/40">0</span>
+          </button>
+
+          <button
+            id="sidebar-nav-hold"
+            type="button"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 border border-transparent hover:border-slate-700/60 transition-colors cursor-pointer group"
+          >
+            <div class="flex items-center space-x-2.5">
+              <svg class="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Daftar Tunda</span>
+            </div>
+            <span id="sidebar-nav-hold-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-900/60 text-amber-300 border border-amber-700/40">0</span>
+          </button>
+        </div>
+
+        <!-- 4. Shift Personal Stats -->
         <div class="p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 space-y-2.5">
           <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Statistik Shift Saya</span>
           <div class="grid grid-cols-2 gap-2">
@@ -255,6 +308,25 @@ const {
 
     closeBtn?.addEventListener('click', closeSidebar);
     backdrop?.addEventListener('click', closeSidebar);
+
+    // Auto-close sidebar on mobile when interactive sidebar items are clicked
+    const sidebarInteractiveIds = [
+      'sidebar-counter-card',
+      'sidebar-nav-console',
+      'sidebar-nav-waiting',
+      'sidebar-nav-hold',
+      'sidebar-btn-change-counter',
+      'sidebar-btn-release-counter',
+      'sidebar-btn-logout',
+    ];
+    sidebarInteractiveIds.forEach((id) => {
+      const el = document.getElementById(id);
+      el?.addEventListener('click', () => {
+        if (window.innerWidth < 768) {
+          closeSidebar();
+        }
+      });
+    });
 
     // 2. Live Clock
     const clockEl = document.getElementById('staff-clock');

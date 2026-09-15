@@ -252,5 +252,17 @@ describe('httpClient utility', () => {
 
       expect(window.location.pathname).toBe('/admin/counters');
     });
+
+    it('handles network failure or timeout cleanly without unhandled rejection', async () => {
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('The operation was aborted due to timeout'));
+
+      const response = await httpClient.get('/auth/me');
+
+      expect(response.success).toBe(false);
+      expect(response.data).toBeNull();
+      expect(response.error).not.toBeNull();
+      expect(response.error?.code).toBe('NETWORK_ERROR');
+      expect(response.error?.message).toContain('timeout');
+    });
   });
 });

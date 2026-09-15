@@ -7,7 +7,16 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
 
 ## [Unreleased] - 2026-09-15
 
-### Ditambahkan
+### Ditambahkan & Diperbaiki
+- **Fase 18: Perbaikan Interaktivitas, Navigasi Menu, & Stacking Context Sidebar Staf:**
+  - **Inisialisasi Sinkron Event Listener**: Memindahkan pendaftaran event listener (`setupActionButtons`, `setupTabSwitching`, `setupModalListeners`, `setupHeaderListeners`) ke awal `initStaffConsole` secara sinkron sebelum request jaringan (`await getMe()`). Hal ini menjamin seluruh tombol di sidebar dan halaman langsung responsif seketika saat DOM siap tanpa terhambat oleh latensi atau kegagalan koneksi API.
+  - **Auto-Timeout Jaringan**: Menambahkan batas timeout default (10 detik) menggunakan `AbortSignal.timeout()` pada [`src/lib/httpClient.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/lib/httpClient.ts) untuk mencegah browser mengalami *infinite request hang*.
+  - **Navigasi Menu Antrian Staf**: Menambahkan grup "Menu Antrian" pada [`src/layouts/StaffLayout.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/layouts/StaffLayout.astro) yang memuat "Konsol Panggilan" (`#sidebar-nav-console`), "Antrian Menunggu" (`#sidebar-nav-waiting`), dan "Daftar Tunda" (`#sidebar-nav-hold`) disertai badge jumlah antrian realtime (`#sidebar-nav-waiting-badge`, `#sidebar-nav-hold-badge`).
+  - **Kartu Loket Interaktif**: Mengubah kartu info meja loket aktif (`#sidebar-counter-card`) menjadi elemen interaktif (`role="button"`, hover effect, kursor pointer) yang membuka modal pemilihan loket saat diklik.
+  - **Auto-Close Drawer Mobile**: Menambahkan penutupan drawer slide-over mobile otomatis saat pengguna mengeklik tombol aksi atau menu di sidebar pada resolusi < 768px.
+  - **Resolusi Stacking Context Modal**: Menaikkan tingkat kedalaman modal ([`CounterSelectorModal.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/components/staff/CounterSelectorModal.astro), [`StaffReleaseModal.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/components/staff/StaffReleaseModal.astro), [`TransferModal.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/components/staff/TransferModal.astro)) ke `z-[70]` sehingga selalu tampil di depan drawer sidebar (`z-50`) dan backdrop (`z-40`).
+  - **Automated Testing & Build Verification**: Pembaruan unit tests di [`tests/staffSidebar.test.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/tests/staffSidebar.test.ts) dan [`tests/httpClient.test.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/tests/httpClient.test.ts) (37 test suites / 220 tests PASS 100%, TypeScript check 0 error, build 21 static pages sukses).
+
 - **Modul 1: Auto-Logout Global & Session Guard:**
   - Penambahan interceptor otomatis status 401 Unauthorized (`UNAUTHORIZED`, `TOKEN_EXPIRED`) pada [`src/lib/httpClient.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/lib/httpClient.ts) yang secara cerdas membersihkan token/user di `localStorage` dan mengalihkan pengguna ke rute login yang sesuai (`/admin/login`, `/staff/login`, `/platform/login`) tanpa menampilkan pesan error merah yang menggantung.
   - Penambahan opsi `skipAuthRedirect?: boolean` pada `RequestOptions` untuk fleksibilitas endpoint yang menangani 401 secara lokal atau testing.

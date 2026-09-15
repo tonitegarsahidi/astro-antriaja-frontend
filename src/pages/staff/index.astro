@@ -171,7 +171,15 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
       return;
     }
 
-    // Populate user profile info in header and sidebar
+    // 1. Setup Event Listeners SYNCHRONOUSLY FIRST
+    // Guarantees that all buttons, modals, tabs, and sidebar items
+    // are immediately interactive without waiting for network I/O.
+    setupActionButtons();
+    setupTabSwitching();
+    setupModalListeners();
+    setupHeaderListeners();
+
+    // 2. Populate user profile info in header and sidebar
     const user = getUser();
     const staffNameEl = document.getElementById('staff-name-display');
     const staffTenantEl = document.getElementById('staff-tenant-display');
@@ -190,7 +198,7 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
     if (staffTenantEl) staffTenantEl.textContent = tenantSlug;
     if (sidebarTenantEl) sidebarTenantEl.textContent = tenantSlug;
 
-    // Verify session
+    // 3. Verify session
     const meRes = await getMe();
     if (!meRes.success || !meRes.data) {
       clearStorage();
@@ -198,13 +206,7 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
       return;
     }
 
-    // Setup Event Listeners
-    setupActionButtons();
-    setupTabSwitching();
-    setupModalListeners();
-    setupHeaderListeners();
-
-    // Check Counter Selection
+    // 4. Check Counter Selection
     activeCounterId = getActiveCounterId();
     const noCounterBanner = document.getElementById('no-counter-banner');
     if (!activeCounterId) {
@@ -314,11 +316,15 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
     const bHold = document.getElementById('badge-hold-count');
     const tWaiting = document.getElementById('tab-waiting-badge');
     const tHold = document.getElementById('tab-hold-badge');
+    const sbWaiting = document.getElementById('sidebar-nav-waiting-badge');
+    const sbHold = document.getElementById('sidebar-nav-hold-badge');
 
     if (bWaiting) bWaiting.textContent = String(waitingCount);
     if (bHold) bHold.textContent = String(holdCount);
     if (tWaiting) tWaiting.textContent = String(waitingCount);
     if (tHold) tHold.textContent = String(holdCount);
+    if (sbWaiting) sbWaiting.textContent = String(waitingCount);
+    if (sbHold) sbHold.textContent = String(holdCount);
 
     // 3. Render Current Serving Card
     renderCurrentTicket(state.current_ticket, state.counter.status);
@@ -1075,6 +1081,31 @@ import StaffReleaseModal from '../../components/staff/StaffReleaseModal.astro';
     const sidebarBtnChange = document.getElementById('sidebar-btn-change-counter');
     sidebarBtnChange?.addEventListener('click', async () => {
       await showCounterSelectorModal();
+    });
+
+    const sidebarCounterCard = document.getElementById('sidebar-counter-card');
+    sidebarCounterCard?.addEventListener('click', async () => {
+      await showCounterSelectorModal();
+    });
+
+    const sidebarNavConsole = document.getElementById('sidebar-nav-console');
+    sidebarNavConsole?.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const tabWaitingBtn = document.getElementById('tab-btn-waiting');
+      tabWaitingBtn?.click();
+    });
+
+    const sidebarNavWaiting = document.getElementById('sidebar-nav-waiting');
+    sidebarNavWaiting?.addEventListener('click', () => {
+      const tabWaitingBtn = document.getElementById('tab-btn-waiting');
+      tabWaitingBtn?.click();
+    });
+
+    const sidebarNavHold = document.getElementById('sidebar-nav-hold');
+    sidebarNavHold?.addEventListener('click', () => {
+      const tabHoldBtn = document.getElementById('tab-btn-hold');
+      tabHoldBtn?.click();
     });
 
     function triggerLogout() {

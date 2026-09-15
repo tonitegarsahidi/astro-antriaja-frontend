@@ -392,3 +392,21 @@ src/
   - [x] Penyelarasan responsif `overflow-y-auto` pada sidebar `AdminLayout.astro`.
   - [x] Automated testing: `tests/staffSidebar.test.ts` baru & pembaruan `tests/staffPages.test.ts` (37 test suites / 218 tests PASS 100%, `npm run check` 0 errors, `npm run build` sukses 21 static routes).
 
+---
+
+### Fase 18: Perbaikan Interaktivitas, Navigasi Menu, & Stacking Context Sidebar Staf
+- [x] **Inisialisasi Sinkron Event Listener:**
+  - [x] Memindahkan pemanggilan `setupActionButtons`, `setupTabSwitching`, `setupModalListeners`, dan `setupHeaderListeners` ke awal `initStaffConsole` secara sinkron sebelum request jaringan (`await getMe()`), mencegah UI membeku saat backend/jaringan berlatensi.
+  - [x] Menambahkan dukungan timeout default (10 detik) via `AbortSignal.timeout` pada `httpClient.ts` agar fetch tidak menggantung tanpa batas waktu.
+- [x] **Navigasi Menu Antrian & Kartu Loket Interaktif:**
+  - [x] Penambahan grup "Menu Antrian" di `StaffLayout.astro`: "Konsol Panggilan" (`#sidebar-nav-console`), "Antrian Menunggu" (`#sidebar-nav-waiting`), dan "Daftar Tunda" (`#sidebar-nav-hold`) lengkap dengan badge penghitung antrian (`#sidebar-nav-waiting-badge`, `#sidebar-nav-hold-badge`).
+  - [x] Mengubah kartu loket aktif `#sidebar-counter-card` menjadi komponen interaktif (`role="button"`, hover effect, cursor-pointer) yang langsung membuka modal pemilihan loket saat diklik.
+  - [x] Integrasi handler tombol navigasi di `staff/index.astro` untuk berpindah tab antrian secara instan.
+- [x] **Stacking Context & Auto-Close Drawer Mobile:**
+  - [x] Elevasi modal (`CounterSelectorModal`, `StaffReleaseModal`, `TransferModal`) ke level `z-[70]` agar selalu berada di atas sidebar (`z-50`) dan backdrop (`z-40`).
+  - [x] Penambahan auto-close drawer mobile saat tombol aksi atau tautan menu di sidebar ditekan pada viewport < 768px.
+- [x] **Verifikasi Kualitas:**
+  - [x] `tests/staffSidebar.test.ts` dan `tests/httpClient.test.ts` diperbarui (37 test suites / 220 automated tests PASS 100%).
+  - [x] `npm run check` (0 errors, 0 warnings).
+  - [x] `npm run build` (21 halaman statis sukses dibangun).
+
