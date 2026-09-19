@@ -98,6 +98,10 @@ export const pwaOptions = {
 export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ['qrcode'],
+    },
   },
   integrations: [AstroPWA(pwaOptions)],
 });
+

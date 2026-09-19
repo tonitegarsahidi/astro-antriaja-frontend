@@ -5,10 +5,17 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
 
 ---
 
-## [Unreleased] - 2026-09-16
+## [Unreleased] - 2026-09-19
 
 ### Ditambahkan & Diperbaiki
+- **Fase 21: Resolusi Error Vite 504 Outdated Optimize Dep & Ketahanan Kiosk Mandiri:**
+  - **Vite Pre-bundling `qrcode`**: Menambahkan konfigurasi `vite.optimizeDeps.include: ['qrcode']` pada [`astro.config.mjs`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/astro.config.mjs) untuk mencegah desinkronisasi cache dependensi browser dan mengeliminasi error `HTTP 504 Outdated Optimize Dep`.
+  - **Proteksi Anti-Infinite Loading Kiosk**: Membungkus eksekusi `initKiosk()` di [`src/pages/kiosk/index.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/pages/kiosk/index.astro) dalam blok `try/catch` komprehensif, menambahkan safety timeout fallback 10 detik, serta menangkap unhandled promise rejections agar spinner loading `#kiosk-loading` tidak pernah berputar tanpa batas waktu.
+  - **Tampilan Pemulihan Kesalahan**: Menyajikan tampilan error interaktif (`#kiosk-error`) dengan tombol *Coba Lagi* (`#btn-kiosk-retry`) dan *Ubah Konfigurasi* (`#btn-open-config`).
+  - **Automated Testing**: Penambahan test cases pada [`tests/kioskPage.test.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/tests/kioskPage.test.ts) (37 test suites / 227 automated tests PASS 100%, `npm run check` 0 errors, `npm run build` sukses 22 halaman).
+
 - **Fase 20: Halaman Analitik Statistik Tiket, Grafik Harian Barchart, & Top 10 Tenant Teraktif (/platform/analytics):**
+
   - **Halaman Baru Analitik Platform**: Implementasi [`src/pages/platform/analytics.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/pages/platform/analytics.astro) lengkap dengan ringkasan 4 kartu metrik (Total Tiket All-time, Tiket Hari Ini, Tiket Kemarin + selisih %, dan rata-rata waktu layanan).
   - **Visualisasi Barchart Distribusi Harian**: Grafik batang 14 hari terakhir zero-dependency berbasis CSS/SVG dengan tinggi proporsional, garis panduan, label tanggal, dan tooltip hover menampilkan total tiket & tiket selesai.
   - **Top 10 Tenant Teraktif (Load Estimasi Server)**: Tabel peringkat interaktif dilengkapi tab switcher ("Hari Ini" vs "Kemarin"), medali peringkat Top 3, indikator status, total tiket, progress bar persentase kontribusi beban server, serta tombol pintas kelola tenant.

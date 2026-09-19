@@ -447,5 +447,17 @@ src/
   - [x] `npm run check` (0 errors, 0 warnings).
   - [x] `npm run build` (22 halaman statis sukses dibangun).
 
+---
 
-
+### Fase 21: Resolusi Error Vite 504 Outdated Optimize Dep & Ketahanan Kiosk Mandiri
+- [x] **Konfigurasi Vite Pre-bundling (`astro.config.mjs`):**
+  - [x] Menambahkan `optimizeDeps: { include: ['qrcode'] }` pada konfigurasi Vite untuk mencegah *on-demand dependency re-optimization* yang memicu status `HTTP 504 Outdated Optimize Dep`.
+- [x] **Peningkatan Ketahanan & Anti-Infinite Loading (`src/pages/kiosk/index.astro`):**
+  - [x] Membungkus `initKiosk()` dalam blok `try/catch` eksplisit agar kegagalan runtime tidak membekukan antarmuka.
+  - [x] Menambahkan safety timeout fallback (10 detik) untuk secara otomatis menyembunyikan spinner `#kiosk-loading` dan menampilkan `#kiosk-error` dengan tombol "Coba Lagi" (`#btn-kiosk-retry`) dan "Ubah Konfigurasi" (`#btn-open-config`).
+  - [x] Menangani unhandled promise rejections pada pemanggilan `initKiosk()`.
+- [x] **Automated Testing & Verifikasi Kualitas:**
+  - [x] Pembaruan `tests/kioskPage.test.ts` dengan 2 skenario pengujian baru (37 test suites / 227 automated tests PASS 100%).
+  - [x] `npm run check` (0 errors, 0 warnings).
+  - [x] `npm run build` (22 static routes sukses dibangun).
+  - [x] Restart dev server Astro dan verifikasi pemuatan `qrcode.js` mengembalikan HTTP 200 OK.

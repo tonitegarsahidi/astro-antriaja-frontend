@@ -367,48 +367,59 @@ import DeviceSettingsMenu from '../../components/ui/DeviceSettingsMenu.astro';
   }
 
   async function initKiosk(): Promise<void> {
-    const params = new URLSearchParams(window.location.search);
-    const slugParam = params.get('slug') || getTenantSlug();
-    const keyParam = params.get('key') || getDeviceKey('kiosk');
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const slugParam = params.get('slug') || getTenantSlug();
+      const keyParam = params.get('key') || getDeviceKey('kiosk');
 
-    if (!slugParam || !keyParam) {
-      loadingEl?.classList.add('is-hidden');
-      cardsContainer?.classList.add('is-hidden');
+      if (!slugParam || !keyParam) {
+        loadingEl?.classList.add('is-hidden');
+        cardsContainer?.classList.add('is-hidden');
+        errorEl?.classList.add('is-hidden');
+        if (inputSlug && slugParam) inputSlug.value = slugParam;
+        if (inputKey && keyParam) inputKey.value = keyParam;
+        setupModal?.classList.remove('is-hidden');
+        setupModal?.classList.add('is-open');
+        setSignalStatus(false);
+        return;
+      }
+
+      currentSlug = slugParam;
+      currentKey = keyParam;
+
+      setTenantSlug(currentSlug);
+      setDeviceKey('kiosk', currentKey);
+
+      if (tenantTitleEl) {
+        tenantTitleEl.textContent = currentSlug.replace(/-/g, ' ').toUpperCase();
+      }
+
+      loadingEl?.classList.remove('is-hidden');
       errorEl?.classList.add('is-hidden');
-      if (inputSlug && slugParam) inputSlug.value = slugParam;
-      if (inputKey && keyParam) inputKey.value = keyParam;
-      setupModal?.classList.remove('is-hidden');
-      setupModal?.classList.add('is-open');
-      setSignalStatus(false);
-      return;
-    }
+      cardsContainer?.classList.add('is-hidden');
 
-    currentSlug = slugParam;
-    currentKey = keyParam;
+      const res = await getKioskServices(currentSlug, currentKey);
 
-    setTenantSlug(currentSlug);
-    setDeviceKey('kiosk', currentKey);
-
-    if (tenantTitleEl) {
-      tenantTitleEl.textContent = currentSlug.replace(/-/g, ' ').toUpperCase();
-    }
-
-    loadingEl?.classList.remove('is-hidden');
-    errorEl?.classList.add('is-hidden');
-    cardsContainer?.classList.add('is-hidden');
-
-    const res = await getKioskServices(currentSlug, currentKey);
-
-    if (res.success && res.data) {
-      servicesList = res.data;
-      renderServiceCards(servicesList);
-      setupRealtime(currentSlug, currentKey);
-      setSignalStatus(true);
-    } else {
+      if (res.success && res.data) {
+        servicesList = res.data;
+        renderServiceCards(servicesList);
+        setupRealtime(currentSlug, currentKey);
+        setSignalStatus(true);
+      } else {
+        loadingEl?.classList.add('is-hidden');
+        errorEl?.classList.remove('is-hidden');
+        if (errorMsgEl && res.error?.message) {
+          errorMsgEl.textContent = res.error.message;
+        }
+        setSignalStatus(false);
+      }
+    } catch (err: unknown) {
+      console.error('Kiosk initialization error:', err);
       loadingEl?.classList.add('is-hidden');
       errorEl?.classList.remove('is-hidden');
-      if (errorMsgEl && res.error?.message) {
-        errorMsgEl.textContent = res.error.message;
+      if (errorMsgEl) {
+        errorMsgEl.textContent =
+          err instanceof Error ? err.message : 'Terjadi kesalahan sistem saat memuat antrian.';
       }
       setSignalStatus(false);
     }
@@ -499,7 +510,28 @@ import DeviceSettingsMenu from '../../components/ui/DeviceSettingsMenu.astro';
     setSignalStatus(false);
   });
 
-  initKiosk();
+  // Safety fallback timeout: jika loading masih berputar setelah 10 detik, sembunyikan spinner dan tampilkan pesan error
+  setTimeout(() => {
+    if (loadingEl && !loadingEl.classList.contains('is-hidden')) {
+      loadingEl.classList.add('is-hidden');
+      if (cardsContainer?.classList.contains('is-hidden') && setupModal?.classList.contains('is-hidden')) {
+        errorEl?.classList.remove('is-hidden');
+        if (errorMsgEl) {
+          errorMsgEl.textContent =
+            'Batas waktu memuat antrian habis. Periksa koneksi backend atau konfigurasi perangkat.';
+        }
+      }
+    }
+  }, 10000);
+
+  initKiosk().catch((err) => {
+    console.error('Unhandled initKiosk failure:', err);
+    loadingEl?.classList.add('is-hidden');
+    errorEl?.classList.remove('is-hidden');
+    if (errorMsgEl) {
+      errorMsgEl.textContent = 'Gagal memuat antrian: terjadi kegagalan jaringan atau modul.';
+    }
+  });
 </script>
 
 <style>

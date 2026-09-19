@@ -41,4 +41,26 @@ describe('Kiosk Touchscreen Page (pages/kiosk/index.astro)', () => {
 
     expect(result).toContain('<script type="module"');
   });
+
+  it('renders resilient error recovery controls with retry and config action buttons', async () => {
+    const container = await AstroContainer.create();
+    const result = await container.renderToString(KioskPage);
+
+    expect(result).toContain('id="kiosk-error"');
+    expect(result).toContain('id="kiosk-error-title"');
+    expect(result).toContain('id="kiosk-error-message"');
+    expect(result).toContain('id="btn-kiosk-retry"');
+    expect(result).toContain('id="btn-open-config"');
+    expect(result).toContain('Coba Lagi');
+    expect(result).toContain('Ubah Konfigurasi');
+  });
+
+  it('verifies that astro.config.mjs pre-bundles qrcode via vite.optimizeDeps to prevent 504 errors', async () => {
+    const astroConfigModule = await import('../astro.config.mjs');
+    const astroConfig = astroConfigModule.default;
+    expect(astroConfig.vite).toBeDefined();
+    expect(astroConfig.vite?.optimizeDeps).toBeDefined();
+    expect(astroConfig.vite?.optimizeDeps?.include).toContain('qrcode');
+  });
 });
+
