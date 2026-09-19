@@ -2,8 +2,23 @@ import { httpClient } from '../lib/httpClient';
 import type { ApiResponse } from '../types/api.types';
 import type {
   KioskServiceSummaryResponse,
+  KioskInfoResponse,
   TicketResponse,
 } from '../types/queue.types';
+
+/**
+ * Mengambil informasi profil instansi untuk kiosk (nama instansi & logo)
+ */
+export async function getKioskInfo(
+  tenantSlug: string,
+  deviceKey?: string
+): Promise<ApiResponse<KioskInfoResponse>> {
+  const safeSlug = encodeURIComponent(tenantSlug.trim());
+  return httpClient.get<KioskInfoResponse>(
+    `/kiosk/${safeSlug}/info`,
+    { deviceKey }
+  );
+}
 
 /**
  * Mengambil ringkasan kategori layanan aktif & sisa antrian untuk kiosk

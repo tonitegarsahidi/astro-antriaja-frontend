@@ -31,6 +31,16 @@ describe('Admin UI Components', () => {
       expect(result).toContain('id="input-service-active"');
       expect(result).toContain('id="btn-save-service"');
     });
+
+    it('renders image upload controls, url input, and image preview container in ServiceFormModal', async () => {
+      const container = await AstroContainer.create();
+      const result = await container.renderToString(ServiceFormModal);
+
+      expect(result).toContain('id="input-service-image-url"');
+      expect(result).toContain('id="input-service-image-file"');
+      expect(result).toContain('id="service-image-preview-box"');
+      expect(result).toContain('id="btn-remove-service-image"');
+    });
   });
 
   describe('CounterFormModal.astro', () => {

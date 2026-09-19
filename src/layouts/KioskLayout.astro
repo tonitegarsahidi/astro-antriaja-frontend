@@ -26,7 +26,16 @@ const { title = 'Kiosk Antrian', tenantName = 'AntriAja' } = Astro.props;
     <div class="kiosk-frame">
       <header class="kiosk-header">
         <div class="header-tenant">
-          <span class="tenant-logo">🏛️</span>
+          <div class="tenant-logo" id="kiosk-tenant-logo">
+            <img
+              id="kiosk-tenant-logo-img"
+              src=""
+              alt="Logo Instansi"
+              class="tenant-logo-img is-hidden"
+              onerror="this.classList.add('is-hidden'); document.getElementById('kiosk-tenant-logo-fallback')?.classList.remove('is-hidden');"
+            />
+            <span id="kiosk-tenant-logo-fallback" class="tenant-logo-fallback">🏛️</span>
+          </div>
           <div class="tenant-details">
             <h1 id="kiosk-tenant-title">{tenantName}</h1>
             <p>Kiosk Pengambilan Antrian Mandiri</p>
@@ -131,7 +140,29 @@ const { title = 'Kiosk Antrian', tenantName = 'AntriAja' } = Astro.props;
   }
 
   .tenant-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .tenant-logo-img {
+    max-width: 4.5rem;
+    max-height: 3.5rem;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 0.5rem;
+  }
+
+  .tenant-logo-fallback {
     font-size: 2.5rem;
+    line-height: 1;
+  }
+
+  .is-hidden {
+    display: none !important;
   }
 
   .tenant-details h1 {

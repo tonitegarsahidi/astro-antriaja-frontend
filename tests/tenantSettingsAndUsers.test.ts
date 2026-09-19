@@ -69,6 +69,19 @@ describe('Fase A (Frontend): Tenant Settings & Staff Management', () => {
       expect(result).toContain('id="btn-rotate-display-key"');
       expect(result).toContain('id="modal-rotate-confirm"');
     });
+
+    it('renders logo upload controls, file input, and logo preview container in admin/settings.astro', async () => {
+      const container = await AstroContainer.create();
+      const result = await container.renderToString(AdminSettingsPage);
+
+      expect(result).toContain('id="tab-logo-upload"');
+      expect(result).toContain('id="tab-logo-url"');
+      expect(result).toContain('id="input-tenant-logo-file"');
+      expect(result).toContain('id="input-tenant-logo-url"');
+      expect(result).toContain('id="logo-preview-box"');
+      expect(result).toContain('id="logo-preview-img"');
+      expect(result).toContain('id="btn-remove-logo"');
+    });
   });
 
   describe('Service Layer Contracts', () => {

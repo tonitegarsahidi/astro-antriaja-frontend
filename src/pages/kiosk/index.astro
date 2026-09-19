@@ -74,6 +74,7 @@ import DeviceSettingsMenu from '../../components/ui/DeviceSettingsMenu.astro';
     getKioskServices,
     issueKioskTicket,
     verifyVIPPIN,
+    getKioskInfo,
   } from '../../services/kioskService';
   import { generateQRCodeSvg } from '../../lib/qrCode';
   import { sseClient } from '../../lib/sseClient';
@@ -85,8 +86,8 @@ import DeviceSettingsMenu from '../../components/ui/DeviceSettingsMenu.astro';
     setDeviceKey,
     removeDeviceKey,
   } from '../../lib/storage';
-  import { formatIndonesianDate } from '../../lib/formatters';
-  import type { KioskServiceSummaryResponse, TicketResponse } from '../../types/queue.types';
+  import { formatIndonesianDate, resolveImageUrl } from '../../lib/formatters';
+  import type { KioskServiceSummaryResponse, KioskInfoResponse, TicketResponse } from '../../types/queue.types';
 
   let currentSlug = '';
   let currentKey = '';
@@ -104,6 +105,8 @@ import DeviceSettingsMenu from '../../components/ui/DeviceSettingsMenu.astro';
   const clockEl = document.getElementById('kiosk-clock');
   const dateEl = document.getElementById('kiosk-date');
   const tenantTitleEl = document.getElementById('kiosk-tenant-title');
+  const tenantLogoImgEl = document.getElementById('kiosk-tenant-logo-img') as HTMLImageElement | null;
+  const tenantLogoFallbackEl = document.getElementById('kiosk-tenant-logo-fallback');
   const signalEl = document.getElementById('kiosk-signal');
 
   // VIP Modal Elements
@@ -180,6 +183,11 @@ import DeviceSettingsMenu from '../../components/ui/DeviceSettingsMenu.astro';
       card.innerHTML = `
         <div class="service-prefix-badge">${srv.prefix}</div>
         <div class="service-body">
+          ${srv.image_url ? `
+            <div class="service-image-box">
+              <img src="${resolveImageUrl(srv.image_url)}" alt="${srv.name}" class="service-image" onerror="this.style.display='none'" />
+            </div>
+          ` : ''}
           <h3 class="service-title">${srv.name}</h3>
           <span class="service-duration">Estimasi: ~${srv.estimated_duration_mins} mnt</span>
         </div>
@@ -366,6 +374,32 @@ import DeviceSettingsMenu from '../../components/ui/DeviceSettingsMenu.astro';
     vipModal?.classList.add('is-hidden');
   }
 
+  function updateKioskHeader(info: KioskInfoResponse): void {
+    if (tenantTitleEl && info.tenant_name) {
+      tenantTitleEl.textContent = info.tenant_name;
+    }
+    if (thermalTenant && info.tenant_name) {
+      thermalTenant.textContent = info.tenant_name;
+    }
+
+    if (info.logo_url) {
+      if (tenantLogoImgEl) {
+        tenantLogoImgEl.src = resolveImageUrl(info.logo_url);
+        tenantLogoImgEl.classList.remove('is-hidden');
+      }
+      if (tenantLogoFallbackEl) {
+        tenantLogoFallbackEl.classList.add('is-hidden');
+      }
+    } else {
+      if (tenantLogoImgEl) {
+        tenantLogoImgEl.classList.add('is-hidden');
+      }
+      if (tenantLogoFallbackEl) {
+        tenantLogoFallbackEl.classList.remove('is-hidden');
+      }
+    }
+  }
+
   async function initKiosk(): Promise<void> {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -393,6 +427,17 @@ import DeviceSettingsMenu from '../../components/ui/DeviceSettingsMenu.astro';
       if (tenantTitleEl) {
         tenantTitleEl.textContent = currentSlug.replace(/-/g, ' ').toUpperCase();
       }
+
+      // Ambil profil resmi instansi (nama & logo)
+      getKioskInfo(currentSlug, currentKey)
+        .then((infoRes) => {
+          if (infoRes.success && infoRes.data) {
+            updateKioskHeader(infoRes.data);
+          }
+        })
+        .catch((err) => {
+          console.warn('Gagal memuat profil instansi kiosk:', err);
+        });
 
       loadingEl?.classList.remove('is-hidden');
       errorEl?.classList.add('is-hidden');
@@ -662,6 +707,22 @@ import DeviceSettingsMenu from '../../components/ui/DeviceSettingsMenu.astro';
 
   .is-hidden {
     display: none !important;
+  }
+
+  :global(.service-image-box) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.35rem;
+    max-height: 80px;
+    overflow: hidden;
+  }
+
+  :global(.service-image) {
+    max-height: 72px;
+    max-width: 120px;
+    object-fit: contain;
+    border-radius: var(--radius-md);
   }
 
   @keyframes spin {

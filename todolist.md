@@ -461,3 +461,110 @@ src/
   - [x] `npm run check` (0 errors, 0 warnings).
   - [x] `npm run build` (22 static routes sukses dibangun).
   - [x] Restart dev server Astro dan verifikasi pemuatan `qrcode.js` mengembalikan HTTP 200 OK.
+
+---
+
+### Fase 22: Dukungan Gambar Layanan, Tampilan Kiosk Di Atas Judul, & Upload Media Display TV
+- [x] **Client-Side Upload Service & Kontrak Tipe:**
+  - [x] Pembuatan service terdedikasi `src/services/uploadService.ts` (`uploadImage(file: File)`).
+  - [x] Validasi awal sisi klien: penolakan berkas non-gambar dan pembatasan ukuran maksimal 5 MB.
+  - [x] Pengiriman multipart/form-data ke backend `POST /api/v1/uploads/image` dengan injeksi token otentikasi.
+  - [x] Pembaruan `src/types/master.types.ts` (`ServiceResponse`, `CreateServiceRequest`, `UpdateServiceRequest`) dan `src/types/queue.types.ts` (`KioskServiceSummaryResponse`) menyertakan `image_url?: string`.
+- [x] **Tampilan Kiosk Mandiri (Layanan Gambar di Atas Judul):**
+  - [x] Pembaruan komponen `src/components/kiosk/ServiceCard.astro` untuk menerima prop `imageUrl` dan merender kontainer `.service-image-box` tepat di atas judul kartu layanan dengan proteksi fallback onerror (`this.style.display='none'`).
+  - [x] Pembaruan dynamic card generator di `src/pages/kiosk/index.astro` (`renderServiceCards`) untuk merender thumbnail gambar secara dinamis saat data API kiosk dimuat.
+- [x] **Modal Formulir Layanan Admin & Pratinjau Gambar:**
+  - [x] Penambahan kontrol gambar pada `src/components/admin/ServiceFormModal.astro`: Tab switcher "Upload File" vs "Input URL", input file gambar, input text URL, kotak pratinjau thumbnail (`#service-image-preview-box`), dan tombol hapus gambar.
+  - [x] Pembaruan `src/pages/admin/services.astro` untuk menangani proses upload berkas, auto-populate URL, pembaruan pratinjau instan, pengiriman `image_url` pada pembuatan/pembaruan layanan, dan menampilkan thumbnail gambar pada tabel daftar layanan.
+- [x] **Integrasi Upload Berkas Media Promosi Display TV:**
+  - [x] Pembaruan `src/pages/admin/display.astro` pada seksi Tipe Media Promosi.
+  - [x] Ketika Tipe Media Promosi adalah "Gambar Banner (Poster/Promo)", tampilkan tab switcher "URL" vs "Upload File".
+  - [x] Mengunggah gambar promosi secara langsung melalui `uploadImage()`, mengisi URL secara otomatis, dan memperbarui Live Preview Layar TV secara realtime.
+- [x] **Automated Testing & Verifikasi Kualitas:**
+  - [x] Pembuatan test suite baru `tests/uploadService.test.ts` (4 skenario: penolakan tipe berkas salah, penolakan ukuran > 5 MB, unggah berhasil, dan penanganan error server).
+  - [x] Pembaruan test suite `tests/kioskComponents.test.ts` (verifikasi render kontainer gambar di atas judul layanan).
+  - [x] Pembaruan test suite `tests/adminComponents.test.ts` (verifikasi kontrol upload dan input URL pada modal layanan).
+  - [x] Seluruh 38 test suites / 233 automated unit tests PASS 100%.
+  - [x] `npm run check` (0 errors, 0 warnings).
+  - [x] `npm run build` (22 static routes sukses dibangun).
+
+---
+
+### Fase 23: Resolusi URL Gambar Origin Backend & Kolom Ikon Layanan Terdedikasi
+- [x] **Fungsi Resolusi URL Terpusat (`src/lib/formatters.ts`):**
+  - [x] Mengimplementasikan helper `resolveImageUrl(url?: string | null): string`.
+  - [x] Menjaga URL eksternal absolut (`http://`, `https://`, `data:`, `blob:`) tanpa modifikasi.
+  - [x] Menggabungkan path relatif (`/uploads/images/...`) dengan origin server backend (`http://localhost:8080`) secara otomatis untuk mengeliminasi kesalahan HTTP 404 cross-port pada browser.
+- [x] **Kolom Ikon Terdedikasi pada Manajemen Layanan (`src/pages/admin/services.astro`):**
+  - [x] Menambahkan header kolom terpisah `<th>Ikon</th>` pada tabel daftar layanan admin.
+  - [x] Menampilkan gambar thumbnail berukuran `w-10 h-10` dengan `resolveImageUrl(srv.image_url)` dan fallback placeholder visual bersih `-` saat layanan belum memiliki gambar.
+  - [x] Memperbarui modal "Edit Kategori Layanan" agar pratinjau thumbnail langsung memuat berkas gambar yang tersimpan di server backend via `resolveImageUrl`.
+- [x] **Integrasi Kiosk Mandiri & Layar Display TV:**
+  - [x] Mengintegrasikan `resolveImageUrl` pada `src/components/kiosk/ServiceCard.astro` dan generator kartu dinamis `src/pages/kiosk/index.astro`.
+  - [x] Mengintegrasikan `resolveImageUrl` pada live preview `src/pages/admin/display.astro` dan layar display ruang tunggu `src/pages/display/index.astro`.
+- [x] **Automated Testing & Verifikasi Kualitas:**
+  - [x] Penambahan 4 skenario unit test baru untuk `resolveImageUrl` di `tests/formatters.test.ts` (input kosong, URL absolut, path relatif dengan leading slash, path relatif tanpa leading slash).
+  - [x] Pembaruan `tests/kioskComponents.test.ts` untuk memverifikasi URL gambar yang telah di-resolve ke backend origin.
+  - [x] Seluruh 38 test suites / 237 automated unit tests PASS 100%.
+  - [x] `npm run check` (0 errors, 0 warnings).
+  - [x] `npm run build` (22 static routes sukses dibangun).
+
+---
+
+### Fase 24: Upload Berkas Logo Instansi pada Pengaturan Admin (/admin/settings)
+- [x] **Kontrol Pengunggahan Logo & Tab Switcher:**
+  - [x] Menghadirkan tab switcher ("Upload File" vs "Input URL") pada formulir Profil Instansi di `src/pages/admin/settings.astro`.
+  - [x] Menyediakan input berkas logo (`#input-tenant-logo-file`) dengan validasi batas ukuran 5 MB dan tipe berkas gambar (PNG, JPG, WEBP, GIF).
+  - [x] Mengintegrasikan pemanggilan service `uploadImage()` ke endpoint `POST /api/v1/uploads/image`.
+- [x] **Pratinjau Thumbnail & Manajemen Logo:**
+  - [x] Menampilkan kotak pratinjau thumbnail logo instansi (`#logo-preview-box` & `#logo-preview-img`) yang menggunakan `resolveImageUrl()` untuk mengeliminasi potensi error 404 cross-port.
+  - [x] Menyediakan tombol "Hapus Logo" (`#btn-remove-logo`) untuk mengosongkan URL logo yang terpasang.
+  - [x] Memperbarui fungsi `loadProfile()` agar otomatis memanggil `updateLogoPreview()` saat profil instansi dimuat dari backend API.
+- [x] **Automated Testing & Verifikasi Kualitas:**
+  - [x] Penambahan skenario automated unit test baru di `tests/tenantSettingsAndUsers.test.ts` (verifikasi eksistensi tab switcher, file input, url input, preview container, preview image, dan tombol hapus logo).
+  - [x] Seluruh 38 test suites / 238 automated unit tests PASS 100%.
+  - [x] `npm run check` (0 errors, 0 warnings).
+  - [x] `npm run build` (22 static routes sukses dibangun).
+
+---
+
+### Fase 25: Tampilan Logo Instansi Dinamis pada Header Kiosk Mandiri (/kiosk)
+- [x] **Kontrak Tipe Data & Service Kiosk:**
+  - [x] Penambahan interface `KioskInfoResponse` pada `src/types/queue.types.ts` (`tenant_name`, `tenant_slug`, `logo_url`).
+  - [x] Penambahan fungsi klien `getKioskInfo()` pada `src/services/kioskService.ts` untuk memanggil `GET /api/v1/kiosk/:tenant_slug/info`.
+- [x] **Dukungan Header KioskLayout & Fallback Emoji:**
+  - [x] Pembaruan `src/layouts/KioskLayout.astro` mengubah elemen statis emoji bank menjadi kontainer dinamis `#kiosk-tenant-logo`.
+  - [x] Menampilkan elemen gambar `#kiosk-tenant-logo-img` dan fallback emoji bank `#kiosk-tenant-logo-fallback` (`🏛️`) dengan proteksi `onerror`.
+  - [x] Penambahan styling responsif `.tenant-logo-img` (max 4.5rem x 3.5rem, object-fit contain).
+- [x] **Sinkronisasi Identitas Instansi pada Kiosk Page:**
+  - [x] Pembaruan `src/pages/kiosk/index.astro` memanggil `getKioskInfo` saat inisialisasi (`initKiosk`).
+  - [x] Memperbarui judul instansi `#kiosk-tenant-title` dan cetakan struk thermal `#thermal-tenant-name` dengan nama resmi instansi dari database.
+  - [x] Merender gambar logo resmi via `resolveImageUrl` sehingga berkas `/uploads/images/...` langsung tersaji dari origin server backend.
+- [x] **Automated Testing & Verifikasi Kualitas:**
+  - [x] Penambahan skenario automated unit test di `tests/kioskComponents.test.ts` (verifikasi eksistensi elemen logo, gambar, dan fallback emoji).
+  - [x] Penambahan skenario automated unit test di `tests/kioskService.test.ts` (verifikasi pemanggilan `getKioskInfo`).
+  - [x] Seluruh 38 test suites / 240 automated unit tests PASS 100%.
+  - [x] `npm run check` (0 errors, 0 warnings).
+  - [x] `npm run build` (22 static routes sukses dibangun).
+
+---
+
+### Fase 26: Tampilan Logo Instansi Dinamis pada Layar Display TV Ruang Tunggu (/display)
+- [x] **Kontrak Tipe Data Display:**
+  - [x] Penambahan atribut `tenant_logo_url?: string | null` pada interface `DisplaySnapshotResponse` di `src/types/display.types.ts`.
+- [x] **Dukungan Header DisplayLayout & Fallback SVG:**
+  - [x] Pembaruan `src/layouts/DisplayLayout.astro` pada kontainer `#display-brand-logo-badge` menghadirkan tag `<img>` `#display-tenant-logo-img` dan fallback SVG `#display-default-logo-icon`.
+  - [x] Penambahan styling CSS `.brand-logo-image` (object-fit contain) dan utility `.hidden` dengan proteksi fallback `onerror`.
+- [x] **Integrasi Snapshot Display Page:**
+  - [x] Pembaruan `src/pages/display/index.astro` pada method `applySnapshot()` untuk merender `snapshot.tenant_logo_url` menggunakan helper `resolveImageUrl()` agar tautan berkas fisik dari origin backend tersaji tanpa kendala 404.
+- [x] **Automated Testing & Verifikasi Kualitas:**
+  - [x] Penambahan skenario automated unit test di `tests/baseLayout.test.ts` (verifikasi eksistensi elemen logo badge, image, dan fallback svg icon pada `DisplayLayout.astro`).
+  - [x] Pembaruan unit test di `tests/displayService.test.ts` (verifikasi parsing field `tenant_logo_url`).
+  - [x] Seluruh 38 test suites / 241 automated unit tests PASS 100%.
+  - [x] `npm run check` (0 errors, 0 warnings).
+  - [x] `npm run build` (22 static routes sukses dibangun).
+
+
+
+
+

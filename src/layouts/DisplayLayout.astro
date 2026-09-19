@@ -24,8 +24,15 @@ const {
       <!-- Top Header Bar -->
       <header class="display-header">
         <div class="header-brand">
-          <div class="brand-logo-badge">
-            <svg class="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <div class="brand-logo-badge" id="display-brand-logo-badge">
+            <img
+              id="display-tenant-logo-img"
+              src=""
+              alt="Logo Instansi"
+              class="brand-logo-image hidden"
+              onerror="this.classList.add('hidden'); document.getElementById('display-default-logo-icon')?.classList.remove('hidden');"
+            />
+            <svg id="display-default-logo-icon" class="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
           </div>
@@ -162,6 +169,19 @@ const {
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    padding: 0.25rem;
+  }
+
+  .brand-logo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 0.5rem;
+  }
+
+  .hidden {
+    display: none !important;
   }
 
   .tenant-title {

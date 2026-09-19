@@ -8,6 +8,7 @@ export interface ServiceResponse {
   name: string;
   prefix: string;
   estimated_duration_mins: number;
+  image_url?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -17,12 +18,14 @@ export interface CreateServiceRequest {
   name: string;
   prefix: string;
   estimated_duration_mins: number;
+  image_url?: string;
 }
 
 export interface UpdateServiceRequest {
   name: string;
   prefix: string;
   estimated_duration_mins: number;
+  image_url?: string;
   is_active?: boolean;
 }
 

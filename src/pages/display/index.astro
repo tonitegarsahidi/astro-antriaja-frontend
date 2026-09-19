@@ -46,6 +46,7 @@ import DisplaySetupModal from '../../components/display/DisplaySetupModal.astro'
   import { getDisplaySnapshot } from '../../services/displayService';
   import { sseClient } from '../../lib/sseClient';
   import { globalAudioEngine } from '../../lib/audioPlayer';
+  import { resolveImageUrl } from '../../lib/formatters';
   import type {
     DisplaySnapshotResponse,
     DisplaySettingsResponse,
@@ -122,6 +123,26 @@ import DisplaySetupModal from '../../components/display/DisplaySetupModal.astro'
       tenantEl.textContent = snapshot.tenant_name || snapshot.tenant_slug;
     }
 
+    // 1.1 Logo Instansi
+    const logoImg = document.getElementById('display-tenant-logo-img') as HTMLImageElement | null;
+    const defaultIcon = document.getElementById('display-default-logo-icon');
+    if (snapshot.tenant_logo_url) {
+      if (logoImg) {
+        logoImg.src = resolveImageUrl(snapshot.tenant_logo_url);
+        logoImg.classList.remove('hidden');
+      }
+      if (defaultIcon) {
+        defaultIcon.classList.add('hidden');
+      }
+    } else {
+      if (logoImg) {
+        logoImg.classList.add('hidden');
+      }
+      if (defaultIcon) {
+        defaultIcon.classList.remove('hidden');
+      }
+    }
+
     // 2. Display Settings (Running text, Voice, Media)
     if (snapshot.display_settings) {
       applyDisplaySettings(snapshot.display_settings);
@@ -167,11 +188,11 @@ import DisplaySetupModal from '../../components/display/DisplaySetupModal.astro'
     if (promoContainer) {
       if (settings.media_type === 'video' && settings.media_url) {
         promoContainer.innerHTML = `
-          <video class="media-element media-video" src="${settings.media_url}" autoplay loop muted playsinline id="promo-video-player"></video>
+          <video class="media-element media-video" src="${resolveImageUrl(settings.media_url)}" autoplay loop muted playsinline id="promo-video-player"></video>
         `;
       } else if (settings.media_type === 'image' && settings.media_url) {
         promoContainer.innerHTML = `
-          <img class="media-element media-image" src="${settings.media_url}" alt="Promosi Instansi" id="promo-image-viewer" />
+          <img class="media-element media-image" src="${resolveImageUrl(settings.media_url)}" alt="Promosi Instansi" id="promo-image-viewer" />
         `;
       }
     }

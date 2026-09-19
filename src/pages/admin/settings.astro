@@ -94,17 +94,77 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
               ></textarea>
             </div>
 
-            <div>
-              <label for="input-tenant-logo-url" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                URL Logo Instansi (Opsional)
-              </label>
-              <input
-                id="input-tenant-logo-url"
-                name="logo_url"
-                type="url"
-                placeholder="https://domain.com/logo.png"
-                class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-              />
+            <!-- Tenant Logo (Upload or URL) -->
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                  Logo Instansi <span class="text-slate-400 font-normal lowercase">(opsional)</span>
+                </label>
+                <div class="flex items-center space-x-1 text-xs">
+                  <button
+                    type="button"
+                    id="tab-logo-upload"
+                    class="px-2.5 py-1 rounded-md font-semibold text-blue-600 bg-blue-100 hover:bg-blue-200 transition-colors cursor-pointer"
+                  >
+                    Upload File
+                  </button>
+                  <button
+                    type="button"
+                    id="tab-logo-url"
+                    class="px-2.5 py-1 rounded-md font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                  >
+                    Input URL
+                  </button>
+                </div>
+              </div>
+
+              <!-- File Upload Pane -->
+              <div id="pane-logo-upload" class="space-y-1.5">
+                <input
+                  id="input-tenant-logo-file"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-300 rounded-lg p-1 bg-white"
+                />
+                <p id="logo-upload-status" class="text-[11px] text-slate-500">Maks. 5 MB (PNG, JPG, WEBP, GIF)</p>
+              </div>
+
+              <!-- URL Input Pane -->
+              <div id="pane-logo-url" class="space-y-1.5 hidden">
+                <input
+                  id="input-tenant-logo-url"
+                  name="logo_url"
+                  type="text"
+                  placeholder="https://domain.com/logo.png atau /uploads/images/..."
+                  class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+                <p class="text-[11px] text-slate-500">Masukkan URL lengkap logo eksternal atau berkas lokal</p>
+              </div>
+
+              <!-- Logo Preview Box -->
+              <div
+                id="logo-preview-box"
+                class="hidden flex items-center space-x-3 p-2.5 bg-white rounded-lg border border-slate-200"
+              >
+                <img
+                  id="logo-preview-img"
+                  src=""
+                  alt="Preview Logo Instansi"
+                  class="w-12 h-12 object-contain rounded-md border border-slate-100 bg-slate-50 p-1"
+                  onerror="this.style.display='none'"
+                />
+                <div class="flex-1 min-w-0">
+                  <p id="logo-preview-text" class="text-xs font-mono text-slate-600 truncate"></p>
+                  <span class="text-[10px] text-emerald-600 font-semibold">✓ Logo Terpasang</span>
+                </div>
+                <button
+                  type="button"
+                  id="btn-remove-logo"
+                  class="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2.5 py-1 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
+                >
+                  Hapus Logo
+                </button>
+              </div>
             </div>
 
             <div class="pt-2 flex justify-end">
@@ -364,6 +424,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     updateTenantProfile,
     rotateDeviceKey,
   } from '../../services/tenantService';
+  import { uploadImage } from '../../services/uploadService';
+  import { resolveImageUrl } from '../../lib/formatters';
   import type { TenantProfileResponse } from '../../types/tenant.types';
 
   let currentProfile: TenantProfileResponse | null = null;
@@ -378,6 +440,18 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   const inputAddress = document.getElementById('input-tenant-address') as HTMLTextAreaElement | null;
   const selectTimezone = document.getElementById('select-tenant-timezone') as HTMLSelectElement | null;
   const inputLogoUrl = document.getElementById('input-tenant-logo-url') as HTMLInputElement | null;
+
+  // Logo Upload & Preview Elements
+  const tabLogoUpload = document.getElementById('tab-logo-upload');
+  const tabLogoUrl = document.getElementById('tab-logo-url');
+  const paneLogoUpload = document.getElementById('pane-logo-upload');
+  const paneLogoUrl = document.getElementById('pane-logo-url');
+  const inputLogoFile = document.getElementById('input-tenant-logo-file') as HTMLInputElement | null;
+  const logoUploadStatus = document.getElementById('logo-upload-status');
+  const logoPreviewBox = document.getElementById('logo-preview-box');
+  const logoPreviewImg = document.getElementById('logo-preview-img') as HTMLImageElement | null;
+  const logoPreviewText = document.getElementById('logo-preview-text');
+  const btnRemoveLogo = document.getElementById('btn-remove-logo');
 
   // Queue Settings Form Elements
   const queueForm = document.getElementById('queue-settings-form') as HTMLFormElement | null;
@@ -414,6 +488,48 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     setTimeout(() => alertBox.classList.add('hidden'), 5000);
   }
 
+  function updateLogoPreview(url: string) {
+    const clean = (url || '').trim();
+    if (clean) {
+      if (logoPreviewImg) {
+        logoPreviewImg.src = resolveImageUrl(clean);
+        logoPreviewImg.style.display = 'block';
+      }
+      if (logoPreviewText) {
+        logoPreviewText.textContent = clean.split('/').pop() || clean;
+      }
+      logoPreviewBox?.classList.remove('hidden');
+      logoPreviewBox?.classList.add('flex');
+    } else {
+      if (logoPreviewImg) {
+        logoPreviewImg.src = '';
+      }
+      if (logoPreviewText) {
+        logoPreviewText.textContent = '';
+      }
+      logoPreviewBox?.classList.add('hidden');
+      logoPreviewBox?.classList.remove('flex');
+    }
+  }
+
+  function switchLogoTab(mode: 'upload' | 'url') {
+    if (mode === 'upload') {
+      tabLogoUpload?.classList.add('bg-blue-100', 'text-blue-600');
+      tabLogoUpload?.classList.remove('text-slate-600');
+      tabLogoUrl?.classList.remove('bg-blue-100', 'text-blue-600');
+      tabLogoUrl?.classList.add('text-slate-600');
+      paneLogoUpload?.classList.remove('hidden');
+      paneLogoUrl?.classList.add('hidden');
+    } else {
+      tabLogoUrl?.classList.add('bg-blue-100', 'text-blue-600');
+      tabLogoUrl?.classList.remove('text-slate-600');
+      tabLogoUpload?.classList.remove('bg-blue-100', 'text-blue-600');
+      tabLogoUpload?.classList.add('text-slate-600');
+      paneLogoUrl?.classList.remove('hidden');
+      paneLogoUpload?.classList.add('hidden');
+    }
+  }
+
   async function loadProfile() {
     try {
       const res = await getTenantProfile();
@@ -426,6 +542,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         if (inputAddress) inputAddress.value = currentProfile.address || '';
         if (selectTimezone) selectTimezone.value = currentProfile.timezone || 'Asia/Jakarta';
         if (inputLogoUrl) inputLogoUrl.value = currentProfile.logo_url || '';
+        updateLogoPreview(currentProfile.logo_url || '');
 
         // Populate Queue Settings
         if (inputResetTime) inputResetTime.value = currentProfile.daily_reset_time || '00:00:00';
@@ -557,6 +674,61 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       rotateModal?.classList.add('hidden');
       showAlert(err.message || 'Gagal merotasi kunci', 'error');
     }
+  });
+
+  // Logo Event Listeners
+  tabLogoUpload?.addEventListener('click', () => switchLogoTab('upload'));
+  tabLogoUrl?.addEventListener('click', () => switchLogoTab('url'));
+
+  inputLogoFile?.addEventListener('change', async () => {
+    const file = inputLogoFile.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      showAlert('Ukuran berkas logo maksimal 5 MB', 'error');
+      if (logoUploadStatus) {
+        logoUploadStatus.textContent = 'Ukuran berkas melebihi batas 5 MB';
+        logoUploadStatus.className = 'text-[11px] text-rose-600 font-semibold';
+      }
+      return;
+    }
+
+    if (logoUploadStatus) {
+      logoUploadStatus.textContent = 'Mengunggah gambar logo...';
+      logoUploadStatus.className = 'text-[11px] text-blue-600 font-semibold animate-pulse';
+    }
+
+    const res = await uploadImage(file);
+    if (res.success && res.data) {
+      if (inputLogoUrl) inputLogoUrl.value = res.data.url;
+      updateLogoPreview(res.data.url);
+      if (logoUploadStatus) {
+        logoUploadStatus.textContent = 'Upload berhasil! Berkas logo tersimpan.';
+        logoUploadStatus.className = 'text-[11px] text-emerald-600 font-semibold';
+      }
+      showAlert('Logo instansi berhasil diunggah! Klik "Simpan Profil Instansi" untuk menyimpan.');
+    } else {
+      if (logoUploadStatus) {
+        logoUploadStatus.textContent = 'Gagal upload. Maks. 5 MB (PNG, JPG, WEBP, GIF)';
+        logoUploadStatus.className = 'text-[11px] text-rose-600';
+      }
+      showAlert(res.error?.message || 'Gagal mengunggah logo', 'error');
+    }
+  });
+
+  inputLogoUrl?.addEventListener('input', () => {
+    updateLogoPreview(inputLogoUrl.value);
+  });
+
+  btnRemoveLogo?.addEventListener('click', () => {
+    if (inputLogoUrl) inputLogoUrl.value = '';
+    if (inputLogoFile) inputLogoFile.value = '';
+    updateLogoPreview('');
+    if (logoUploadStatus) {
+      logoUploadStatus.textContent = 'Maks. 5 MB (PNG, JPG, WEBP, GIF)';
+      logoUploadStatus.className = 'text-[11px] text-slate-500';
+    }
+    showAlert('Logo instansi dihapus. Klik "Simpan Profil Instansi" untuk menyimpan perubahan.');
   });
 
   // Initialize

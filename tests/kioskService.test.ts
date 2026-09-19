@@ -4,6 +4,7 @@ import {
   getKioskServices,
   issueKioskTicket,
   verifyVIPPIN,
+  getKioskInfo,
 } from '../src/services/kioskService';
 import type {
   KioskServiceSummaryResponse,
@@ -148,5 +149,36 @@ describe('kioskService client', () => {
 
     expect(res.success).toBe(false);
     expect(res.error?.code).toBe('INVALID_PIN');
+  });
+
+  it('fetches kiosk tenant info with device key header and returns tenant name and logo url', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: {
+          tenant_name: 'Puskesmas Maju Jaya',
+          tenant_slug: 'puskesmas-maju-jaya',
+          logo_url: '/uploads/images/puskesmas-logo.png',
+        },
+        error: null,
+      }),
+    });
+
+    const res = await getKioskInfo('puskesmas-maju-jaya', 'kiosk-key-123');
+
+    expect(res.success).toBe(true);
+    expect(res.data?.tenant_name).toBe('Puskesmas Maju Jaya');
+    expect(res.data?.tenant_slug).toBe('puskesmas-maju-jaya');
+    expect(res.data?.logo_url).toBe('/uploads/images/puskesmas-logo.png');
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/kiosk/puskesmas-maju-jaya/info'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-Device-Key': 'kiosk-key-123',
+        }),
+      })
+    );
   });
 });

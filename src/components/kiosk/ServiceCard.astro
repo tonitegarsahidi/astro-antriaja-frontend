@@ -1,13 +1,17 @@
 ---
+import { resolveImageUrl } from '../../lib/formatters';
+
 interface Props {
   id: string;
   name: string;
   prefix: string;
   estimatedDurationMins: number;
   waitingCount: number;
+  imageUrl?: string | null;
 }
 
-const { id, name, prefix, estimatedDurationMins, waitingCount } = Astro.props;
+const { id, name, prefix, estimatedDurationMins, waitingCount, imageUrl } = Astro.props;
+const resolvedUrl = resolveImageUrl(imageUrl);
 ---
 
 <button
@@ -19,6 +23,11 @@ const { id, name, prefix, estimatedDurationMins, waitingCount } = Astro.props;
 >
   <div class="service-prefix-badge">{prefix}</div>
   <div class="service-body">
+    {resolvedUrl && (
+      <div class="service-image-box">
+        <img src={resolvedUrl} alt={name} class="service-image" onerror="this.style.display='none'" />
+      </div>
+    )}
     <h3 class="service-title">{name}</h3>
     <span class="service-duration">Estimasi: ~{estimatedDurationMins} mnt</span>
   </div>
@@ -85,6 +94,23 @@ const { id, name, prefix, estimatedDurationMins, waitingCount } = Astro.props;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    align-items: center;
+  }
+
+  .service-image-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    max-height: 80px;
+    overflow: hidden;
+  }
+
+  .service-image {
+    max-height: 72px;
+    max-width: 120px;
+    object-fit: contain;
+    border-radius: var(--radius-md);
   }
 
   .service-title {

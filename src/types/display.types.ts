@@ -61,6 +61,7 @@ export interface RecentCallItem {
 export interface DisplaySnapshotResponse {
   tenant_name: string;
   tenant_slug: string;
+  tenant_logo_url?: string | null;
   display_settings: DisplaySettingsResponse;
   active_calls: ActiveCallItem[];
   recent_calls: RecentCallItem[];

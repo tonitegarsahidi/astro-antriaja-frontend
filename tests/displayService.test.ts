@@ -17,6 +17,7 @@ describe('displayService client', () => {
   const mockSnapshot: DisplaySnapshotResponse = {
     tenant_name: 'Klinik Sehat Sentosa',
     tenant_slug: 'klinik-sehat',
+    tenant_logo_url: '/uploads/images/klinik-logo.png',
     display_settings: {
       tenant_id: 'tnt-123',
       running_text: 'Selamat datang di Klinik Sehat Sentosa',
@@ -85,6 +86,7 @@ describe('displayService client', () => {
     );
 
     expect(result.tenant_name).toBe('Klinik Sehat Sentosa');
+    expect(result.tenant_logo_url).toBe('/uploads/images/klinik-logo.png');
     expect(result.active_calls.length).toBe(1);
     expect(result.recent_calls.length).toBe(2);
     expect(result.display_settings.voice_enabled).toBe(true);

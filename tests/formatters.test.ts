@@ -4,6 +4,7 @@ import {
   formatDuration,
   formatEstimatedTime,
   formatIndonesianDate,
+  resolveImageUrl,
 } from '../src/lib/formatters';
 
 describe('formatters utility', () => {
@@ -71,6 +72,32 @@ describe('formatters utility', () => {
 
     it('returns empty string or fallback for invalid date', () => {
       expect(formatIndonesianDate('invalid-date')).toBe('-');
+    });
+  });
+
+  describe('resolveImageUrl', () => {
+    it('returns empty string when input is null, undefined, or empty', () => {
+      expect(resolveImageUrl(null)).toBe('');
+      expect(resolveImageUrl(undefined)).toBe('');
+      expect(resolveImageUrl('')).toBe('');
+      expect(resolveImageUrl('   ')).toBe('');
+    });
+
+    it('returns original URL if it is already absolute or data-uri', () => {
+      expect(resolveImageUrl('https://example.com/icon.png')).toBe('https://example.com/icon.png');
+      expect(resolveImageUrl('http://cdn.org/image.jpg')).toBe('http://cdn.org/image.jpg');
+      expect(resolveImageUrl('data:image/png;base64,AAAA')).toBe('data:image/png;base64,AAAA');
+      expect(resolveImageUrl('blob:http://localhost:4321/uuid')).toBe('blob:http://localhost:4321/uuid');
+    });
+
+    it('resolves relative path by prepending backend host origin', () => {
+      const resolved = resolveImageUrl('/uploads/images/service-123.png');
+      expect(resolved).toBe('http://localhost:8080/uploads/images/service-123.png');
+    });
+
+    it('handles relative paths without leading slash gracefully', () => {
+      const resolved = resolveImageUrl('uploads/images/service-456.png');
+      expect(resolved).toBe('http://localhost:8080/uploads/images/service-456.png');
     });
   });
 });

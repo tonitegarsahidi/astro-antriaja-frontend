@@ -44,4 +44,23 @@ describe('BaseLayout container testing', () => {
     expect(result).not.toContain('padding: 0;\n  }');
     expect(result).not.toContain('border: none;\n    background: none;');
   });
+
+  describe('DisplayLayout container testing', () => {
+    it('renders header logo badge with image element and default fallback SVG icon', async () => {
+      const container = await AstroContainer.create();
+      const DisplayLayout = (await import('../src/layouts/DisplayLayout.astro')).default;
+      const result = await container.renderToString(DisplayLayout, {
+        props: {
+          title: 'Layar Antrian TV',
+          tenantName: 'RSUD Sehat Selalu',
+        },
+      });
+
+      expect(result).toContain('id="display-brand-logo-badge"');
+      expect(result).toContain('id="display-tenant-logo-img"');
+      expect(result).toContain('id="display-default-logo-icon"');
+      expect(result).toContain('id="display-tenant-name"');
+      expect(result).toContain('RSUD Sehat Selalu');
+    });
+  });
 });

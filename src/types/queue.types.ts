@@ -23,7 +23,14 @@ export interface KioskServiceSummaryResponse {
   name: string;
   prefix: string;
   estimated_duration_mins: number;
+  image_url?: string | null;
   waiting_count: number;
+}
+
+export interface KioskInfoResponse {
+  tenant_name: string;
+  tenant_slug: string;
+  logo_url?: string | null;
 }
 
 export interface TicketResponse {

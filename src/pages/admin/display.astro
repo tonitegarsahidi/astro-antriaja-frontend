@@ -54,34 +54,67 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             </p>
           </div>
 
-          <!-- Media Type & URL -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label for="select-media-type" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                Tipe Media Promosi
-              </label>
-              <select
-                id="select-media-type"
-                name="media_type"
-                class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
-              >
-                <option value="none">Tanpa Media (Kosong)</option>
-                <option value="image">Gambar Banner (Poster/Promo)</option>
-                <option value="video">Video Loop (MP4/WebM)</option>
-              </select>
-            </div>
+          <!-- Media Type & URL / Upload -->
+          <div class="space-y-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="select-media-type" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                  Tipe Media Promosi
+                </label>
+                <select
+                  id="select-media-type"
+                  name="media_type"
+                  class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                >
+                  <option value="none">Tanpa Media (Kosong)</option>
+                  <option value="image">Gambar Banner (Poster/Promo)</option>
+                  <option value="video">Video Loop (MP4/WebM)</option>
+                </select>
+              </div>
 
-            <div>
-              <label for="input-media-url" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                URL Media
-              </label>
-              <input
-                id="input-media-url"
-                name="media_url"
-                type="url"
-                placeholder="https://example.com/banner.jpg"
-                class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              />
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label for="input-media-url" class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                    Media URL / Berkas
+                  </label>
+                  <div id="media-image-tabs" class="hidden items-center space-x-1 text-[11px]">
+                    <button
+                      type="button"
+                      id="tab-media-url"
+                      class="px-2 py-0.5 rounded-md font-semibold text-blue-600 bg-blue-100 hover:bg-blue-200 transition-colors cursor-pointer"
+                    >
+                      URL
+                    </button>
+                    <button
+                      type="button"
+                      id="tab-media-upload"
+                      class="px-2 py-0.5 rounded-md font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                    >
+                      Upload File
+                    </button>
+                  </div>
+                </div>
+
+                <div id="pane-media-url">
+                  <input
+                    id="input-media-url"
+                    name="media_url"
+                    type="url"
+                    placeholder="https://example.com/banner.jpg atau /uploads/images/..."
+                    class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+
+                <div id="pane-media-upload" class="hidden space-y-1">
+                  <input
+                    id="input-media-image-file"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    class="block w-full text-xs text-slate-500 file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-300 rounded-xl p-1 bg-white"
+                  />
+                  <p id="media-upload-status" class="text-[10px] text-slate-500">Maks. 5 MB (PNG, JPG, WEBP, GIF)</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -354,6 +387,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     getDisplaySettings,
     updateDisplaySettings,
   } from '../../services/displayService';
+  import { uploadImage } from '../../services/uploadService';
+  import { resolveImageUrl } from '../../lib/formatters';
   import { getMe } from '../../services/authService';
   import { getTenantSlug, getDeviceKey, setDeviceKey } from '../../lib/storage';
   import type { MediaType, BellSoundType, VoiceLanguage, VoiceGender } from '../../types/display.types';
@@ -363,6 +398,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   const runningTextInput = document.getElementById('input-running-text') as HTMLTextAreaElement | null;
   const mediaTypeSelect = document.getElementById('select-media-type') as HTMLSelectElement | null;
   const mediaUrlInput = document.getElementById('input-media-url') as HTMLInputElement | null;
+  const mediaImageTabs = document.getElementById('media-image-tabs');
+  const tabMediaUrl = document.getElementById('tab-media-url');
+  const tabMediaUpload = document.getElementById('tab-media-upload');
+  const paneMediaUrl = document.getElementById('pane-media-url');
+  const paneMediaUpload = document.getElementById('pane-media-upload');
+  const mediaImageFileInput = document.getElementById('input-media-image-file') as HTMLInputElement | null;
+  const mediaUploadStatus = document.getElementById('media-upload-status');
   const voiceToggle = document.getElementById('toggle-voice-enabled') as HTMLInputElement | null;
   const submitBtn = document.getElementById('btn-save-display-settings') as HTMLButtonElement | null;
   const errorEl = document.getElementById('display-form-error');
@@ -384,6 +426,36 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   const previewRunningText = document.getElementById('preview-running-text');
   const previewMedia = document.getElementById('preview-media-container');
 
+  function switchMediaTab(mode: 'url' | 'upload') {
+    if (mode === 'url') {
+      tabMediaUrl?.classList.add('bg-blue-100', 'text-blue-600');
+      tabMediaUrl?.classList.remove('text-slate-600');
+      tabMediaUpload?.classList.remove('bg-blue-100', 'text-blue-600');
+      tabMediaUpload?.classList.add('text-slate-600');
+      paneMediaUrl?.classList.remove('hidden');
+      paneMediaUpload?.classList.add('hidden');
+    } else {
+      tabMediaUpload?.classList.add('bg-blue-100', 'text-blue-600');
+      tabMediaUpload?.classList.remove('text-slate-600');
+      tabMediaUrl?.classList.remove('bg-blue-100', 'text-blue-600');
+      tabMediaUrl?.classList.add('text-slate-600');
+      paneMediaUpload?.classList.remove('hidden');
+      paneMediaUrl?.classList.add('hidden');
+    }
+  }
+
+  function syncMediaTabs() {
+    if (!mediaTypeSelect) return;
+    if (mediaTypeSelect.value === 'image') {
+      mediaImageTabs?.classList.remove('hidden');
+      mediaImageTabs?.classList.add('flex');
+    } else {
+      mediaImageTabs?.classList.add('hidden');
+      mediaImageTabs?.classList.remove('flex');
+      switchMediaTab('url');
+    }
+  }
+
   function updateLivePreview() {
     if (previewRunningText && runningTextInput) {
       previewRunningText.textContent = runningTextInput.value.trim() || 'Selamat datang di AntriAja...';
@@ -394,7 +466,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       const url = mediaUrlInput.value.trim();
 
       if (type === 'image' && url) {
-        previewMedia.innerHTML = `<img src="${url}" alt="Preview" class="max-h-24 max-w-full rounded object-contain mx-auto" onerror="this.outerHTML='<span class=\\'text-rose-400 text-[10px]\\'>Gagal memuat URL gambar</span>'"/>`;
+        previewMedia.innerHTML = `<img src="${resolveImageUrl(url)}" alt="Preview" class="max-h-24 max-w-full rounded object-contain mx-auto" onerror="this.outerHTML='<span class=\\'text-rose-400 text-[10px]\\'>Gagal memuat URL gambar</span>'"/>`;
       } else if (type === 'video' && url) {
         previewMedia.innerHTML = `<span class="text-blue-400 text-[10px] font-semibold">Video: ${url}</span>`;
       } else {
@@ -434,6 +506,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         }
 
         updateLivePreview();
+        syncMediaTabs();
         updateVoiceDetectionHint();
       }
     } catch (err) {
@@ -539,8 +612,41 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     loadDisplaySettings();
 
     if (runningTextInput) runningTextInput.addEventListener('input', updateLivePreview);
-    if (mediaTypeSelect) mediaTypeSelect.addEventListener('change', updateLivePreview);
+    if (mediaTypeSelect) {
+      mediaTypeSelect.addEventListener('change', () => {
+        syncMediaTabs();
+        updateLivePreview();
+      });
+    }
     if (mediaUrlInput) mediaUrlInput.addEventListener('input', updateLivePreview);
+
+    tabMediaUrl?.addEventListener('click', () => switchMediaTab('url'));
+    tabMediaUpload?.addEventListener('click', () => switchMediaTab('upload'));
+
+    mediaImageFileInput?.addEventListener('change', async () => {
+      const file = mediaImageFileInput.files?.[0];
+      if (!file) return;
+
+      if (mediaUploadStatus) {
+        mediaUploadStatus.textContent = 'Mengunggah file...';
+        mediaUploadStatus.className = 'text-[10px] text-blue-600 font-semibold';
+      }
+
+      const res = await uploadImage(file);
+      if (res.success && res.data) {
+        if (mediaUrlInput) mediaUrlInput.value = res.data.url;
+        if (mediaUploadStatus) {
+          mediaUploadStatus.textContent = `✓ Berhasil diunggah: ${res.data.filename}`;
+          mediaUploadStatus.className = 'text-[10px] text-emerald-600 font-semibold';
+        }
+        updateLivePreview();
+      } else {
+        if (mediaUploadStatus) {
+          mediaUploadStatus.textContent = `❌ Gagal: ${res.error?.message || 'Error server'}`;
+          mediaUploadStatus.className = 'text-[10px] text-rose-600 font-semibold';
+        }
+      }
+    });
 
     voiceGenderSelect?.addEventListener('change', updateVoiceDetectionHint);
     voiceLangSelect?.addEventListener('change', updateVoiceDetectionHint);

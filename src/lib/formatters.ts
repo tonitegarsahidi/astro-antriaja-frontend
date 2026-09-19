@@ -55,3 +55,37 @@ export function formatIndonesianDate(date: string | Date): string {
     return '-';
   }
 }
+
+/**
+ * Menyelesaikan URL gambar agar dapat dimuat oleh browser:
+ * - Jika URL berupa absolute (http://, https://, data:, blob:), kembalikan langsung.
+ * - Jika URL berupa relative path (contoh: /uploads/images/xyz.png), gabungkan dengan origin backend API.
+ */
+export function resolveImageUrl(url?: string | null): string {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
+    return '';
+  }
+
+  const cleanUrl = url.trim();
+  if (
+    cleanUrl.startsWith('http://') ||
+    cleanUrl.startsWith('https://') ||
+    cleanUrl.startsWith('data:') ||
+    cleanUrl.startsWith('blob:')
+  ) {
+    return cleanUrl;
+  }
+
+  const apiBase =
+    (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_API_BASE_URL) ||
+    'http://localhost:8080/api/v1';
+
+  try {
+    const origin = new URL(apiBase).origin;
+    const path = cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`;
+    return `${origin}${path}`;
+  } catch {
+    const path = cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`;
+    return `http://localhost:8080${path}`;
+  }
+}

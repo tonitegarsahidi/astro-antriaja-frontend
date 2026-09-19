@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+import KioskLayout from '../src/layouts/KioskLayout.astro';
 import ServiceCard from '../src/components/kiosk/ServiceCard.astro';
 import VIPModal from '../src/components/kiosk/VIPModal.astro';
 import TicketModal from '../src/components/kiosk/TicketModal.astro';
@@ -7,6 +8,23 @@ import ThermalReceipt from '../src/components/kiosk/ThermalReceipt.astro';
 import KioskSetupModal from '../src/components/kiosk/KioskSetupModal.astro';
 
 describe('Kiosk UI Components', () => {
+  describe('KioskLayout.astro', () => {
+    it('renders header logo container, logo image element, and fallback bank emoji', async () => {
+      const container = await AstroContainer.create();
+      const result = await container.renderToString(KioskLayout, {
+        props: {
+          title: 'Kiosk Mandiri',
+          tenantName: 'Puskesmas Maju Jaya',
+        },
+      });
+
+      expect(result).toContain('id="kiosk-tenant-logo"');
+      expect(result).toContain('id="kiosk-tenant-logo-img"');
+      expect(result).toContain('id="kiosk-tenant-logo-fallback"');
+      expect(result).toContain('🏛️');
+      expect(result).toContain('Puskesmas Maju Jaya');
+    });
+  });
   describe('ServiceCard.astro', () => {
     it('renders service name, prefix badge, duration, and waiting count', async () => {
       const container = await AstroContainer.create();
@@ -24,6 +42,24 @@ describe('Kiosk UI Components', () => {
       expect(result).toContain('A');
       expect(result).toContain('4');
       expect(result).toContain('data-service-id="srv-1"');
+    });
+
+    it('renders service image container above service title when imageUrl is provided', async () => {
+      const container = await AstroContainer.create();
+      const result = await container.renderToString(ServiceCard, {
+        props: {
+          id: 'srv-2',
+          name: 'Customer Service',
+          prefix: 'B',
+          estimatedDurationMins: 10,
+          waitingCount: 2,
+          imageUrl: '/uploads/images/cs-icon.png',
+        },
+      });
+
+      expect(result).toContain('class="service-image-box"');
+      expect(result).toContain('src="http://localhost:8080/uploads/images/cs-icon.png"');
+      expect(result).toContain('alt="Customer Service"');
     });
   });
 

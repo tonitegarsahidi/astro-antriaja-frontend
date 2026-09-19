@@ -39,7 +39,8 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              <th class="py-3 px-4">Prefix</th>
+              <th class="py-3 px-4 w-20">Prefix</th>
+              <th class="py-3 px-4 w-20">Ikon</th>
               <th class="py-3 px-4">Nama Layanan</th>
               <th class="py-3 px-4">Estimasi Durasi</th>
               <th class="py-3 px-4">Status</th>
@@ -48,7 +49,7 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
           </thead>
           <tbody id="services-tbody" class="divide-y divide-slate-100 text-xs text-slate-700">
             <tr>
-              <td colspan="5" class="py-8 text-center text-slate-400 italic">
+              <td colspan="6" class="py-8 text-center text-slate-400 italic">
                 Memuat data layanan...
               </td>
             </tr>
@@ -69,6 +70,8 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
     updateService,
     deleteService,
   } from '../../services/serviceService';
+  import { uploadImage } from '../../services/uploadService';
+  import { resolveImageUrl } from '../../lib/formatters';
   import type { ServiceResponse } from '../../types/master.types';
 
   let currentServices: ServiceResponse[] = [];
@@ -109,7 +112,7 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
     if (currentServices.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" class="py-8 text-center text-slate-400 italic">
+          <td colspan="6" class="py-8 text-center text-slate-400 italic">
             Belum ada kategori layanan yang didaftarkan.
           </td>
         </tr>
@@ -126,9 +129,16 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
         return `
           <tr class="hover:bg-slate-50/80 transition-colors">
             <td class="py-3 px-4 font-mono font-black text-blue-600">
-              <span class="inline-block px-2 py-1 rounded-md bg-blue-50 border border-blue-200">
+              <span class="inline-block px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200">
                 ${srv.prefix}
               </span>
+            </td>
+            <td class="py-3 px-4">
+              ${
+                srv.image_url
+                  ? `<img src="${resolveImageUrl(srv.image_url)}" alt="${srv.name}" class="w-10 h-10 object-contain rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs" onerror="this.src='/favicon.svg'; this.onerror=null;" />`
+                  : `<div class="w-10 h-10 rounded-lg bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-xs font-bold text-slate-400">-</div>`
+              }
             </td>
             <td class="py-3 px-4 font-semibold text-slate-900">${srv.name}</td>
             <td class="py-3 px-4 text-slate-500">${srv.estimated_duration_mins} Menit</td>
@@ -223,12 +233,57 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
   const prefixInput = document.getElementById('input-service-prefix') as HTMLInputElement | null;
   const durationInput = document.getElementById('input-service-duration') as HTMLInputElement | null;
   const activeInput = document.getElementById('input-service-active') as HTMLInputElement | null;
+  const imageFileInput = document.getElementById('input-service-image-file') as HTMLInputElement | null;
+  const imageUrlInput = document.getElementById('input-service-image-url') as HTMLInputElement | null;
+  const previewBox = document.getElementById('service-image-preview-box');
+  const previewImg = document.getElementById('service-image-preview-img') as HTMLImageElement | null;
+  const previewText = document.getElementById('service-image-preview-text');
+  const btnRemoveImage = document.getElementById('btn-remove-service-image');
+  const tabImgUpload = document.getElementById('tab-img-upload');
+  const tabImgUrl = document.getElementById('tab-img-url');
+  const paneImgUpload = document.getElementById('pane-img-upload');
+  const paneImgUrl = document.getElementById('pane-img-url');
   const errorEl = document.getElementById('service-form-error');
+
+  function updateImagePreview(url: string) {
+    if (!previewBox || !previewImg) return;
+    const clean = (url || '').trim();
+    if (clean) {
+      previewImg.src = resolveImageUrl(clean);
+      if (previewText) {
+        previewText.textContent = clean.split('/').pop() || clean;
+      }
+      previewBox.classList.remove('hidden');
+    } else {
+      previewImg.src = '';
+      previewBox.classList.add('hidden');
+    }
+  }
+
+  function switchImageTab(mode: 'upload' | 'url') {
+    if (mode === 'upload') {
+      tabImgUpload?.classList.add('bg-blue-100', 'text-blue-600');
+      tabImgUpload?.classList.remove('text-slate-600');
+      tabImgUrl?.classList.remove('bg-blue-100', 'text-blue-600');
+      tabImgUrl?.classList.add('text-slate-600');
+      paneImgUpload?.classList.remove('hidden');
+      paneImgUrl?.classList.add('hidden');
+    } else {
+      tabImgUrl?.classList.add('bg-blue-100', 'text-blue-600');
+      tabImgUrl?.classList.remove('text-slate-600');
+      tabImgUpload?.classList.remove('bg-blue-100', 'text-blue-600');
+      tabImgUpload?.classList.add('text-slate-600');
+      paneImgUrl?.classList.remove('hidden');
+      paneImgUpload?.classList.add('hidden');
+    }
+  }
 
   function openServiceModal(srv?: ServiceResponse) {
     if (!modal || !form || !nameInput || !prefixInput || !durationInput || !activeInput || !idInput) return;
 
     if (errorEl) errorEl.classList.add('hidden');
+    switchImageTab('upload');
+    if (imageFileInput) imageFileInput.value = '';
 
     if (srv) {
       if (modalTitle) modalTitle.textContent = 'Edit Kategori Layanan';
@@ -238,6 +293,8 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
       prefixInput.disabled = true; // Prefix cannot be modified once created
       durationInput.value = String(srv.estimated_duration_mins);
       activeInput.checked = srv.is_active;
+      if (imageUrlInput) imageUrlInput.value = srv.image_url || '';
+      updateImagePreview(srv.image_url || '');
     } else {
       if (modalTitle) modalTitle.textContent = 'Tambah Kategori Layanan';
       idInput.value = '';
@@ -245,6 +302,8 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
       prefixInput.disabled = false;
       durationInput.value = '5';
       activeInput.checked = true;
+      if (imageUrlInput) imageUrlInput.value = '';
+      updateImagePreview('');
     }
 
     modal.classList.remove('hidden');
@@ -265,6 +324,36 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
     if (closeBtn) closeBtn.addEventListener('click', closeServiceModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeServiceModal);
 
+    tabImgUpload?.addEventListener('click', () => switchImageTab('upload'));
+    tabImgUrl?.addEventListener('click', () => switchImageTab('url'));
+
+    imageFileInput?.addEventListener('change', async () => {
+      const file = imageFileInput.files?.[0];
+      if (!file) return;
+
+      if (errorEl) errorEl.classList.add('hidden');
+      const res = await uploadImage(file);
+      if (res.success && res.data) {
+        if (imageUrlInput) imageUrlInput.value = res.data.url;
+        updateImagePreview(res.data.url);
+      } else {
+        if (errorEl) {
+          errorEl.textContent = res.error?.message || 'Gagal mengunggah gambar.';
+          errorEl.classList.remove('hidden');
+        }
+      }
+    });
+
+    imageUrlInput?.addEventListener('input', () => {
+      updateImagePreview(imageUrlInput.value);
+    });
+
+    btnRemoveImage?.addEventListener('click', () => {
+      if (imageUrlInput) imageUrlInput.value = '';
+      if (imageFileInput) imageFileInput.value = '';
+      updateImagePreview('');
+    });
+
     if (form) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -275,6 +364,7 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
         const prefix = prefixInput.value.trim().toUpperCase();
         const estimated_duration_mins = parseInt(durationInput.value, 10) || 5;
         const is_active = activeInput.checked;
+        const image_url = imageUrlInput?.value.trim() || undefined;
 
         if (errorEl) errorEl.classList.add('hidden');
 
@@ -285,6 +375,7 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
               prefix,
               estimated_duration_mins,
               is_active,
+              image_url,
             });
             if (res.success) {
               closeServiceModal();
@@ -301,6 +392,7 @@ import ServiceFormModal from '../../components/admin/ServiceFormModal.astro';
               name,
               prefix,
               estimated_duration_mins,
+              image_url,
             });
             if (res.success) {
               closeServiceModal();

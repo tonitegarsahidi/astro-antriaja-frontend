@@ -96,6 +96,78 @@
         </div>
       </div>
 
+      <!-- Service Image (Upload or URL) -->
+      <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+            Gambar Layanan <span class="text-slate-400 font-normal lowercase">(opsional)</span>
+          </label>
+          <div class="flex items-center space-x-1 text-xs">
+            <button
+              type="button"
+              id="tab-img-upload"
+              class="px-2.5 py-1 rounded-md font-semibold text-blue-600 bg-blue-100 hover:bg-blue-200 transition-colors cursor-pointer"
+            >
+              Upload File
+            </button>
+            <button
+              type="button"
+              id="tab-img-url"
+              class="px-2.5 py-1 rounded-md font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+            >
+              Input URL
+            </button>
+          </div>
+        </div>
+
+        <!-- File Upload Input Pane -->
+        <div id="pane-img-upload" class="space-y-1.5">
+          <input
+            id="input-service-image-file"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-300 rounded-lg p-1 bg-white"
+          />
+          <p class="text-[11px] text-slate-500">Maks. 5 MB (PNG, JPG, WEBP, GIF)</p>
+        </div>
+
+        <!-- URL Input Pane (Hidden by default, or accessible directly) -->
+        <div id="pane-img-url" class="space-y-1.5 hidden">
+          <input
+            id="input-service-image-url"
+            name="image_url"
+            type="text"
+            placeholder="https://contoh.com/icon.png atau /uploads/images/..."
+            class="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+          />
+          <p class="text-[11px] text-slate-500">Masukkan URL lengkap gambar eksternal atau berkas lokal</p>
+        </div>
+
+        <!-- Image Preview Box -->
+        <div
+          id="service-image-preview-box"
+          class="hidden flex items-center space-x-3 p-2 bg-white rounded-lg border border-slate-200"
+        >
+          <img
+            id="service-image-preview-img"
+            src=""
+            alt="Preview Gambar Layanan"
+            class="w-12 h-12 object-contain rounded-md border border-slate-100 bg-slate-50"
+          />
+          <div class="flex-1 min-w-0">
+            <p id="service-image-preview-text" class="text-xs font-mono text-slate-600 truncate"></p>
+            <span class="text-[10px] text-emerald-600 font-semibold">✓ Gambar Siap Ditampilkan</span>
+          </div>
+          <button
+            type="button"
+            id="btn-remove-service-image"
+            class="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
+          >
+            Hapus
+          </button>
+        </div>
+      </div>
+
       <!-- Active Toggle -->
       <div class="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
         <div>
