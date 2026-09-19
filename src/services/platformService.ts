@@ -11,6 +11,7 @@ import type {
   CreatePlatformTenantRequest,
   RotatePlatformDeviceKeyResponse,
   ListPlatformTenantsParams,
+  PlatformTicketAnalyticsResponse,
 } from '../types/platform.types';
 
 const http = new HttpClient();
@@ -173,3 +174,19 @@ export async function deletePlatformTenant(
     token: getPlatformToken() || undefined,
   });
 }
+
+/**
+ * Mengambil statistik volume tiket, grafik harian, dan top 10 tenant teraktif
+ */
+export async function getPlatformTicketAnalytics(
+  days: number = 14
+): Promise<ApiResponse<PlatformTicketAnalyticsResponse>> {
+  return http.request<PlatformTicketAnalyticsResponse>(
+    `/platform/analytics/tickets?days=${days}`,
+    {
+      method: 'GET',
+      token: getPlatformToken() || undefined,
+    }
+  );
+}
+

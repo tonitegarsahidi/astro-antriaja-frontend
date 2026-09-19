@@ -4,10 +4,12 @@ import PlatformLayout from '../src/layouts/PlatformLayout.astro';
 import PlatformLoginPage from '../src/pages/platform/login.astro';
 import PlatformDashboardPage from '../src/pages/platform/index.astro';
 import PlatformTenantsPage from '../src/pages/platform/tenants.astro';
+import PlatformAnalyticsPage from '../src/pages/platform/analytics.astro';
 import {
   platformLogin,
   getPlatformMe,
   getPlatformMetrics,
+  getPlatformTicketAnalytics,
   listPlatformTenants,
   getPlatformTenant,
   createPlatformTenant,
@@ -392,6 +394,63 @@ describe('Modul C3: Platform Super-Admin CMS Dashboard', () => {
         })
       );
     });
+
+    it('getPlatformTicketAnalytics: calls GET /platform/analytics/tickets and returns summary, daily trend, and top tenants', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: {
+            summary: {
+              total_tickets_all_time: 1500,
+              total_tickets_today: 120,
+              total_tickets_yesterday: 100,
+              diff_percentage: 20.0,
+              avg_serving_time_mins: 4.5,
+            },
+            daily_trend: [
+              { date: '2026-09-15', total_tickets: 100, completed_tickets: 95 },
+              { date: '2026-09-16', total_tickets: 120, completed_tickets: 110 },
+            ],
+            top_tenants_today: [
+              {
+                rank: 1,
+                tenant_id: 'tnt-001',
+                name: 'Klinik Medika',
+                slug: 'klinik-medika',
+                status: 'active',
+                total_tickets: 80,
+                percentage: 66.6,
+              },
+            ],
+            top_tenants_yesterday: [
+              {
+                rank: 1,
+                tenant_id: 'tnt-001',
+                name: 'Klinik Medika',
+                slug: 'klinik-medika',
+                status: 'active',
+                total_tickets: 70,
+                percentage: 70.0,
+              },
+            ],
+          },
+          error: null,
+        }),
+      });
+
+      const res = await getPlatformTicketAnalytics(14);
+
+      expect(res.success).toBe(true);
+      expect(res.data?.summary.total_tickets_today).toBe(120);
+      expect(res.data?.daily_trend).toHaveLength(2);
+      expect(res.data?.top_tenants_today[0].rank).toBe(1);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/platform/analytics/tickets?days=14'),
+        expect.anything()
+      );
+    });
   });
 
   describe('PlatformLayout.astro Component', () => {
@@ -407,6 +466,60 @@ describe('Modul C3: Platform Super-Admin CMS Dashboard', () => {
       expect(result).toContain('href="/platform/tenants"');
       expect(result).toContain('id="badge-superadmin"');
       expect(result).toContain('id="btn-platform-logout"');
+    });
+
+    it('renders categorized navigation groups, quick action links, and landing redirect', async () => {
+      const container = await AstroContainer.create();
+      const result = await container.renderToString(PlatformLayout, {
+        props: {
+          title: 'Platform Dashboard - AntriAja Super-Admin',
+          activePage: 'dashboard',
+        },
+      });
+
+      // Group headers
+      expect(result).toContain('Supervisi Platform');
+      expect(result).toContain('Aksi Platform');
+      expect(result).toContain('Navigasi AntriAja');
+
+      // Platform navigation links
+      expect(result).toContain('href="/platform/analytics"');
+      expect(result).toContain('Statistik &amp; Beban Server');
+
+      // Quick action to create tenant
+      expect(result).toContain('href="/platform/tenants?action=create"');
+      expect(result).toContain('Tambah Tenant');
+
+      // Link to landing page
+      expect(result).toContain('href="/"');
+      expect(result).toContain('Portal Utama');
+    });
+
+    it('renders prominent logout section and confirmation modal with cancel & confirm buttons', async () => {
+      const container = await AstroContainer.create();
+      const result = await container.renderToString(PlatformLayout, {
+        props: { title: 'Platform Dashboard - AntriAja Super-Admin' },
+      });
+
+      // Prominent logout button label
+      expect(result).toContain('Keluar Sesi Platform');
+
+      // Logout modal and its control buttons
+      expect(result).toContain('id="modal-platform-logout"');
+      expect(result).toContain('id="btn-cancel-platform-logout"');
+      expect(result).toContain('id="btn-confirm-platform-logout"');
+      expect(result).toContain('Konfirmasi Keluar');
+    });
+
+    it('renders responsive off-canvas drawer controls and backdrop overlay', async () => {
+      const container = await AstroContainer.create();
+      const result = await container.renderToString(PlatformLayout, {
+        props: { title: 'Platform Dashboard - AntriAja Super-Admin' },
+      });
+
+      expect(result).toContain('id="platform-sidebar-backdrop"');
+      expect(result).toContain('id="btn-toggle-platform-mobile"');
+      expect(result).toContain('id="btn-close-platform-sidebar"');
     });
   });
 
@@ -455,6 +568,27 @@ describe('Modul C3: Platform Super-Admin CMS Dashboard', () => {
       expect(result).toContain('id="modal-create-tenant"');
       expect(result).toContain('id="modal-status-confirm"');
       expect(result).toContain('id="modal-rotate-key"');
+    });
+  });
+
+  describe('src/pages/platform/analytics.astro Page', () => {
+    it('renders ticket statistics, daily barchart container, and top 10 tenants tables', async () => {
+      const container = await AstroContainer.create();
+      const result = await container.renderToString(PlatformAnalyticsPage);
+
+      expect(result).toContain('Statistik &amp; Beban Server');
+      expect(result).toContain('id="stat-total-tickets-all-time"');
+      expect(result).toContain('id="stat-total-tickets-today"');
+      expect(result).toContain('id="stat-total-tickets-yesterday"');
+      expect(result).toContain('id="stat-avg-serving-time"');
+
+      // Daily Barchart
+      expect(result).toContain('id="chart-daily-tickets"');
+
+      // Top 10 Tenants
+      expect(result).toContain('id="tab-top-tenants-today"');
+      expect(result).toContain('id="tab-top-tenants-yesterday"');
+      expect(result).toContain('id="table-top-tenants"');
     });
   });
 });

@@ -4,7 +4,7 @@ import BaseLayout from './BaseLayout.astro';
 interface Props {
   title?: string;
   description?: string;
-  activePage?: 'dashboard' | 'tenants' | 'settings';
+  activePage?: 'dashboard' | 'analytics' | 'tenants' | 'settings';
 }
 
 const {
@@ -13,26 +13,65 @@ const {
   activePage = 'dashboard',
 } = Astro.props;
 
-const navItems = [
+const navGroups = [
   {
-    id: 'dashboard',
-    label: 'Dashboard Metrik',
-    href: '/platform',
-    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />`,
+    title: 'Supervisi Platform',
+    items: [
+      {
+        id: 'dashboard',
+        label: 'Dashboard Metrik',
+        href: '/platform',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />`,
+      },
+      {
+        id: 'analytics',
+        label: 'Statistik & Beban Server',
+        href: '/platform/analytics',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />`,
+      },
+      {
+        id: 'tenants',
+        label: 'Manajemen Tenant',
+        href: '/platform/tenants',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />`,
+      },
+    ],
   },
   {
-    id: 'tenants',
-    label: 'Manajemen Tenant',
-    href: '/platform/tenants',
-    icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />`,
+    title: 'Aksi Platform',
+    items: [
+      {
+        id: 'create-tenant',
+        label: 'Tambah Tenant',
+        href: '/platform/tenants?action=create',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />`,
+      },
+    ],
+  },
+  {
+    title: 'Navigasi AntriAja',
+    items: [
+      {
+        id: 'landing',
+        label: 'Portal Utama',
+        href: '/',
+        icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />`,
+      },
+    ],
   },
 ];
 ---
 
 <BaseLayout title={title} description={description} hideNav={true}>
   <div class="min-h-screen bg-slate-100 flex flex-col md:flex-row font-sans">
+    <!-- Mobile Backdrop Overlay -->
+    <div
+      id="platform-sidebar-backdrop"
+      class="fixed inset-0 bg-slate-950/70 z-40 hidden md:hidden transition-opacity backdrop-blur-xs"
+    ></div>
+
     <!-- Mobile Top Navigation Bar -->
-    <div class="md:hidden bg-slate-950 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 sticky top-0 z-50 shadow-md">
+    <div class="md:hidden bg-slate-950 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 sticky top-0 z-30 shadow-md">
       <div class="flex items-center space-x-2.5">
         <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-indigo-500/30">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -59,10 +98,13 @@ const navItems = [
       </button>
     </div>
 
-    <!-- Sidebar Navigation -->
-    <aside id="platform-sidebar" class="hidden md:flex w-full md:w-64 bg-slate-950 text-white flex-col shrink-0 border-r border-slate-800 transition-all">
+    <!-- Sidebar Navigation Drawer -->
+    <aside
+      id="platform-sidebar"
+      class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-950 text-white flex flex-col shrink-0 border-r border-slate-800 transition-transform duration-300 -translate-x-full md:static md:translate-x-0 overflow-y-auto"
+    >
       <!-- Brand & Super-Admin Badge -->
-      <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center font-black shadow-md shadow-indigo-500/30">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -78,51 +120,73 @@ const navItems = [
             </span>
           </div>
         </div>
+
+        <!-- Close button on mobile -->
+        <button
+          id="btn-close-platform-sidebar"
+          type="button"
+          class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer"
+          aria-label="Tutup Menu"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
-      <!-- Navigation Links -->
-      <nav class="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = activePage === item.id;
-          return (
-            <a
-              href={item.href}
-              class={`flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                isActive
-                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20 font-semibold'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
-              }`}
-            >
-              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" set:html={item.icon} />
-              <span>{item.label}</span>
-            </a>
-          );
-        })}
-      </nav>
-
-      <!-- User Info & Logout -->
-      <div class="p-4 border-t border-slate-800 bg-slate-900/50">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2.5 overflow-hidden">
-            <div class="w-8 h-8 rounded-full bg-indigo-900 text-indigo-200 border border-indigo-700 flex items-center justify-center font-bold text-xs shrink-0">
-              SA
+      <!-- Navigation Groups -->
+      <nav class="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+        {navGroups.map((group) => (
+          <div class="space-y-1">
+            <div class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              {group.title}
             </div>
-            <div class="truncate">
-              <span id="platform-admin-name" class="text-xs font-semibold text-white block truncate">Super Admin</span>
-              <span class="text-[10px] text-slate-400 block truncate">Platform Console</span>
+            <div class="space-y-1 pt-1">
+              {group.items.map((item) => {
+                const isActive = activePage === item.id;
+                return (
+                  <a
+                    href={item.href}
+                    class={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                      isActive
+                        ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20 font-semibold'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                    }`}
+                  >
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" set:html={item.icon} />
+                    <span>{item.label}</span>
+                  </a>
+                );
+              })}
             </div>
           </div>
-          <button
-            id="btn-platform-logout"
-            type="button"
-            class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-            title="Keluar dari Konsol Platform"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
+        ))}
+      </nav>
+
+      <!-- User Info & Logout Button -->
+      <div class="p-4 border-t border-slate-800 bg-slate-900/50 space-y-3">
+        <div class="flex items-center space-x-2.5 overflow-hidden">
+          <div class="w-8 h-8 rounded-full bg-indigo-900 text-indigo-200 border border-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+            SA
+          </div>
+          <div class="truncate">
+            <span id="platform-admin-name" class="text-xs font-semibold text-white block truncate">Super Administrator</span>
+            <span class="text-[10px] text-indigo-400 font-medium block truncate">PLATFORM SUPER-ADMIN</span>
+          </div>
         </div>
+
+        <!-- Prominent Logout Trigger Button -->
+        <button
+          id="btn-platform-logout"
+          type="button"
+          class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all cursor-pointer shadow-xs"
+          title="Keluar dari Konsol Platform"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span>Keluar Sesi Platform</span>
+        </button>
       </div>
     </aside>
 
@@ -130,6 +194,44 @@ const navItems = [
     <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
       <slot />
     </main>
+
+    <!-- Logout Confirmation Modal -->
+    <div
+      id="modal-platform-logout"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs hidden p-4"
+    >
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
+        <div class="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold text-white">Konfirmasi Keluar</h3>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+            Apakah Anda yakin ingin mengakhiri sesi platform Super-Admin AntriAja?
+          </p>
+        </div>
+
+        <div class="flex items-center space-x-3 pt-2">
+          <button
+            id="btn-cancel-platform-logout"
+            type="button"
+            class="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-colors cursor-pointer"
+          >
+            Batal
+          </button>
+          <button
+            id="btn-confirm-platform-logout"
+            type="button"
+            class="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-rose-600/20 transition-all cursor-pointer"
+          >
+            Ya, Keluar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </BaseLayout>
 
@@ -143,20 +245,54 @@ const navItems = [
       return;
     }
 
+    // Modal and Logout Logic
     const logoutBtn = document.getElementById('btn-platform-logout');
-    if (logoutBtn) {
+    const modalLogout = document.getElementById('modal-platform-logout');
+    const cancelLogoutBtn = document.getElementById('btn-cancel-platform-logout');
+    const confirmLogoutBtn = document.getElementById('btn-confirm-platform-logout');
+
+    if (logoutBtn && modalLogout) {
       logoutBtn.addEventListener('click', () => {
+        modalLogout.classList.remove('hidden');
+      });
+    }
+
+    if (cancelLogoutBtn && modalLogout) {
+      cancelLogoutBtn.addEventListener('click', () => {
+        modalLogout.classList.add('hidden');
+      });
+    }
+
+    if (confirmLogoutBtn) {
+      confirmLogoutBtn.addEventListener('click', () => {
         removePlatformToken();
         window.location.href = '/platform/login';
       });
     }
 
+    // Mobile Drawer Logic
     const toggleBtn = document.getElementById('btn-toggle-platform-mobile');
+    const closeBtn = document.getElementById('btn-close-platform-sidebar');
     const sidebar = document.getElementById('platform-sidebar');
-    if (toggleBtn && sidebar) {
-      toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('hidden');
-      });
-    }
+    const backdrop = document.getElementById('platform-sidebar-backdrop');
+
+    const openSidebar = () => {
+      if (sidebar && backdrop) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+      }
+    };
+
+    const closeSidebar = () => {
+      if (sidebar && backdrop) {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+      }
+    };
+
+    if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+    if (backdrop) backdrop.addEventListener('click', closeSidebar);
   });
 </script>
+

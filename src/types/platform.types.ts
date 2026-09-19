@@ -115,3 +115,35 @@ export interface ListPlatformTenantsParams {
   search?: string;
   status?: string;
 }
+
+export interface PlatformDailyTrendItem {
+  date: string;
+  total_tickets: number;
+  completed_tickets: number;
+}
+
+export interface PlatformTopTenantItem {
+  rank: number;
+  tenant_id: string;
+  name: string;
+  slug: string;
+  status: 'active' | 'suspended' | 'trial';
+  total_tickets: number;
+  percentage: number;
+}
+
+export interface PlatformTicketAnalyticsSummary {
+  total_tickets_all_time: number;
+  total_tickets_today: number;
+  total_tickets_yesterday: number;
+  diff_percentage: number;
+  avg_serving_time_mins: number;
+}
+
+export interface PlatformTicketAnalyticsResponse {
+  summary: PlatformTicketAnalyticsSummary;
+  daily_trend: PlatformDailyTrendItem[];
+  top_tenants_today: PlatformTopTenantItem[];
+  top_tenants_yesterday: PlatformTopTenantItem[];
+}
+

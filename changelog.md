@@ -5,9 +5,23 @@ Format mengacu pada prinsip Keep a Changelog dan konvensi semantik.
 
 ---
 
-## [Unreleased] - 2026-09-15
+## [Unreleased] - 2026-09-16
 
 ### Ditambahkan & Diperbaiki
+- **Fase 20: Halaman Analitik Statistik Tiket, Grafik Harian Barchart, & Top 10 Tenant Teraktif (/platform/analytics):**
+  - **Halaman Baru Analitik Platform**: Implementasi [`src/pages/platform/analytics.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/pages/platform/analytics.astro) lengkap dengan ringkasan 4 kartu metrik (Total Tiket All-time, Tiket Hari Ini, Tiket Kemarin + selisih %, dan rata-rata waktu layanan).
+  - **Visualisasi Barchart Distribusi Harian**: Grafik batang 14 hari terakhir zero-dependency berbasis CSS/SVG dengan tinggi proporsional, garis panduan, label tanggal, dan tooltip hover menampilkan total tiket & tiket selesai.
+  - **Top 10 Tenant Teraktif (Load Estimasi Server)**: Tabel peringkat interaktif dilengkapi tab switcher ("Hari Ini" vs "Kemarin"), medali peringkat Top 3, indikator status, total tiket, progress bar persentase kontribusi beban server, serta tombol pintas kelola tenant.
+  - **Integrasi Navigasi & Client Service**: Penambahan menu "Statistik & Beban Server" (`/platform/analytics`) pada [`src/layouts/PlatformLayout.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/layouts/PlatformLayout.astro), fungsi `getPlatformTicketAnalytics` pada [`src/services/platformService.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/services/platformService.ts), dan tipe DTO pada [`src/types/platform.types.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/types/platform.types.ts).
+  - **Testing & Build Verification**: Penambahan skenario tes di [`tests/platformCMS.test.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/tests/platformCMS.test.ts) (37 test suites / 225 automated tests PASS 100%, `npm run check` 0 errors, `npm run build` sukses 22 static pages).
+
+- **Fase 19: Penyempurnaan Sidebar, Menu Bernavigasi Grup, & Modal Logout Platform Super-Admin (/platform):**
+  - **Navigasi Hirarkis Terstruktur**: Mengelompokkan menu di [`src/layouts/PlatformLayout.astro`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/layouts/PlatformLayout.astro) menjadi 3 grup: "Supervisi Platform" (Dashboard Metrik `/platform` & Manajemen Tenant `/platform/tenants`), "Aksi Platform" (Tambah Tenant `/platform/tenants?action=create`), dan "Navigasi AntriAja" (Portal Utama `/`).
+  - **Kartu Profil Super-Admin & Tombol Logout Menonjol**: Penambahan avatar `SA`, nama `Super Administrator`, badge `PLATFORM SUPER-ADMIN`, serta tombol blok penuh berlabel tegas "Keluar Sesi Platform" (`#btn-platform-logout`).
+  - **Modal Konfirmasi Logout**: Mengimplementasikan modal dialog interaktif (`#modal-platform-logout`) dengan opsi Batal (`#btn-cancel-platform-logout`) dan Konfirmasi Keluar (`#btn-confirm-platform-logout`) yang secara aman menghapus token platform dan mengarahkan pengguna ke `/platform/login`.
+  - **Drawer Responsif Off-Canvas**: Menghadirkan drawer slide-over (`-translate-x-full md:translate-x-0`) lengkap dengan backdrop overlay gelap (`#platform-sidebar-backdrop`), tombol hamburger mobile (`#btn-toggle-platform-mobile`), dan tombol tutup silang (`#btn-close-platform-sidebar`).
+  - **Verifikasi Kualitas & Testing**: Penambahan 3 skenario tes pada [`tests/platformCMS.test.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/tests/platformCMS.test.ts) (37 test suites / 223 tests PASS 100%, `npm run check` 0 errors, `npm run build` sukses 21 static pages).
+
 - **Fase 18: Perbaikan Interaktivitas, Navigasi Menu, & Stacking Context Sidebar Staf:**
   - **Inisialisasi Sinkron Event Listener**: Memindahkan pendaftaran event listener (`setupActionButtons`, `setupTabSwitching`, `setupModalListeners`, `setupHeaderListeners`) ke awal `initStaffConsole` secara sinkron sebelum request jaringan (`await getMe()`). Hal ini menjamin seluruh tombol di sidebar dan halaman langsung responsif seketika saat DOM siap tanpa terhambat oleh latensi atau kegagalan koneksi API.
   - **Auto-Timeout Jaringan**: Menambahkan batas timeout default (10 detik) menggunakan `AbortSignal.timeout()` pada [`src/lib/httpClient.ts`](file:///home/ruangrimbun/MOREDATA/KERJA3/ANTRIAJA/astro-antriaja-frontend/src/lib/httpClient.ts) untuk mencegah browser mengalami *infinite request hang*.
